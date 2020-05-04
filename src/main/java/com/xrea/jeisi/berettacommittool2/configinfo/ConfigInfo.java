@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.yaml.snakeyaml.Yaml;
@@ -23,7 +24,8 @@ public class ConfigInfo {
 
     private Path configFile;
     private HashMap<String, Object> map = new HashMap<>();
-
+    //private static ConfigInfo instance = new ConfigInfo();
+    
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
     }
@@ -47,7 +49,27 @@ public class ConfigInfo {
     public List<String> getCommitMessageHistory() {
         return (List<String>) map.get("commitMessageHistory");
     }
+    
+    public void setWindowRectangle(String windowName, double x, double y, double width, double height) {
+        map.put(windowName + ".rectangle", new double[]{x, y, width, height});
+    }
 
+    public WindowRectangle getWindowRectangle(String windowName) {
+        List<Double> r = (List<Double>) map.get(windowName + ".rectangle");
+        if(r == null) {
+            return null;
+        }
+        return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
+    }
+    
+    public void setDouble(String key, double value) {
+        map.put(key, value);
+    }
+    
+    public Double getDouble(String key) {
+        return (Double) map.get(key);
+    }
+    
     public void save() throws IOException {
         pruneDirectoryHistory();
 
@@ -79,6 +101,10 @@ public class ConfigInfo {
     }
 
     private void pruneDirectoryHistory() {
-        getDirectoryHistory().removeIf(e -> !Files.exists(Paths.get(e)));
+        List<String> directoryHistory = getDirectoryHistory();
+        if(directoryHistory == null) {
+            return;
+        }
+        directoryHistory.removeIf(e -> !Files.exists(Paths.get(e)));
     }
 }

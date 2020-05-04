@@ -18,6 +18,7 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.BorderPane;
 
 /**
  *
@@ -53,8 +54,8 @@ public class RepositoriesPane {
         nameColumn.setCellFactory((p) -> new StyleTableCell());
 
         tableView.getColumns().setAll(checkColumn, nameColumn);
-
         return tableView;
+        //return new BorderPane(tableView);
     }
 
     public Menu buildMenu() {        

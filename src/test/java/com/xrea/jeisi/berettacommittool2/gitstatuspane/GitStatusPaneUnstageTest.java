@@ -43,12 +43,14 @@ public class GitStatusPaneUnstageTest {
     private GitStatusPane app;
     private RepositoriesPane repositoriesPane;
     private Menu statusMenu;
+    private Stage stage;
 
     public GitStatusPaneUnstageTest() {
     }
 
     @Start
     public void start(Stage stage) {
+        this.stage = stage;
         app = new GitStatusPane();
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
@@ -107,6 +109,10 @@ public class GitStatusPaneUnstageTest {
         robot.clickOn("#gitStatusMenu");
         robot.clickOn("#gitStatusUnstageMenuItem", Motion.DIRECT);
         JTestUtility.waitForRunLater();
+        
+        //while(stage.showingProperty().get()) {
+        //    Thread.sleep(1000);
+        //}
         
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
             while(!gitStatusTableView.getItems().toString().equals("[{?, ?, b.txt, .}, {A, , c.txt, .}]")) {

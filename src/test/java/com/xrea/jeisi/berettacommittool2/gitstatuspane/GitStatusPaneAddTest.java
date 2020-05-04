@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitAddCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
@@ -33,6 +35,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,12 +55,14 @@ public class GitStatusPaneAddTest {
     private GitStatusPane app;
     private RepositoriesPane repositoriesPane;
     private Menu statusMenu;
+    private Stage stage;
 
     public GitStatusPaneAddTest() {
     }
 
     @Start
     public void start(Stage stage) {
+        this.stage = stage;
         app = new GitStatusPane();
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
@@ -75,9 +80,17 @@ public class GitStatusPaneAddTest {
         stage.show();
     }
 
+    @AfterEach
+    public void tearDown() {
+        Platform.runLater(() -> {
+            stage.close();
+            GitThreadMan.closeAll();
+        });
+    }
+    
     @Test
     public void testAdd(FxRobot robot) throws InterruptedException, IOException {
-        //System.out.println("testAdd()");
+        System.out.println("testAdd()");
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
@@ -133,6 +146,7 @@ public class GitStatusPaneAddTest {
     // git add 実行後の git status で、その行がなくなった時は、その行を削除。
     public void testAdd_DeleteLine(FxRobot robot) throws InterruptedException, IOException {
         System.out.println("testAdd_DeleteLine()");
+        JTestUtility.waitForRunLater();
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
@@ -156,7 +170,10 @@ public class GitStatusPaneAddTest {
 
         // git add 実行前の状態。
         TableView<GitStatusData> gitStatusTableView = robot.lookup("#gitStatusTableView").queryAs(TableView.class);
-        //assertThat(gitStatusTableView.getItems().get(0).toString()).isEqualTo("{?, ?, gyp.sh, .}");
+        int nCounter = 0;
+        while(gitStatusTableView.getItems().toString().equals("") && ++nCounter < 10) {
+            Thread.sleep(100);
+        }
         assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
 
         MockStatus mockStatus = new MockStatus();
@@ -178,11 +195,16 @@ public class GitStatusPaneAddTest {
         robot.clickOn("#gitStatusMenu");
         robot.clickOn("#gitStatusAddMenuItem", Motion.DIRECT);
         JTestUtility.waitForRunLater();
-        int nCounter = 0;
+        nCounter = 0;
         while (!gitStatusTableView.getItems().toString().equals("[]") && ++nCounter < 10) {
             Thread.sleep(1000);
+            System.out.println("Thread.sleep(): " + nCounter);
         }
         assertEquals("[]", gitStatusTableView.getItems().toString());
+        
+        //while(true) {
+        //    Thread.sleep(1000);
+        //}
     }
 
     @Test
@@ -240,6 +262,10 @@ public class GitStatusPaneAddTest {
         assertEquals("[{A, , update.rb, .}]", gitStatusTableView.getItems().toString());
         // git add したことにより状態が変わったので、"Git add" MenuItem は選択不可になる。
         assertTrue(addMenuItem.isDisable());
+        
+        //while(true) {
+        //    Thread.sleep(1000);
+        //}
     }
 
     private MenuItem getMenuItem(Menu menu, String menuItemId) {

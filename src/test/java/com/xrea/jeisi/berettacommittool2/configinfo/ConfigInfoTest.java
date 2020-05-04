@@ -66,6 +66,16 @@ public class ConfigInfoTest {
     }
 
     @Test
+    // DirectoryHistory が存在しない状態で save() が実行された場合は、prune() は実行されない。
+    public void testPruneWithoutDirectoryHistory() throws IOException {
+        ConfigInfo saveConfigInfo = new ConfigInfo();
+        Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");
+        saveConfigInfo.setConfigFile(configFile);
+
+        saveConfigInfo.save();
+    }
+
+    @Test
     // ~/.BerettaCommitTool2/ が存在しない時は、何もしない。
     public void testLoad_NoBerettaCommitTool2Directory() throws IOException, InterruptedException {
         String userDir = System.getProperty("user.dir");
@@ -101,5 +111,65 @@ public class ConfigInfoTest {
         configInfo.load();
 
         // ~/.BerettaCommitTool2/config.yaml が存在しないので、例外が発生せずに何も行われなければ OK。
+    }
+
+    @Test
+    // Window の座標を覚えておく。
+    public void testSaveWindowRectangle() throws IOException {
+        ConfigInfo saveConfigInfo = new ConfigInfo();
+        Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");
+        saveConfigInfo.setConfigFile(configFile);
+
+        saveConfigInfo.setWindowRectangle("mainapp", 100, 200, 300, 400);
+        saveConfigInfo.save();
+
+        ConfigInfo loadConfigInfo = new ConfigInfo();
+        loadConfigInfo.setConfigFile(configFile);
+        loadConfigInfo.load();
+        assertThat("{100.0, 200.0, 300.0, 400.0}").isEqualTo(loadConfigInfo.getWindowRectangle("mainapp").toString());
+    }
+
+    @Test
+    // config.yaml に WindowRectangle 情報がない時に getWindowRectangle() を呼ぶと null が返る。
+    public void testLoadWindowRectangle() throws IOException {
+        ConfigInfo saveConfigInfo = new ConfigInfo();
+        Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");
+        saveConfigInfo.setConfigFile(configFile);
+
+        saveConfigInfo.save();
+
+        ConfigInfo loadConfigInfo = new ConfigInfo();
+        loadConfigInfo.setConfigFile(configFile);
+        loadConfigInfo.load();
+        assertNull(loadConfigInfo.getWindowRectangle("mainapp"));
+    }
+
+    @Test
+    public void testDouble() throws IOException {
+        ConfigInfo saveConfigInfo = new ConfigInfo();
+        Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");
+        saveConfigInfo.setConfigFile(configFile);
+
+        saveConfigInfo.setDouble("key", 50);
+        saveConfigInfo.save();
+
+        ConfigInfo loadConfigInfo = new ConfigInfo();
+        loadConfigInfo.setConfigFile(configFile);
+        loadConfigInfo.load();
+        assertThat(50.0).isEqualTo(loadConfigInfo.getDouble("key"));
+    }
+
+    @Test
+    public void testDoubleNew() throws IOException {
+        ConfigInfo saveConfigInfo = new ConfigInfo();
+        Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");
+        saveConfigInfo.setConfigFile(configFile);
+
+        saveConfigInfo.save();
+
+        ConfigInfo loadConfigInfo = new ConfigInfo();
+        loadConfigInfo.setConfigFile(configFile);
+        loadConfigInfo.load();
+        assertNull(loadConfigInfo.getDouble("key"));
     }
 }

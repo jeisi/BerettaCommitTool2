@@ -134,7 +134,6 @@ public class GitStatusPane implements BaseGitPane {
             repository.getGitStatusDatas().clear();
             GitThread thread = GitThreadMan.get(repository.getPath().toString());
             thread.addCommand(() -> {
-                //GitCommand statusCommand = new GitStatusCommand(repository.getPath().toFile());
                 GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath().toFile());
                 List<GitStatusData> gitStatusDatas;
                 try {

@@ -19,6 +19,7 @@ public class GitThreadMan {
         if(gitThread == null) {
             gitThread = new GitThread();
             gitThreads.put(directory, gitThread);
+            gitThread.setName(String.format("GitThread (%s)", directory));
             gitThread.start();
             //System.out.println(String.format("gitThread[%s].start()", directory));
         }
@@ -31,5 +32,6 @@ public class GitThreadMan {
     
     public static void closeAll() {
         gitThreads.values().forEach(e -> e.close());
+        gitThreads.clear();
     }
 }

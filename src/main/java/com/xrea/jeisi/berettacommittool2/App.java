@@ -3,19 +3,23 @@ package com.xrea.jeisi.berettacommittool2;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkPane;
+import java.awt.BorderLayout;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -45,24 +49,35 @@ public class App extends Application {
     private RepositoriesPane repositoriesPane;
     private SelectWorkPane selectWorkPane;
     private List<BaseGitPane> gitPanes;
-    private final ConfigInfo configInfo = new ConfigInfo();
+    ConfigInfo configInfo = new ConfigInfo();
     private String topDir;
+    Stage mainStage;
+    SplitPane splitPane;
     //private RepositoriesLoaderFactory repositoriesLoaderFactory = (file) -> new RepositoriesLoader(file);
+
+    public void setConfigInfo(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+    }
 
     @Override
     public void start(Stage stage) {
+        mainStage = stage;
+        loadConfig();
         var scene = buildScene(stage);
         stage.setScene(scene);
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
                 saveConfig();
                 gitPanes.forEach(e -> e.close());
+                GitThreadMan.closeAll();
             }
         });
-        stage.show();
+        stage.setTitle("BerettaCommitTool2");
 
         setupRepositoriesInfo();
-        loadConfig();
+
+        //System.out.println("stage.show()");
+        stage.show();
     }
 
     public void setupRepositoriesInfo() {
@@ -77,6 +92,9 @@ public class App extends Application {
     private void saveConfig() {
         try {
             configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
+            configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), mainStage.getWidth(), mainStage.getHeight());
+            configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
+            //System.out.println(splitPane.getDividerPositions()[0]);
             configInfo.save();
         } catch (IOException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,17 +105,15 @@ public class App extends Application {
     private void loadConfig() {
         try {
             configInfo.load();
-            var directoryHistory = configInfo.getDirectoryHistory();
-            if (directoryHistory != null && directoryHistory.size() > 0) {
-                selectWorkPane.setDirectoryHistory(directoryHistory);
-            }
         } catch (IOException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
             Alert alert = new Alert(AlertType.ERROR, ex.getLocalizedMessage(), ButtonType.CLOSE);
+            alert.showAndWait();
         }
     }
 
     Scene buildScene(Stage stage) {
+        //System.out.println("App.buildScene()");
         selectWorkPane = new SelectWorkPane(stage);
         selectWorkPane.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -106,6 +122,10 @@ public class App extends Application {
                 setRootDirectory(selectedDirectory);
             }
         });
+        var directoryHistory = configInfo.getDirectoryHistory();
+        if (directoryHistory != null && directoryHistory.size() > 0) {
+            selectWorkPane.setDirectoryHistory(directoryHistory);
+        }
 
         repositoriesPane = new RepositoriesPane();
 
@@ -117,8 +137,14 @@ public class App extends Application {
             tabPane.getTabs().add(tab);
         });
 
-        var splitPane = new SplitPane();
-        splitPane.getItems().addAll(repositoriesPane.build(), tabPane);
+        splitPane = new SplitPane();
+        var repositoriesPaneNode = repositoriesPane.build();
+        splitPane.getItems().addAll(repositoriesPaneNode, tabPane);
+        var divider = configInfo.getDouble("main.splitpane.divider");
+        if (divider != null) {
+            splitPane.setDividerPosition(0, divider);
+        }
+        SplitPane.setResizableWithParent(repositoriesPaneNode, Boolean.FALSE);
 
         MenuBar menuBar = new MenuBar();
         menuBar.setUseSystemMenuBar(true);
@@ -135,7 +161,22 @@ public class App extends Application {
         borderPane.setTop(menuBar);
         borderPane.setCenter(vbox);
 
-        return new Scene(borderPane, 640, 480);
+        var windowRectangle = configInfo.getWindowRectangle("main");
+        double width, height;
+        if (windowRectangle != null) {
+            mainStage.setX(windowRectangle.getX());
+            mainStage.setY(windowRectangle.getY());
+            width = windowRectangle.getWidth();
+            height = windowRectangle.getHeight();
+            //width = 640;
+            //height = 480;
+            //mainStage.setWidth(windowRectangle.getWidth());
+            //mainStage.setHeight(windowRectangle.getHeight());
+        } else {
+            width = 640;
+            height = 480;
+        }
+        return new Scene(borderPane, width, height);
     }
 
     private Menu buildMenu() {
@@ -145,13 +186,13 @@ public class App extends Application {
 
         var refreshCheckedMenuItem = new MenuItem("Refresh checked");
         refreshCheckedMenuItem.setOnAction(e -> refreshChecked());
-        
+
         var refreshSelectedMenuItem = new MenuItem("Refresh selected");
         refreshSelectedMenuItem.setOnAction(e -> refreshSelected());
-        
+
         Menu menu = new Menu("Refresh");
         menu.getItems().addAll(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem);
-        
+
         return menu;
     }
 
@@ -167,7 +208,6 @@ public class App extends Application {
         }
 
         //System.out.println("getDatas(): " + repositoriesPane.getTableView().getItems().toString());
-        
         var loader = new RepositoriesLoader(Paths.get(topDir, ".git_repositories.lst"));
         //var loader = repositoriesLoaderFactory.create(Paths.get(topDir, ".git_repositories.lst"));
         List<String> repositories;
@@ -214,14 +254,14 @@ public class App extends Application {
         if (select != -1) {
             repositoriesPane.getTableView().getSelectionModel().selectIndices(select, selectedIndices);
         }
-        
+
         // 元々チェックされてなかった行に対してチェックを外す。
         repositoriesPane.getTableView().getItems().forEach(item -> {
-            if(uncheckedItems.contains(item.getPath())) {
+            if (uncheckedItems.contains(item.getPath())) {
                 item.checkProperty().set(false);
             }
         });
-        
+
     }
 
     private void refreshChecked() {
@@ -230,7 +270,7 @@ public class App extends Application {
             pane.refreshChecked();
         });
     }
-    
+
     private void refreshSelected() {
         gitPanes.forEach(pane -> pane.refreshSelected());
     }

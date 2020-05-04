@@ -77,5 +77,9 @@ public class ProgressWindowTest {
         }
 
         Thread.sleep(1000);
+        
+        //while(true) {
+        //    Thread.sleep(1000);
+        //}
     }
 }
