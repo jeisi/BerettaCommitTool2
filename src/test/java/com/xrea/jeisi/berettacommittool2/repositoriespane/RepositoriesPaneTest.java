@@ -149,9 +149,8 @@ public class RepositoriesPaneTest {
         robot.clickOn("#invertSelectionMenuItem", Motion.DIRECT);
 
         assertThat(tableView.getSelectionModel().getSelectedIndices().toString()).isEqualTo("[1]");
-
     }
-
+    
     private void waitStageShowed() throws InterruptedException {
         int nCounter = 0;
         while (!stage.showingProperty().get() && ++nCounter < 10) {

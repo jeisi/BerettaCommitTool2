@@ -22,6 +22,7 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.testfx.api.FxRobot;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 /**
  *
@@ -101,11 +102,21 @@ public class AppTest {
     }
 
     @Test
-    public void testConfigInfo() throws InterruptedException {
-        JTestUtility.waitForRunLater();
-        app.splitPane.setDividerPosition(0, 0.8);
+    public void testConfigInfo(FxRobot robot) throws InterruptedException {
         app.mainStage.setWidth(1000);
-
+        TableView<RepositoryData> tableView = robot.lookup("#tableView").queryAs(TableView.class);
+        tableView.getColumns().get(1).setPrefWidth(100);
+        
+        //waitShowingStage();
+        Thread.sleep(1000);
+        app.splitPane.setDividerPosition(0, 0.8);
+        JTestUtility.waitForRunLater();
+        while(tableView.getColumns().get(1).getWidth() != 100 || Math.abs(0.8 - app.splitPane.getDividerPositions()[0]) > 0.001) {
+            Thread.sleep(1000);
+            System.out.println(tableView.getColumns().get(1).getWidth());
+            System.out.println(app.splitPane.getDividerPositions()[0]);
+        }
+        
         Platform.runLater(() -> app.mainStage.close());
 
         wait = true;
@@ -114,7 +125,6 @@ public class AppTest {
             secondStage.showingProperty().addListener((observable, oldValue, newValue) -> {
                 if (oldValue == false && newValue == true) {
                     wait = false;
-                    System.out.println("disped.");
                 }
             });
             app.start(secondStage);
@@ -130,7 +140,16 @@ public class AppTest {
         assertEquals(0.8, app.configInfo.getDouble("main.splitpane.divider"));
         // 閉じた時点の divider の値が SplitPane に反映されている
         assertTrue(Math.abs(0.8 - app.splitPane.getDividerPositions()[0]) < 0.001);
-        
+        tableView = robot.lookup("#tableView").queryAs(TableView.class);
+        assertEquals(100, tableView.getColumns().get(1).getWidth());
+
         Platform.runLater(() -> secondStage.close());
+    }
+
+    private void waitShowingStage() throws InterruptedException {
+        int nCounter = 0;
+        while (app.mainStage.showingProperty().get() /*&& ++nCounter < 10*/) {
+            Thread.sleep(1000);
+        }
     }
 }

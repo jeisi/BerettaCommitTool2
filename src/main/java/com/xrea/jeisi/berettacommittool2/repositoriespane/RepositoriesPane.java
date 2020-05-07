@@ -5,7 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import java.util.List;
+import java.util.stream.Collectors;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
@@ -25,19 +28,26 @@ import javafx.scene.layout.BorderPane;
  * @author jeisi
  */
 public class RepositoriesPane {
+
     private ObservableList<RepositoryData> datas;
     private TableView<RepositoryData> tableView;
+    private ConfigInfo configInfo;
 
     public void setRepositories(RepositoriesInfo work) {
         datas = work.getDatas();
         tableView.setItems(datas);
     }
-    
+
+    public void setConfig(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+    }
+
     public TableView<RepositoryData> getTableView() {
         return tableView;
     }
 
     public Parent build() {
+        //System.out.println("RepositoriesPane.build()");
         tableView = new TableView<>();
         tableView.setId("tableView");
         tableView.setEditable(true);
@@ -54,11 +64,21 @@ public class RepositoriesPane {
         nameColumn.setCellFactory((p) -> new StyleTableCell());
 
         tableView.getColumns().setAll(checkColumn, nameColumn);
+
+        if (configInfo != null) {
+            List<Double> widths = configInfo.getTableColumnWidth(tableView.getId());
+            //System.out.println("widths: " + widths.toString());
+            if (widths != null) {
+                for (int index = 0; index < tableView.getColumns().size() && index < widths.size(); ++index) {
+                    tableView.getColumns().get(index).setPrefWidth(widths.get(index));
+                }
+            }
+        }
+
         return tableView;
-        //return new BorderPane(tableView);
     }
 
-    public Menu buildMenu() {        
+    public Menu buildMenu() {
         var checkAllMenuItem = new MenuItem("Check all");
         checkAllMenuItem.setId("checkAllMenuItem");
         checkAllMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
@@ -125,5 +145,16 @@ public class RepositoriesPane {
         menu.getItems().addAll(checkAllMenuItem, uncheckAllMenuItem, checkSelectionMenuItem, invertCheckedMenuItem,
                 selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem);
         return menu;
+    }
+
+    public void saveConfig() {
+        //System.out.println("RepositoriesPane.saveConfig()");
+        if (configInfo == null) {
+            return;
+        }
+
+        List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
+        configInfo.setTableColumnWidth(tableView.getId(), widths);
+        //System.out.println("widths: " + widths.toString());
     }
 }

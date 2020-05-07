@@ -6,7 +6,9 @@
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
@@ -52,15 +54,16 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class GitStatusPane implements BaseGitPane {
 
-    private ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
-    private SituationSelector gitAddSituationSelector = new SituationSelector();
+    private final SituationSelector gitAddSituationSelector = new SituationSelector();
     private ProgressWindow progressWindow = new ProgressWindow();
+    private ConfigInfo configInfo;
 
     @Override
     public String getTitle() {
@@ -98,6 +101,16 @@ public class GitStatusPane implements BaseGitPane {
         work.getChecked().addListener(changedListener);
 
         changeTargetRepositories(targetRepository);
+    }
+
+    @Override
+    public void setConfigInfo(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+    }
+
+    public void saveConfig() {
+        List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
+        configInfo.setTableColumnWidth(tableView.getId(), widths);
     }
 
     private void changeTargetRepositories(TargetRepository target) {
@@ -174,12 +187,23 @@ public class GitStatusPane implements BaseGitPane {
         workTreeTableColumn.setStyle("-fx-alignment: center;");
 
         var fileTableColumn = new TableColumn<GitStatusData, String>("File");
+        fileTableColumn.setPrefWidth(300);
         fileTableColumn.setCellValueFactory(p -> p.getValue().fileNameProperty());
 
         var repositoryTableColumn = new TableColumn<GitStatusData, String>("Repository");
+        repositoryTableColumn.setPrefWidth(300);
         repositoryTableColumn.setCellValueFactory(p -> p.getValue().getRepositoryData().nameProperty());
 
         tableView.getColumns().addAll(indexTableColumn, workTreeTableColumn, fileTableColumn, repositoryTableColumn);
+
+        if (configInfo != null) {
+            List<Double> widths = configInfo.getTableColumnWidth(tableView.getId());
+            if (widths != null) {
+                for (int index = 0; index < tableView.getColumns().size() && index < widths.size(); ++index) {
+                    tableView.getColumns().get(index).setPrefWidth(widths.get(index));
+                }
+            }
+        }
 
         singleSelectionSituationSelector.setSituation(new SingleSelectionSituation<>(tableView.getSelectionModel()));
         multiSelectionSituationSelector.setSituation(new MultiSelectionSituation<>(tableView.getSelectionModel()));
@@ -215,13 +239,22 @@ public class GitStatusPane implements BaseGitPane {
         unstageMenuItem.setOnAction(e -> gitUnstage());
         // TODO: 選択中の行の index が M or A or D のファイルが一つ以上ある時。
 
+        MenuItem commitMenuItem = new MenuItem("Git commit");
+        commitMenuItem.setOnAction(e -> gitCommit());
+        // TODO: 選択中の行の index が M or A or D のファイルが一つ以上ある時。
+        
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, new SeparatorMenuItem(),
-                unstageMenuItem);
+                unstageMenuItem, commitMenuItem);
         return menu;
     }
 
+    private void gitCommit() {
+        GitCommitWindow commitWindow = new GitCommitWindow();
+        commitWindow.open();
+    }
+    
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
@@ -239,7 +272,7 @@ public class GitStatusPane implements BaseGitPane {
             unstageCommand.unstage(files);
         });
     }
-
+    
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {
         filesPerRepo.forEach((repositoryPath, items) -> {
             GitThread thread = GitThreadMan.get(repositoryPath.toString());

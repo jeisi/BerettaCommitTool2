@@ -90,11 +90,16 @@ public class App extends Application {
     }
 
     private void saveConfig() {
+        //System.out.println("App.saveConfig()");
         try {
             configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
             configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), mainStage.getWidth(), mainStage.getHeight());
             configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
             //System.out.println(splitPane.getDividerPositions()[0]);
+            repositoriesPane.saveConfig();
+            gitPanes.forEach((var pane) -> {
+                pane.saveConfig();
+            });
             configInfo.save();
         } catch (IOException ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
@@ -128,11 +133,13 @@ public class App extends Application {
         }
 
         repositoriesPane = new RepositoriesPane();
+        repositoriesPane.setConfig(configInfo);
 
         gitPanes = new ArrayList<>();
         gitPanes.add(new GitStatusPane());
         var tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
+            pane.setConfigInfo(configInfo);
             var tab = new Tab(pane.getTitle(), pane.build());
             tabPane.getTabs().add(tab);
         });

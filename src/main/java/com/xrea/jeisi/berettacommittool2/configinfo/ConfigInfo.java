@@ -14,6 +14,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -60,6 +63,14 @@ public class ConfigInfo {
             return null;
         }
         return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
+    }
+    
+    public void setTableColumnWidth(String tableId, List<Double> widths) {
+        map.put(tableId + ".columnWidths", widths);
+    }
+    
+    public List<Double> getTableColumnWidth(String tableId) {
+        return (List<Double>) map.get(tableId + ".columnWidths");
     }
     
     public void setDouble(String key, double value) {

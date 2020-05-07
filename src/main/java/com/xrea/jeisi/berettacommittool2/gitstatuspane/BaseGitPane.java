@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import javafx.scene.Parent;
 import javafx.scene.control.Menu;
@@ -18,6 +19,8 @@ public interface BaseGitPane {
     public void refreshAll();
     public void refreshChecked();
     public void refreshSelected();
+    public void saveConfig();
+    public void setConfigInfo(ConfigInfo configInfo);
     public void setRepositories(RepositoriesInfo work);
     public void setUp();
     public String getTitle();
