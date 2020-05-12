@@ -111,6 +111,7 @@ public class GitStatusCommand {
         System.out.println("getUncommittedChanges(): " + status.getUncommittedChanges());
         System.out.println("getUntracked(): " + status.getUntracked());
         System.out.println("getUntrackedFolders(): " + status.getUntrackedFolders());
+        System.out.println("getConflicting(): " + status.getConflicting());
         System.out.println("getConflictingStageState(): " + status.getConflictingStageState());
     }
 

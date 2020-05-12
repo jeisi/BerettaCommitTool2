@@ -9,14 +9,10 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.awt.BorderLayout;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,7 +32,7 @@ import javafx.scene.layout.BorderPane;
 public class GitCommitPane {
 
     private ConfigInfo configInfo;
-    private ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
     private List<String> commitMessageHistory;

@@ -30,6 +30,7 @@ public class GitCommandStatusTest {
     public GitCommandStatusTest() {
     }
 
+    /*
     @Test
     // 実際の git status の結果との比較用。
     public void test() throws GitAPIException, IOException {
@@ -37,9 +38,8 @@ public class GitCommandStatusTest {
         GitStatusCommand command = new GitStatusCommand(path.toFile());
         command.printStatus();
     }
+    */
 
-    /*
-    @Disabled
     @Test
     public void test2() throws GitAPIException, IOException {
         Path path = Paths.get("/home/jeisi/test/git/sandbox/work/beretta/gyp");
@@ -48,6 +48,7 @@ public class GitCommandStatusTest {
 
     }
 
+    /*
     @Disabled
     @Test
     public void test3() throws GitAPIException, IOException {
@@ -55,7 +56,8 @@ public class GitCommandStatusTest {
         GitStatusCommand command = new GitStatusCommand(path.toFile());
         command.printStatus();
     }
-     */
+    */
+    
     @Test
     public void testStatus_Added() throws IOException {
         MockStatus gitStatus = new MockStatus();
