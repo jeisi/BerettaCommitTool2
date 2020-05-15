@@ -57,6 +57,12 @@ public class GitCommitWindowTestNoHistory {
         assertTrue(amendCheckBox.isDisable());
     }
 
+    @Test
+    public void testSetConfigInfo() {
+        // 空の ConfigInfo をセットした場合は何もしない。
+        app.getGitCommitPane().setConfigInfo(new ConfigInfo());
+    }
+    
     private void waitShowing() throws InterruptedException {
         while (app.showingProperty().get()) {
             Thread.sleep(1000);

@@ -16,4 +16,5 @@ public interface GitCommandFactory {
     public GitAddCommand createAddCommand(File file);
     public GitStatusCommand createStatusCommand(File file);
     public GitUnstageCommand createUnstageCommand(File file);
+    public GitCommitCommand createGitCommitCommand(File file);
 }

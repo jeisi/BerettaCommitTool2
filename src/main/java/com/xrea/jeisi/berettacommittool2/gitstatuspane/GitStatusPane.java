@@ -252,6 +252,8 @@ public class GitStatusPane implements BaseGitPane {
 
     private void gitCommit() {
         GitCommitWindow commitWindow = new GitCommitWindow();
+        commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
+        commitWindow.setConfigInfo(configInfo);
         commitWindow.open();
     }
     

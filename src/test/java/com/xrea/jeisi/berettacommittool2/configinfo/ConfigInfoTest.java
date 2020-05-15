@@ -145,6 +145,22 @@ public class ConfigInfoTest {
     }
 
     @Test
+    // ConfigInfo に登録されていない WindowRectangle を取得すると null が返る。
+    public void testGetNullWindowRectangle() throws IOException {
+        ConfigInfo configInfo = new ConfigInfo();
+        WindowRectangle rectangle = configInfo.getWindowRectangle("dummy");
+        assertEquals(null, rectangle);
+    }
+    
+    @Test
+    public void testGetWindowRectangle() {
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setWindowRectangle("dummy2", 10, 20, 30, 40);
+        WindowRectangle rectangle = configInfo.getWindowRectangle("dummy2");
+        assertEquals("{10.0, 20.0, 30.0, 40.0}", rectangle.toString());
+    }
+    
+    @Test
     public void testDouble() throws IOException {
         ConfigInfo saveConfigInfo = new ConfigInfo();
         Path configFile = Paths.get("/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources", ".BerettaCommitTool2", "config.yaml");

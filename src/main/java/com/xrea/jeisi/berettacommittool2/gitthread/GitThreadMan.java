@@ -34,4 +34,8 @@ public class GitThreadMan {
         gitThreads.values().forEach(e -> e.close());
         gitThreads.clear();
     }
+    
+    public static boolean isClosedAll() {
+        return gitThreads.values().stream().filter(e -> e.isAlive()).count() == 0;
+    }
 }

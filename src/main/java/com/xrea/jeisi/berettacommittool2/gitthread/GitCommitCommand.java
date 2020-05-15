@@ -25,6 +25,7 @@ public class GitCommitCommand {
     }
     
     public void commit(String message, boolean amend) throws IOException, GitAPIException {
+        System.out.println("GitCommitcommand.commit() start.");
         Git git = Git.open(repository);
         
         Status gitStatus = git.status().call();
@@ -34,12 +35,13 @@ public class GitCommitCommand {
             return;
         }
         
-        System.out.println("message: " + message);
+        //System.out.println("message: " + message);
         if(message.length() == 0) {
             throw new NoMessageException("Aborting commit due to empty commit message.");
         }
         
         git.commit().setAllowEmpty(false).setMessage(message).setAmend(amend).call();
+        System.out.println("GitCommitcommand.commit() end.");
     }
     
     public String readCommitEditMsg() throws IOException {

@@ -30,4 +30,9 @@ public class GitCommandFactoryImpl implements GitCommandFactory {
     public GitUnstageCommand createUnstageCommand(File file) {
         return new GitUnstageCommand(file);
     }
+    
+    @Override
+    public GitCommitCommand createGitCommitCommand(File file) {
+        return new GitCommitCommand(file);
+    }
 }

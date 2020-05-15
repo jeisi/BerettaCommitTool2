@@ -54,14 +54,24 @@ public class ConfigInfo {
     }
     
     public void setWindowRectangle(String windowName, double x, double y, double width, double height) {
-        map.put(windowName + ".rectangle", new double[]{x, y, width, height});
+        //map.put(windowName + ".rectangle", new double[]{x, y, width, height});
+        List<Double> r = new ArrayList<>();
+        r.add(x);
+        r.add(y);
+        r.add(width);
+        r.add(height);
+        map.put(windowName + ".rectangle", r);
     }
 
     public WindowRectangle getWindowRectangle(String windowName) {
+        //System.out.println("ConfigInfo.getWindowRectangle(" + windowName + ")");
+        //System.out.println(map.get(windowName + ".rectangle"));
         List<Double> r = (List<Double>) map.get(windowName + ".rectangle");
         if(r == null) {
+            System.out.println("return null");
             return null;
         }
+        //System.out.println(r);
         return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
     }
     

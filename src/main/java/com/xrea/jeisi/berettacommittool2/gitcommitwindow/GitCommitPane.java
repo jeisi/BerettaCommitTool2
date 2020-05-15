@@ -7,7 +7,10 @@ package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +22,9 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
@@ -39,10 +44,17 @@ public class GitCommitPane {
     private List<RepositoryData> repositoryDatas;
     private CheckBox amendCheckBox;
     private String amendMessage;
+    private GitCommandFactory gitCommandFactory;
+    private static int SUMMARY_LENGTH = 40;
 
-    public void setConfigInfo(ConfigInfo configInfo) {
+    void setConfigInfo(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        this.commitMessageHistory = Collections.unmodifiableList(configInfo.getCommitMessageHistory());
+        var commitMessageHistory = configInfo.getCommitMessageHistory();
+        if(commitMessageHistory != null) {
+            this.commitMessageHistory = Collections.unmodifiableList(commitMessageHistory);
+        } else {
+            this.commitMessageHistory = new ArrayList<>();
+        }
     }
 
     public void setRepositoryDatas(List<RepositoryData> repositoryDatas) {
@@ -54,10 +66,27 @@ public class GitCommitPane {
         }
     }
 
+    public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
+        this.gitCommandFactory = gitCommandFactory;
+    }
+    
+    static void setSummaryLength(int length) {
+        SUMMARY_LENGTH = length;
+    }
+
     public void close() {
+        saveConfig();
         errorLogWindow.close();
     }
 
+    private void saveConfig() {
+        if(configInfo == null) {
+            return;
+        }
+        
+        configInfo.setCommitMessageHistory(commitMessageHistory);
+    }
+    
     public Parent build() {
         summaryComboBox = new ComboBox<>(getCommitMessages());
         summaryComboBox.setId("GitCommitPaneSummaryComboBox");
@@ -82,6 +111,7 @@ public class GitCommitPane {
         BorderPane.setMargin(messageTextArea, new Insets(5, 0, 5, 0));
 
         Button commitButton = new Button("Commit");
+        commitButton.setId("GitCommitPaneCommitButton");
         BorderPane.setAlignment(commitButton, Pos.CENTER);
         commitButton.setOnAction(e -> commit());
 
@@ -95,8 +125,46 @@ public class GitCommitPane {
     }
 
     private void commit() {
+        String commitMessage = messageTextArea.getText();
+        if (commitMessage.length() == 0) {
+            String errorMessage = "正しいコミット・メッセージは:\n"
+                    + " - 第１行: 何をしたか、を１行で要約。\n"
+                    + " - 第２行: 空白\n"
+                    + " - 残りの行: なぜ、この変更が良い変更か、の説明。";
+            Alert alert = new Alert(Alert.AlertType.ERROR, errorMessage, ButtonType.OK);
+            alert.setHeaderText("コミット・メッセージを入力してください");
+            alert.showAndWait();
+            return;
+        }
+
+        addCommitMessageToHistory();
+
+        repositoryDatas.forEach((var repositoryData) -> {
+            String workDir = repositoryData.getPath().toString();
+            GitThread thread = GitThreadMan.get(workDir);
+            GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath().toFile());
+            thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand));
+        });
+    }
+
+    private void addCommitMessageToHistory() {
+        var commitMessage = messageTextArea.getText();
+        if (commitMessage.equals(commitMessageHistory.get(0))) {
+            return;
+        }
+
         List<String> newCommitMessageHistory = new ArrayList<>();
-        newCommitMessageHistory.add(messageTextArea.getText());
+        newCommitMessageHistory.add(commitMessage);
+        for (var message : commitMessageHistory) {
+            if (!message.equals(commitMessage)) {
+                newCommitMessageHistory.add(message);
+            }
+            if (newCommitMessageHistory.size() > 30) {
+                break;
+            }
+        }
+        commitMessageHistory = newCommitMessageHistory;
+        summaryComboBox.getItems().setAll(getCommitMessages());
     }
 
     private void amend() {
@@ -126,12 +194,12 @@ public class GitCommitPane {
         if (configInfo == null) {
             return FXCollections.observableArrayList();
         }
-        List<String> lists = configInfo.getCommitMessageHistory().stream().map(message -> getSummary(message)).collect(Collectors.toList());
+        //List<String> lists = configInfo.getCommitMessageHistory().stream().map(message -> getSummary(message)).collect(Collectors.toList());
+        List<String> lists = commitMessageHistory.stream().map(message -> getSummary(message)).collect(Collectors.toList());
         return FXCollections.observableArrayList(lists);
     }
 
     private String getSummary(String text) {
-        final int SUMMARY_LENGTH = 40;
         if (text.length() < SUMMARY_LENGTH) {
             return text;
         } else {
