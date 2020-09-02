@@ -58,7 +58,8 @@ public class XmlWriter {
 
     public static void writeObject(String name, Object object) {
         writePreStartTag();
-        String text = String.format("%s=%s", name, object.toString());
+        String value = (object != null) ? object.toString() : "null";
+        String text = String.format("%s=%s", name, value);
         writePrintf("%s<object>%s</object>\n", getTabSpace(), text);
     }
 
