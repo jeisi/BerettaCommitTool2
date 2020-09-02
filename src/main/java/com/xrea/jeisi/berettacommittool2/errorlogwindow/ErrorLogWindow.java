@@ -55,7 +55,11 @@ public class ErrorLogWindow {
     public void appendException(Exception e) {
         Platform.runLater(() -> {
             checkOpen();
+            boolean isEmpty = (textArea.getText().length() == 0);
             e.printStackTrace(new PrintStream(new StreamCapturer(textArea)));
+            if (isEmpty) {
+                textArea.positionCaret(0);
+            }
         });
     }
 

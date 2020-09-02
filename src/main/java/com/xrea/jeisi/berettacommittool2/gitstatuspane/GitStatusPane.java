@@ -285,11 +285,13 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem diffMenuItem = new MenuItem("Git difftool <file>");
         diffMenuItem.setId("gitStatusDiffMenuItem");
         diffMenuItem.setOnAction(eh -> gitDiff());
+        diffMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
         gitAddPatchSituationSelector.getItems().add(diffMenuItem);
 
         MenuItem diffCachedMenuItem = new MenuItem("Git difftool --cached <file>");
         diffCachedMenuItem.setId("gitStatusDiffCachedMenuItem");
         diffCachedMenuItem.setOnAction(eh -> gitDiffCached());
+        diffCachedMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
         gitUnstageSingleSituationSelector.getItems().add(diffCachedMenuItem);
 
         MenuItem commitMenuItem = new MenuItem("Git commit");
@@ -320,17 +322,17 @@ public class GitStatusPane implements BaseGitPane {
         unstageButton.setTooltip(new Tooltip("git reset HEAD <file>..."));
         unstageButton.setOnAction(eh -> gitUnstage());
         gitUnstageSituationVisible.getItems().add(unstageButton);
-        
+
         Button diffButton = new Button("Diff");
         diffButton.setTooltip(new Tooltip("git diff <file>"));
         diffButton.setOnAction(eh -> gitDiff());
         gitAddSingleSituationVisible.getItems().add(diffButton);
-        
+
         Button diffCachedButton = new Button("Diff");
         diffCachedButton.setTooltip(new Tooltip("git diff --cached <file>"));
         diffCachedButton.setOnAction(eh -> gitDiffCached());
         gitUnstageSingleSituationVisible.getItems().add(diffCachedButton);
-        
+
         HBox hbox = new HBox();
         hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton);
         //hbox.getChildren().addAll(addButton, commitButton);
