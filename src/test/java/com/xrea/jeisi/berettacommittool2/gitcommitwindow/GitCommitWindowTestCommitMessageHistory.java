@@ -105,7 +105,6 @@ public class GitCommitWindowTestCommitMessageHistory {
     @Test
     @Disabled
     public void testInitialize(FxRobot robot) throws InterruptedException {
-        System.out.println("GitCommitWindowTestCommitMessageHistory.testInitialize()");
         // デフォルトでは ComboBox は選択されていない状態。
         ComboBox<String> summaryComboBox = robot.lookup("#GitCommitPaneSummaryComboBox").queryAs(ComboBox.class);
         assertEquals(null, summaryComboBox.getValue());
@@ -118,7 +117,6 @@ public class GitCommitWindowTestCommitMessageHistory {
     @Test
     // [Commit] ボタンを押した時に、ComboBox に履歴が追加される。
     public void testCommit(FxRobot robot) throws IOException, InterruptedException {
-        System.out.println("GitCommitWindowTestCommitMessageHistory.testCommit()");
         TextArea messageTextArea = robot.lookup("#GitCommitPaneMessageTextArea").queryAs(TextArea.class);
         messageTextArea.setText("deny");
         while (!messageTextArea.getText().equals("deny")) {

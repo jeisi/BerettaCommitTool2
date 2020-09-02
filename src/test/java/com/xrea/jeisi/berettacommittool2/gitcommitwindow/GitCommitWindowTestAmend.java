@@ -6,19 +6,16 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
-import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;

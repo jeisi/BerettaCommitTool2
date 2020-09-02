@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +36,8 @@ public class GitAddCommand {
     }
 
     public void add(String... files) throws IOException, GitAPIException {
+        XmlWriter.writeStartMethod("GitAddCommand.add()");
+
         if (progressWindow != null && files.length > 1) {
             Platform.runLater(() -> {
                 progressWindow.open();
@@ -50,10 +53,13 @@ public class GitAddCommand {
             ++currentValue;
             if (progressModel != null) {
                 class SetCurrentValue implements Runnable {
+
                     private final int currentValue;
+
                     SetCurrentValue(int currentValue) {
                         this.currentValue = currentValue;
                     }
+
                     @Override
                     public void run() {
                         progressModel.setCurrentValue(currentValue);
@@ -63,6 +69,8 @@ public class GitAddCommand {
                 Platform.runLater(new SetCurrentValue(currentValue));
             }
         }
+
+        XmlWriter.writeEndMethod();
     }
 
     protected Git gitOpen() throws IOException {
@@ -70,11 +78,15 @@ public class GitAddCommand {
     }
 
     protected void addFile(Git git, String file) throws GitAPIException {
+        XmlWriter.writeStartMethod("GitAddCommand.addFile(%s)", file);
+
         Path path = Paths.get(repository.toString(), file);
         if (Files.exists(path)) {
             git.add().addFilepattern(file).call();
         } else {
             git.rm().addFilepattern(file).call();
         }
+
+        XmlWriter.writeEndMethod();
     }
 }

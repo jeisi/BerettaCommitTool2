@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -45,6 +47,7 @@ public class GitCommitPane {
     private CheckBox amendCheckBox;
     private String amendMessage;
     private GitCommandFactory gitCommandFactory;
+    private List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
     private static int SUMMARY_LENGTH = 40;
 
     void setConfigInfo(ConfigInfo configInfo) {
@@ -70,6 +73,10 @@ public class GitCommitPane {
         this.gitCommandFactory = gitCommandFactory;
     }
 
+    public void addEventHandler(EventHandler<ActionEvent> actionEvent) {
+        actionEvents.add(actionEvent);
+    }
+    
     static void setSummaryLength(int length) {
         SUMMARY_LENGTH = length;
     }
@@ -125,7 +132,6 @@ public class GitCommitPane {
     }
 
     private void commit() {
-        System.out.println("GitCommitPane.commit()");
         String commitMessage = messageTextArea.getText();
         if (commitMessage.length() == 0) {
             String errorMessage = "正しいコミット・メッセージは:\n"
@@ -140,15 +146,23 @@ public class GitCommitPane {
 
         addCommitMessageToHistory();
 
-        System.out.println("repositoryDatas: " + repositoryDatas);
         repositoryDatas.forEach((var repositoryData) -> {
             String workDir = repositoryData.getPath().toString();
             GitThread thread = GitThreadMan.get(workDir);
             GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath().toFile());
             thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand));
         });
+        
+        fireActionEvents();
     }
 
+    private void fireActionEvents() {
+        ActionEvent e = new ActionEvent();
+        for(var event : actionEvents) {
+            event.handle(e);
+        }
+    }
+    
     private void addCommitMessageToHistory() {
         System.out.println("GitCommitPane.addCommitMessageToHistory()");
         var commitMessage = messageTextArea.getText();

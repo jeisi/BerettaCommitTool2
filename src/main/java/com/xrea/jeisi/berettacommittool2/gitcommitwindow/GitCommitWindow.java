@@ -52,6 +52,8 @@ public class GitCommitWindow extends Stage {
             }
         });
 
+        gitCommitPane.addEventHandler((e) -> close());
+        
         stage.show();
 
         XmlWriter.writeEndMethod();
