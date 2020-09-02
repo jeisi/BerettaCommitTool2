@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -26,6 +27,8 @@ public class GitCommitWindow extends Stage {
     }
 
     public void open() {
+        XmlWriter.writeStartMethod("GitCommitWindow.open()");
+
         Stage stage = this;
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
@@ -50,6 +53,8 @@ public class GitCommitWindow extends Stage {
         });
 
         stage.show();
+
+        XmlWriter.writeEndMethod();
     }
 
     private void saveConfig() {

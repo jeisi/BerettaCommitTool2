@@ -40,8 +40,8 @@ public class GitCommitPane {
     private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
-    private List<String> commitMessageHistory;
-    private List<RepositoryData> repositoryDatas;
+    private List<String> commitMessageHistory = new ArrayList<>();
+    private List<RepositoryData> repositoryDatas = new ArrayList<>();
     private CheckBox amendCheckBox;
     private String amendMessage;
     private GitCommandFactory gitCommandFactory;
@@ -50,7 +50,7 @@ public class GitCommitPane {
     void setConfigInfo(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         var commitMessageHistory = configInfo.getCommitMessageHistory();
-        if(commitMessageHistory != null) {
+        if (commitMessageHistory != null) {
             this.commitMessageHistory = Collections.unmodifiableList(commitMessageHistory);
         } else {
             this.commitMessageHistory = new ArrayList<>();
@@ -69,7 +69,7 @@ public class GitCommitPane {
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
         this.gitCommandFactory = gitCommandFactory;
     }
-    
+
     static void setSummaryLength(int length) {
         SUMMARY_LENGTH = length;
     }
@@ -80,13 +80,13 @@ public class GitCommitPane {
     }
 
     private void saveConfig() {
-        if(configInfo == null) {
+        if (configInfo == null) {
             return;
         }
-        
+
         configInfo.setCommitMessageHistory(commitMessageHistory);
     }
-    
+
     public Parent build() {
         summaryComboBox = new ComboBox<>(getCommitMessages());
         summaryComboBox.setId("GitCommitPaneSummaryComboBox");
@@ -125,6 +125,7 @@ public class GitCommitPane {
     }
 
     private void commit() {
+        System.out.println("GitCommitPane.commit()");
         String commitMessage = messageTextArea.getText();
         if (commitMessage.length() == 0) {
             String errorMessage = "正しいコミット・メッセージは:\n"
@@ -139,6 +140,7 @@ public class GitCommitPane {
 
         addCommitMessageToHistory();
 
+        System.out.println("repositoryDatas: " + repositoryDatas);
         repositoryDatas.forEach((var repositoryData) -> {
             String workDir = repositoryData.getPath().toString();
             GitThread thread = GitThreadMan.get(workDir);
@@ -148,8 +150,9 @@ public class GitCommitPane {
     }
 
     private void addCommitMessageToHistory() {
+        System.out.println("GitCommitPane.addCommitMessageToHistory()");
         var commitMessage = messageTextArea.getText();
-        if (commitMessage.equals(commitMessageHistory.get(0))) {
+        if (commitMessageHistory.size() > 0 && commitMessage.equals(commitMessageHistory.get(0))) {
             return;
         }
 
@@ -165,10 +168,15 @@ public class GitCommitPane {
         }
         commitMessageHistory = newCommitMessageHistory;
         summaryComboBox.getItems().setAll(getCommitMessages());
+        System.out.println("summaryComboBox.getItems(): " + summaryComboBox.getItems().toString());
     }
 
     private void amend() {
-        messageTextArea.setText(amendMessage);
+        if (amendCheckBox.isSelected()) {
+            messageTextArea.setText(amendMessage);
+        } else {
+            messageTextArea.setText("");
+        }
     }
 
     private String getAmendMessage() {

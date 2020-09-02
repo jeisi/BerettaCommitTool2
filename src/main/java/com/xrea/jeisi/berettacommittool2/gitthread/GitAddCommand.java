@@ -9,6 +9,9 @@ import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javafx.application.Platform;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -46,7 +49,18 @@ public class GitAddCommand {
             addFile(git, file);
             ++currentValue;
             if (progressModel != null) {
-                progressModel.setCurrentValue(currentValue);
+                class SetCurrentValue implements Runnable {
+                    private final int currentValue;
+                    SetCurrentValue(int currentValue) {
+                        this.currentValue = currentValue;
+                    }
+                    @Override
+                    public void run() {
+                        progressModel.setCurrentValue(currentValue);
+                    }
+                }
+                //Platform.runLater(() -> progressModel.setCurrentValue(currentValue));
+                Platform.runLater(new SetCurrentValue(currentValue));
             }
         }
     }
@@ -56,6 +70,11 @@ public class GitAddCommand {
     }
 
     protected void addFile(Git git, String file) throws GitAPIException {
-        git.add().addFilepattern(file).call();
+        Path path = Paths.get(repository.toString(), file);
+        if (Files.exists(path)) {
+            git.add().addFilepattern(file).call();
+        } else {
+            git.rm().addFilepattern(file).call();
+        }
     }
 }

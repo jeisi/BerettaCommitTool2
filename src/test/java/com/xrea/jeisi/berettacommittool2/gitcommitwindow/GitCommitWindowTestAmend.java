@@ -154,6 +154,39 @@ public class GitCommitWindowTestAmend {
         assertTrue(amendCheckBox.isDisable());
     }
 
+    @Test
+    // amend チェックボックスをチェックしたあと、amend チェックボックスのチェックを外した場合はテキストエリアは空になる。
+    public void testAmendCancel(FxRobot robot) throws IOException, InterruptedException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testUnstage2.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        ObservableList<RepositoryData> selectedRepositories = FXCollections.observableArrayList();
+        var work = new RepositoriesInfo(selectedRepositories);
+        ArrayList<String> repositories = new ArrayList<>();
+        repositories.add(".");
+        work.setRepositories(repositories, Paths.get(userDir, "src/test/resources/work/beretta").toString());
+
+        app.getGitCommitPane().setRepositoryDatas(work.getChecked());
+        JTestUtility.waitForRunLater();
+
+        // setRepositoryDatas() を実行したら amend CheckBox は enabled になる。
+        CheckBox amendCheckBox = robot.lookup("#GitCommitPaneAmendCheckBox").queryAs(CheckBox.class);
+        assertFalse(amendCheckBox.isDisable());
+
+        robot.clickOn("#GitCommitPaneAmendCheckBox");
+        JTestUtility.waitForRunLater();
+        TextArea textArea = robot.lookup("#GitCommitPaneMessageTextArea").queryAs(TextArea.class);
+        assertEquals("Adding a.txt.\n", textArea.getText());
+
+        robot.clickOn("#GitCommitPaneAmendCheckBox");
+        JTestUtility.waitForRunLater();
+        assertEquals("", textArea.getText());
+    }
+
     private void waitShowing() throws InterruptedException {
         while (app.showingProperty().get()) {
             Thread.sleep(1000);

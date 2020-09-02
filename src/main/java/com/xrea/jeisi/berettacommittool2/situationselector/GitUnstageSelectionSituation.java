@@ -15,12 +15,13 @@ import javafx.scene.control.MultipleSelectionModel;
  */
 public class GitUnstageSelectionSituation implements Situation {
 
-    private final MultipleSelectionModel<GitStatusData> selectionModel;
+    protected final MultipleSelectionModel<GitStatusData> selectionModel;
     private final Predicate<GitStatusData> predicate = (t) -> {
         //System.out.println(t.workTreeStatusProperty().get());
         switch (t.indexStatusProperty().get()) {
             case "M":
             case "A":
+            case "D":
                 return true;
             default:
                 return false;
@@ -40,5 +41,4 @@ public class GitUnstageSelectionSituation implements Situation {
 
         return selectedItems.stream().allMatch(predicate);
     }
-
 }

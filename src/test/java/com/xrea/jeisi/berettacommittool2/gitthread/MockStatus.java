@@ -46,9 +46,17 @@ public class MockStatus extends org.eclipse.jgit.api.Status {
         return changed;
     }
 
+    public void setChanged(Set<String> changed) {
+        this.changed = changed;
+    }
+    
     @Override
     public Set<String> getModified() {
         return modified;
+    }
+    
+    public void setModified(Set<String> modified) {
+        this.modified = modified;
     }
 
     @Override

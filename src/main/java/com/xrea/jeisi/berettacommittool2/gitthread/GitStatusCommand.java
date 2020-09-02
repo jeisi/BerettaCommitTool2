@@ -58,7 +58,7 @@ public class GitStatusCommand {
         gitStatus.getAdded().forEach(file -> map.put(file, new GitStatusData("A", "", file, repositoryData)));
         gitStatus.getChanged().forEach(file -> map.put(file, new GitStatusData("M", "", file, repositoryData)));
 
-        gitStatus.getModified().forEach(file -> map.put(file, new GitStatusData("", "M", file, repositoryData)));
+        gitStatus.getModified().forEach(file -> setModifiedStatusData(map, file, repositoryData));
         gitStatus.getMissing().forEach(file -> map.put(file, new GitStatusData("", "D", file, repositoryData)));
         gitStatus.getConflictingStageState().forEach((file, state) -> map.put(file, getConflictingStatusData(state, file, repositoryData)));
 
@@ -77,6 +77,15 @@ public class GitStatusCommand {
         return list;
     }
 
+    private void setModifiedStatusData(Map<String, GitStatusData> map, String file, RepositoryData repositoryData) {
+        GitStatusData preStatus = map.get(file);
+        if(preStatus == null) {
+            map.put(file, new GitStatusData("", "M", file, repositoryData));
+        } else {
+            preStatus.setWorkTreeStatus("M");
+        }
+    }
+    
     private static GitStatusData getConflictingStatusData(StageState state, String file, RepositoryData repositoryData) {
         switch (state) {
             case BOTH_MODIFIED:

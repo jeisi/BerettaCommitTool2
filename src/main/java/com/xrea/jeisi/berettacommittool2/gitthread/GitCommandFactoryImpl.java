@@ -7,8 +7,6 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import java.io.File;
-import java.io.IOException;
-import org.eclipse.jgit.api.Git;
 
 /**
  *
@@ -34,5 +32,10 @@ public class GitCommandFactoryImpl implements GitCommandFactory {
     @Override
     public GitCommitCommand createGitCommitCommand(File file) {
         return new GitCommitCommand(file);
+    }
+    
+    @Override
+    public GitDiffCommand createGitDiffCommand(File file) {
+        return new GitDiffCommand(file);
     }
 }

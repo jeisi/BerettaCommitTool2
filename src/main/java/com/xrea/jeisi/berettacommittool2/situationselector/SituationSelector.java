@@ -29,8 +29,8 @@ public class SituationSelector {
     }
     
     public void update() {
+        //System.out.println("SituationSelector.update()");
         boolean isValid = situation.isValid();
-        //System.out.println("SituationSelector.update(): " + isValid);
         items.forEach(item -> item.setDisable(!isValid));
     }
 }

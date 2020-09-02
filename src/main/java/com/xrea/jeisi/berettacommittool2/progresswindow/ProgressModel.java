@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.progresswindow;
 
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -31,16 +32,20 @@ public class ProgressModel {
     }
 
     public final void setCurrentValue(int currentValue) {
+        XmlWriter.writeStartMethod("ProgressModel.setCurrentValue(%d)", currentValue);
+        
         this.currentValue = currentValue;
         Platform.runLater(() -> {
             countText.set(String.format("%3d/%3d", currentValue, maxValue));
             progress.set((double) currentValue / (double) maxValue);
-        });
-        if(currentValue >= maxValue) {
-            if(listener != null) {
-                listener.complete(this);
+            if (currentValue >= maxValue) {
+                if (listener != null) {
+                    listener.complete(this);
+                }
             }
-        }
+        });
+        
+        XmlWriter.writeEndMethod();
     }
 
     public int getMaxValue() {

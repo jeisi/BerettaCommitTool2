@@ -7,28 +7,28 @@ package com.xrea.jeisi.berettacommittool2.situationselector;
 
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import java.util.function.Predicate;
-import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.TableView;
 
 /**
  *
  * @author jeisi
  */
-public class GitAddSelectionSituation implements Situation {
+public class GitAddUpdateSelectionSituation implements Situation {
 
-    private final MultipleSelectionModel<GitStatusData> selectionModel;
+    private final TableView<GitStatusData> tableView;
     private final static Predicate<GitStatusData> predicate = new GitAddPredicate();
 
-    public GitAddSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
-        this.selectionModel = selectionModel;
+    public GitAddUpdateSelectionSituation(TableView<GitStatusData> tableView) {
+        this.tableView = tableView;
     }
 
     @Override
     public boolean isValid() {
-        var selectedItems = selectionModel.getSelectedItems();
-        if(selectedItems.isEmpty()) {
+        var items = tableView.getItems();
+        if (items.isEmpty()) {
             return false;
         }
-        
-        return selectedItems.stream().allMatch(predicate);
+
+        return items.stream().anyMatch(predicate);
     }
 }

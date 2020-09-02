@@ -58,6 +58,26 @@ public class GitCommandAddTest {
     }
 
     @Test
+    // ' D' 状態のファイルに対して git add コマンドを実行したら 'D ' になる。
+    public void testAddDeletedFile() throws IOException, InterruptedException, GitAPIException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testAddDeleted.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
+        GitAddCommand addCommand = new GitAddCommand(workDir);
+        addCommand.add("a.txt");
+
+        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        GitStatusCommand statusCommand = new GitStatusCommand(workDir);
+        List<GitStatusData> list = statusCommand.status(repositoryData, "a.txt");
+        assertEquals("[{D, , a.txt, .}]", list.toString());
+    }
+
+    @Test
     public void testAddWithProgressWindow() throws IOException, GitAPIException, InterruptedException {
         System.out.println("GitCommandAddTest.testAddWithProgressWindow()");
         File workDir = Paths.get("src/test/resources/work/beretta").toFile();

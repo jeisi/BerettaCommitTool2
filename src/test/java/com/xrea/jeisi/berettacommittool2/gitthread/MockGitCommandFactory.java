@@ -73,4 +73,9 @@ public class MockGitCommandFactory implements GitCommandFactory {
         GitCommitCommand command = gitCommitCommands.get(file);
         return command;
     }
+    
+    @Override
+    public GitDiffCommand createGitDiffCommand(File file) {
+        return new GitDiffCommand(file);
+    }
 }

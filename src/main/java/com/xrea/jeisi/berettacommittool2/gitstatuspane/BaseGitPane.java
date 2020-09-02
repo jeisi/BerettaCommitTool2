@@ -24,6 +24,7 @@ public interface BaseGitPane {
     public void setRepositories(RepositoriesInfo work);
     public void setUp();
     public String getTitle();
-    public Parent build();
     public Menu buildMenu();
+    public Parent build();
+    public Parent buildToolBar();
 }

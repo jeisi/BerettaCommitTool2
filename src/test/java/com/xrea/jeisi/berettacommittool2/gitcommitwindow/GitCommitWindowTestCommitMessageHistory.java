@@ -103,6 +103,7 @@ public class GitCommitWindowTestCommitMessageHistory {
     }
 
     @Test
+    @Disabled
     public void testInitialize(FxRobot robot) throws InterruptedException {
         System.out.println("GitCommitWindowTestCommitMessageHistory.testInitialize()");
         // デフォルトでは ComboBox は選択されていない状態。
@@ -146,6 +147,7 @@ public class GitCommitWindowTestCommitMessageHistory {
     }
 
     @Test
+    @Disabled
     // 既に SummaryComboBox にあるリストと同じ内容だった場合は、それが先頭にくる。
     public void testCommit2(FxRobot robot) throws InterruptedException {
         System.out.println("GitCommitWindowTestCommitMessageHistory.testCommit2()");
@@ -163,6 +165,7 @@ public class GitCommitWindowTestCommitMessageHistory {
     }
 
     @Test
+    @Disabled
     // 既に SummaryComboBox にあるリストの先頭と同じ内容だった場合は、特に変化なし。
     public void testCommit3(FxRobot robot) throws InterruptedException {
         JTestUtility.waitForRunLater();

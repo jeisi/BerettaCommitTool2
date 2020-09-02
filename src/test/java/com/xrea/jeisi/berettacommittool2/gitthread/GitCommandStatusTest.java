@@ -30,7 +30,6 @@ public class GitCommandStatusTest {
     public GitCommandStatusTest() {
     }
 
-    /*
     @Test
     // 実際の git status の結果との比較用。
     public void test() throws GitAPIException, IOException {
@@ -38,7 +37,6 @@ public class GitCommandStatusTest {
         GitStatusCommand command = new GitStatusCommand(path.toFile());
         command.printStatus();
     }
-    */
 
     @Test
     public void test2() throws GitAPIException, IOException {
@@ -56,8 +54,7 @@ public class GitCommandStatusTest {
         GitStatusCommand command = new GitStatusCommand(path.toFile());
         command.printStatus();
     }
-    */
-    
+     */
     @Test
     public void testStatus_Added() throws IOException {
         MockStatus gitStatus = new MockStatus();
@@ -118,6 +115,26 @@ public class GitCommandStatusTest {
         GitStatusCommand gitCommand = new GitStatusCommand(Paths.get(".").toFile());
         List<GitStatusData> list = gitCommand.status(gitStatus, repositoryData);
         assertThat("[{U, U, carol.cpp, }]").isEqualTo(list.toString());
+    }
+
+    @Test
+    // MM 状態の表示
+    public void testStatus_UncommittedAndModified() throws IOException {
+        MockStatus gitStatus = new MockStatus();
+
+        Set<String> changed = new HashSet<>();
+        changed.add("update.sh");
+        gitStatus.setChanged(changed);
+
+        Set<String> modified = new HashSet<>();
+        modified.add("update.sh");
+        gitStatus.setModified(modified);
+
+        RepositoryData repositoryData = new RepositoryData(true, "", Paths.get("."));
+        GitStatusCommand gitCommand = new GitStatusCommand(Paths.get(".").toFile());
+        List<GitStatusData> list = gitCommand.status(gitStatus, repositoryData);
+        // ファイル名でソートされている。
+        assertThat("[{M, M, update.sh, }]").isEqualTo(list.toString());
     }
 
     @Test

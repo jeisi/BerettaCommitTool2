@@ -10,19 +10,28 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitDiffCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitUnstageCommand;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPatchSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdateSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,15 +45,18 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -62,6 +74,16 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
     private final SituationSelector gitAddSituationSelector = new SituationSelector();
+    private final SituationSelector gitAddPatchSituationSelector = new SituationSelector();
+    private final SituationSelector gitAddUpdateSituationSelector = new SituationSelector();
+    private final SituationSelector gitCommitSituationSelector = new SituationSelector();
+    private final SituationSelector gitUnstageSituationSelector = new SituationSelector();
+    private final SituationSelector gitUnstageSingleSituationSelector = new SituationSelector();
+    private final SituationVisible gitAddSituationVisible = new SituationVisible();
+    private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
+    private final SituationVisible gitCommitSituationVisible = new SituationVisible();
+    private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
+    private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
     private ProgressWindow progressWindow = new ProgressWindow();
     private ConfigInfo configInfo;
 
@@ -114,15 +136,19 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
+        XmlWriter.writeStartMethod("GitStatusPane.changeTargetRepositories()");
         if (target != targetRepository) {
+            XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
         ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
-        //System.out.println("changeTargetRepositories(): " + aggregated.getAggregatedList());
+        XmlWriter.writeObject("aggregated.getAggregatedList()", aggregated.getAggregatedList());
         tableView.setItems(aggregated.getAggregatedList());
+        updateSituationSelectors();
+        XmlWriter.writeEndMethod();
     }
 
     @Override
@@ -205,9 +231,25 @@ public class GitStatusPane implements BaseGitPane {
             }
         }
 
+        var selectionModel = tableView.getSelectionModel();
         singleSelectionSituationSelector.setSituation(new SingleSelectionSituation<>(tableView.getSelectionModel()));
         multiSelectionSituationSelector.setSituation(new MultiSelectionSituation<>(tableView.getSelectionModel()));
-        gitAddSituationSelector.setSituation(new GitAddSelectionSituation(tableView.getSelectionModel()));
+        var gitAddSelectionSituation = new GitAddSelectionSituation(tableView.getSelectionModel());
+        gitAddSituationSelector.setSituation(gitAddSelectionSituation);
+        gitAddSituationVisible.setSituation(gitAddSelectionSituation);
+        var gitAddSingleSelectionSituation = new GitAddPatchSelectionSituation(selectionModel);
+        gitAddPatchSituationSelector.setSituation(gitAddSingleSelectionSituation);
+        gitAddSingleSituationVisible.setSituation(gitAddSingleSelectionSituation);
+        gitAddUpdateSituationSelector.setSituation(new GitAddUpdateSelectionSituation(tableView));
+        var gitUnstageSelectionSituation = new GitUnstageSelectionSituation(selectionModel);
+        gitUnstageSituationSelector.setSituation(gitUnstageSelectionSituation);
+        gitUnstageSituationVisible.setSituation(gitUnstageSelectionSituation);
+        var gitUnstageSingleSelectionSituation = new GitUnstageSingleSelectionSituation(selectionModel);
+        gitUnstageSingleSituationSelector.setSituation(gitUnstageSingleSelectionSituation);
+        gitUnstageSingleSituationVisible.setSituation(gitUnstageSingleSelectionSituation);
+        var gitCommitSelectionSituation = new GitCommitSelectionSituation(tableView);
+        gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
+        gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
             @Override
@@ -216,9 +258,9 @@ public class GitStatusPane implements BaseGitPane {
             }
         });
 
-        var vbox = new VBox();
-        vbox.getChildren().addAll(tableView);
-        return vbox;
+        //var vbox = new VBox();
+        //vbox.getChildren().addAll(tableView);
+        return tableView;
     }
 
     public Menu buildMenu() {
@@ -229,25 +271,74 @@ public class GitStatusPane implements BaseGitPane {
         gitAddSituationSelector.getItems().add(addMenuItem);
 
         MenuItem add_pMenuItem = new MenuItem("Git add -p <file>");
-        // TODO: 選択中の行の workTree が M or ? のファイルが一つのみの時。
+        add_pMenuItem.setId("gitStatusAddpMenuItem");
+        gitAddPatchSituationSelector.getItems().add(add_pMenuItem);
+        // TODO: 選択できる条件はほぼ git add と同じだが、厳密にはまだブランチがない時は選択不可。
 
         MenuItem add_uMenuItem = new MenuItem("Git add -u");
-        // TODO: workTree が M or ? のファイルが一つ以上ある時。（選択中である必要はない）
+        add_uMenuItem.setId("gitStatusAddUpdateMenuItem");
+        add_uMenuItem.setOnAction(eh -> gitAddUpdate());
+        gitAddUpdateSituationSelector.getItems().add(add_uMenuItem);
 
         MenuItem unstageMenuItem = new MenuItem("Git reset HEAD <file>...");
         unstageMenuItem.setId("gitStatusUnstageMenuItem");
         unstageMenuItem.setOnAction(e -> gitUnstage());
-        // TODO: 選択中の行の index が M or A or D のファイルが一つ以上ある時。
+        gitUnstageSituationSelector.getItems().add(unstageMenuItem);
+
+        MenuItem diffMenuItem = new MenuItem("Git difftool <file>");
+        diffMenuItem.setId("gitStatusDiffMenuItem");
+        diffMenuItem.setOnAction(eh -> gitDiff());
+        gitAddPatchSituationSelector.getItems().add(diffMenuItem);
+
+        MenuItem diffCachedMenuItem = new MenuItem("Git difftool --cached <file>");
+        diffCachedMenuItem.setId("gitStatusDiffCachedMenuItem");
+        diffCachedMenuItem.setOnAction(eh -> gitDiffCached());
+        gitUnstageSingleSituationSelector.getItems().add(diffCachedMenuItem);
 
         MenuItem commitMenuItem = new MenuItem("Git commit");
+        commitMenuItem.setId("gitStatusCommitMenuItem");
+        commitMenuItem.setDisable(true);
         commitMenuItem.setOnAction(e -> gitCommit());
-        // TODO: 選択中の行の index が M or A or D のファイルが一つ以上ある時。
-        
+        gitCommitSituationSelector.getItems().add(commitMenuItem);
+
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, new SeparatorMenuItem(),
-                unstageMenuItem, commitMenuItem);
+                unstageMenuItem, diffMenuItem, diffCachedMenuItem, commitMenuItem);
         return menu;
+    }
+
+    public Parent buildToolBar() {
+        Button commitButton = new Button("Commit");
+        commitButton.setTooltip(new Tooltip("git commit"));
+        commitButton.setOnAction(eh -> gitCommit());
+        gitCommitSituationVisible.getItems().add(commitButton);
+
+        Button addButton = new Button("+");
+        addButton.setTooltip(new Tooltip("git add <file>..."));
+        addButton.setOnAction(eh -> gitAdd());
+        gitAddSituationVisible.getItems().add(addButton);
+
+        Button unstageButton = new Button("-");
+        unstageButton.setTooltip(new Tooltip("git reset HEAD <file>..."));
+        unstageButton.setOnAction(eh -> gitUnstage());
+        gitUnstageSituationVisible.getItems().add(unstageButton);
+        
+        Button diffButton = new Button("Diff");
+        diffButton.setTooltip(new Tooltip("git diff <file>"));
+        diffButton.setOnAction(eh -> gitDiff());
+        gitAddSingleSituationVisible.getItems().add(diffButton);
+        
+        Button diffCachedButton = new Button("Diff");
+        diffCachedButton.setTooltip(new Tooltip("git diff --cached <file>"));
+        diffCachedButton.setOnAction(eh -> gitDiffCached());
+        gitUnstageSingleSituationVisible.getItems().add(diffCachedButton);
+        
+        HBox hbox = new HBox();
+        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton);
+        //hbox.getChildren().addAll(addButton, commitButton);
+        hbox.setSpacing(5);
+        return hbox;
     }
 
     private void gitCommit() {
@@ -255,10 +346,21 @@ public class GitStatusPane implements BaseGitPane {
         commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
         commitWindow.setConfigInfo(configInfo);
         commitWindow.open();
+        commitWindow.getGitCommitPane().setRepositoryDatas(repositories.getSelected());
     }
-    
+
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, files) -> {
+            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir);
+            addCommand.setProgressWindow(progressWindow);
+            addCommand.add(files);
+        });
+    }
+
+    // git add -u 相当
+    private void gitAddUpdate() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getModifiedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
             GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir);
             addCommand.setProgressWindow(progressWindow);
@@ -274,7 +376,27 @@ public class GitStatusPane implements BaseGitPane {
             unstageCommand.unstage(files);
         });
     }
-    
+
+    private void gitDiff() {
+        var selectedItem = getSelectedFile();
+        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
+        try {
+            diffCommand.diff(selectedItem.getFileName());
+        } catch (IOException | GitCommandException | InterruptedException ex) {
+            showError(ex);
+        }
+    }
+
+    private void gitDiffCached() {
+        var selectedItem = getSelectedFile();
+        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
+        try {
+            diffCommand.diffCached(selectedItem.getFileName());
+        } catch (IOException | GitCommandException | InterruptedException ex) {
+            showError(ex);
+        }
+    }
+
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {
         filesPerRepo.forEach((repositoryPath, items) -> {
             GitThread thread = GitThreadMan.get(repositoryPath.toString());
@@ -290,7 +412,7 @@ public class GitStatusPane implements BaseGitPane {
                     statusDatas = statusCommand.status(items.get(0).getRepositoryData(), files);
                     //System.out.println("statusDatas: " + statusDatas.toString());
                 } catch (IOException | GitAPIException ex) {
-                    Logger.getLogger(GitStatusPane.class.getName()).log(Level.SEVERE, null, ex);
+                    showError(ex);
                     return;
                 }
                 Platform.runLater(() -> {
@@ -328,10 +450,49 @@ public class GitStatusPane implements BaseGitPane {
         return filesPerRepo;
     }
 
+    private GitStatusData getSelectedFile() {
+        if (tableView.getSelectionModel().getSelectedIndices().size() != 1) {
+            throw new AssertionError("複数選択されている場合又は選択されていない場合は getSelectedFile() は読んでは駄目");
+        }
+        return tableView.getSelectionModel().getSelectedItem();
+    }
+
+    private HashMap<Path, List<GitStatusData>> getModifiedFiles() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = new HashMap<>();
+        tableView.getItems().forEach(item -> {
+            switch (item.getWorkTreeStatus()) {
+                case "M":
+                case "A":
+                case "D":
+                    break;
+                default:
+                    return;
+            }
+            Path key = item.getRepositoryData().getPath();
+            List<GitStatusData> files = filesPerRepo.get(key);
+            if (files == null) {
+                files = new ArrayList<>();
+                filesPerRepo.put(key, files);
+            }
+            files.add(item);
+        });
+        return filesPerRepo;
+    }
+
     private void updateSituationSelectors() {
         singleSelectionSituationSelector.update();
         multiSelectionSituationSelector.update();
         gitAddSituationSelector.update();
+        gitAddSituationVisible.update();
+        gitAddPatchSituationSelector.update();
+        gitAddSingleSituationVisible.update();
+        gitAddUpdateSituationSelector.update();
+        gitUnstageSituationSelector.update();
+        gitUnstageSituationVisible.update();
+        gitUnstageSingleSituationSelector.update();
+        gitUnstageSingleSituationVisible.update();
+        gitCommitSituationSelector.update();
+        gitCommitSituationVisible.update();
     }
 
     private void showError(Exception e) {

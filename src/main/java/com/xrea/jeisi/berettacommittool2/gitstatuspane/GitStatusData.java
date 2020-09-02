@@ -57,6 +57,10 @@ public class GitStatusData {
         return indexStatus.get();
     }
     
+    public String getWorkTreeStatus() {
+        return workTreeStatus.get();
+    }
+    
     public void setFileName(String fileName) {
         this.fileName.set(fileName);
     }

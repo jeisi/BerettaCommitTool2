@@ -13,22 +13,20 @@ import javafx.scene.control.MultipleSelectionModel;
  *
  * @author jeisi
  */
-public class GitAddSelectionSituation implements Situation {
+public class GitAddPatchSelectionSituation implements Situation {
 
     private final MultipleSelectionModel<GitStatusData> selectionModel;
     private final static Predicate<GitStatusData> predicate = new GitAddPredicate();
 
-    public GitAddSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
+    public GitAddPatchSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
         this.selectionModel = selectionModel;
     }
 
     @Override
     public boolean isValid() {
-        var selectedItems = selectionModel.getSelectedItems();
-        if(selectedItems.isEmpty()) {
+        if (selectionModel.getSelectedIndices().size() != 1) {
             return false;
         }
-        
-        return selectedItems.stream().allMatch(predicate);
+        return predicate.test(selectionModel.getSelectedItems().get(0));
     }
 }

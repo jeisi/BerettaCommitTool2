@@ -7,22 +7,26 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
+import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkPane;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
@@ -31,9 +35,11 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.ToolBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -44,7 +50,7 @@ public class App extends Application {
 
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
-    private SelectWorkPane selectWorkPane;
+    //private SelectWorkPane selectWorkPane;
     private List<BaseGitPane> gitPanes;
     ConfigInfo configInfo = new ConfigInfo();
     private String topDir;
@@ -69,12 +75,20 @@ public class App extends Application {
                 GitThreadMan.closeAll();
             }
         });
-        stage.setTitle("BerettaCommitTool2");
+        stage.setTitle(getBaseTitle());
 
         setupRepositoriesInfo();
 
-        //System.out.println("stage.show()");
+        var directoryHistory = configInfo.getDirectoryHistory();
+        if (directoryHistory != null && directoryHistory.size() > 0) {
+            setRootDirectory(directoryHistory.get(directoryHistory.size() - 1));
+        }
+
         stage.show();
+    }
+
+    private static String getBaseTitle() {
+        return "BerettaCommitTool2";
     }
 
     public void setupRepositoriesInfo() {
@@ -89,7 +103,7 @@ public class App extends Application {
     private void saveConfig() {
         //System.out.println("App.saveConfig()");
         try {
-            configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
+            //configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
             configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), mainStage.getWidth(), mainStage.getHeight());
             configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
             //System.out.println(splitPane.getDividerPositions()[0]);
@@ -115,19 +129,21 @@ public class App extends Application {
     }
 
     Scene buildScene(Stage stage) {
-        //System.out.println("App.buildScene()");
+        /*
         selectWorkPane = new SelectWorkPane(stage);
         selectWorkPane.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
                 String selectedDirectory = ((ComboBox<String>) e.getSource()).getValue();
                 setRootDirectory(selectedDirectory);
+                stage.setTitle(String.format("%s - %s", selectedDirectory, getBaseTitle()));
             }
         });
         var directoryHistory = configInfo.getDirectoryHistory();
         if (directoryHistory != null && directoryHistory.size() > 0) {
             selectWorkPane.setDirectoryHistory(directoryHistory);
         }
+         */
 
         repositoriesPane = new RepositoriesPane();
         repositoriesPane.setConfig(configInfo);
@@ -156,14 +172,30 @@ public class App extends Application {
         menuBar.getMenus().add(repositoriesPane.buildMenu());
         gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
 
-        var vbox = new VBox();
-        vbox.setPadding(new Insets(5));
-        vbox.setSpacing(5);
-        vbox.getChildren().addAll(selectWorkPane.build(), splitPane);
+        //var shortCutButtons = new HBox();
+        var toolBar = new ToolBar();
+        //toolBar.setSpacing(5);
+        Button changeDirectoryButton = new Button("Change directory");
+        changeDirectoryButton.setOnAction(eh -> onChangeDirectory());
+        Button refreshAllButton = new Button("Refresh all");
+        refreshAllButton.setOnAction(eh -> refreshAll(topDir));
+        toolBar.getItems().addAll(changeDirectoryButton, refreshAllButton);
+        gitPanes.forEach(pane -> toolBar.getItems().add(pane.buildToolBar()));
+        //toolBar.getChildren().add(new Button("Refresh all"));
+        //toolBar.getChildren().add(new Button("Commit"));
+
+        var topPane = new VBox(menuBar, toolBar);
+
+        BorderPane bodyBorderPane = new BorderPane();
+        bodyBorderPane.setPadding(new Insets(5));
+        //bodyBorderPane.setTop(selectWorkPane.build());
+        bodyBorderPane.setCenter(splitPane);
+        BorderPane.setMargin(splitPane, new Insets(5, 0, 0, 0));
 
         var borderPane = new BorderPane();
-        borderPane.setTop(menuBar);
-        borderPane.setCenter(vbox);
+        //borderPane.setTop(menuBar);
+        borderPane.setTop(topPane);
+        borderPane.setCenter(bodyBorderPane);
 
         var windowRectangle = configInfo.getWindowRectangle("main");
         double width, height;
@@ -184,6 +216,10 @@ public class App extends Application {
     }
 
     private Menu buildMenu() {
+        var changeDirectoryMenuItem = new MenuItem("Change directory");
+        changeDirectoryMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
+        changeDirectoryMenuItem.setOnAction(eh -> onChangeDirectory());
+
         var refreshAllMenuItem = new MenuItem("Refresh all");
         refreshAllMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F5));
         refreshAllMenuItem.setOnAction(e -> refreshAll(topDir));
@@ -195,14 +231,33 @@ public class App extends Application {
         refreshSelectedMenuItem.setOnAction(e -> refreshSelected());
 
         Menu menu = new Menu("Refresh");
-        menu.getItems().addAll(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem);
+        menu.getItems().addAll(changeDirectoryMenuItem, refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem);
 
         return menu;
+    }
+
+    private void onChangeDirectory() {
+        SelectWorkDialog dialog = new SelectWorkDialog(mainStage);
+        SelectWorkPane selectWorkPane = dialog.getSelectWorkPane();
+        var directoryHistory = configInfo.getDirectoryHistory();
+        if (directoryHistory != null && directoryHistory.size() > 0) {
+            selectWorkPane.setDirectoryHistory(directoryHistory);
+        }
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            String selectedDirectory = selectWorkPane.getCurrentDirectory();
+            setRootDirectory(selectedDirectory);
+            System.out.println(selectWorkPane.getDirectoryHistory());
+            configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
+        }
     }
 
     void setRootDirectory(String topDir) {
         this.topDir = topDir;
         refreshAll(topDir);
+        //Platform.runLater(() -> {
+        mainStage.setTitle(String.format("%s - %s", topDir, getBaseTitle()));
+        //});
     }
 
     void refreshAll(String topDir) {

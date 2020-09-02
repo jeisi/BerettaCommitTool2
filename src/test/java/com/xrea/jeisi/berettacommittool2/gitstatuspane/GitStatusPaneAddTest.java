@@ -90,7 +90,6 @@ public class GitStatusPaneAddTest {
     
     @Test
     public void testAdd(FxRobot robot) throws InterruptedException, IOException {
-        System.out.println("testAdd()");
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 

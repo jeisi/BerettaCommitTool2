@@ -5,9 +5,6 @@
  */
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
-import com.xrea.jeisi.berettacommittool2.selectworkpane.DirectoryChooserBridge;
-import com.xrea.jeisi.berettacommittool2.selectworkpane.DirectoryChooserBridgeImpl;
-import com.xrea.jeisi.berettacommittool2.selectworkpane.DirectoryChooserFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,8 +17,9 @@ import javafx.event.EventHandler;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SplitMenuButton;
+//import javafx.scene.control.SplitMenuButton;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
@@ -32,26 +30,40 @@ import javafx.stage.Stage;
 public class SelectWorkPane {
 
     private final Stage stage;
-    private ComboBox comboBox;
-    private SplitMenuButton backSplitMenuButton;
-    private final ObservableList<String> directoriesList = FXCollections.observableArrayList();
+    private ComboBox<String> comboBox;
+    //private SplitMenuButton backMenuButton;
+    private MenuButton backMenuButton;
+    private final List<String> directoriesList = new ArrayList<>();
+    private final ObservableList<String> comboItems = FXCollections.observableArrayList();
     private EventHandler<ActionEvent> onAction;
     private DirectoryChooserFactory directoryChooserFactory = () -> new DirectoryChooserBridgeImpl();
+    private EventHandler<ActionEvent> historyItemOnAction = (event) -> {
+        String selectedItem = ((MenuItem)event.getSource()).getText();
+        System.out.println("historyItemOnAction: " + selectedItem);
+        comboBox.setValue(selectedItem);
+    };
 
     public SelectWorkPane(Stage stage) {
         this.stage = stage;
     }
 
     public void setDirectoryHistory(List<String> directoryHistory) {
-        directoriesList.setAll(directoryHistory);
+        //directoriesList.setAll(directoryHistory);
+        directoriesList.clear();
+        directoriesList.addAll(directoryHistory);
+        comboItems.setAll(directoryHistory);
         Platform.runLater(() -> {
             comboBox.setValue(directoryHistory.get(directoryHistory.size() - 1));
             updateBackSplitMenuButtonItems();
         });
     }
-    
+
     public List<String> getDirectoryHistory() {
         return directoriesList;
+    }
+
+    public String getCurrentDirectory() {
+        return comboBox.getValue();
     }
 
     void setDirectoryChooserFactory(DirectoryChooserFactory factory) {
@@ -59,11 +71,7 @@ public class SelectWorkPane {
     }
 
     public void setOnAction(EventHandler<ActionEvent> event) {
-        if (comboBox != null) {
-            comboBox.setOnAction(event);
-        } else {
-            onAction = event;
-        }
+        onAction = event;
     }
 
     public Parent build() {
@@ -71,23 +79,31 @@ public class SelectWorkPane {
         hbox.setSpacing(5);
 
         Comparator<String> comp = (o1, o2) -> o1.compareToIgnoreCase(o2);
-        comboBox = new ComboBox<String>(directoriesList.sorted(comp));
+        comboBox = new ComboBox<String>(comboItems.sorted(comp));
         comboBox.setId("directoryComboBox");
         comboBox.setPrefWidth(400);
-        if (onAction != null) {
-            comboBox.setOnAction(onAction);
-        }
+        comboBox.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent t) {
+                changeDirectory();
+                if (onAction != null) {
+                    onAction.handle(t);
+                }
+            }
+        });
 
-        backSplitMenuButton = new SplitMenuButton();
-        backSplitMenuButton.setId("backSplitMenuButton");
-        backSplitMenuButton.setText("←");
-        backSplitMenuButton.setDisable(true);
-        var menuItem0 = new MenuItem("History0");
-        var menuItem1 = new MenuItem("History1");
-        var menuItem2 = new MenuItem("History2");
-        backSplitMenuButton.getItems().addAll(menuItem0, menuItem1, menuItem2);
+        //backSplitMenuButton = new SplitMenuButton();
+        backMenuButton = new MenuButton();
+        backMenuButton.setId("backSplitMenuButton");
+        backMenuButton.setText("←");
+        backMenuButton.setDisable(true);
+        //var menuItem0 = new MenuItem("History0");
+        //var menuItem1 = new MenuItem("History1");
+        //var menuItem2 = new MenuItem("History2");
+        //backMenuButton.getItems().addAll(menuItem0, menuItem1, menuItem2);
 
-        var selectDirectoryButton = new Button("Select directory");
+        //var selectDirectoryButton = new Button("Select directory");
+        var selectDirectoryButton = new Button("...");
         selectDirectoryButton.setId("selectDirectoryButton");
         selectDirectoryButton.addEventHandler(ActionEvent.ACTION, event -> {
             DirectoryChooserBridge chooser = directoryChooserFactory.create();
@@ -97,7 +113,7 @@ public class SelectWorkPane {
             }
         });
 
-        hbox.getChildren().addAll(comboBox, backSplitMenuButton, selectDirectoryButton);
+        hbox.getChildren().addAll(comboBox, backMenuButton, selectDirectoryButton);
         return hbox;
     }
 
@@ -111,7 +127,22 @@ public class SelectWorkPane {
             directoriesList.remove(value);
         }
         directoriesList.add(value);
+
+        if (!comboItems.contains(value)) {
+            comboItems.add(value);
+        }
         comboBox.getSelectionModel().select(value);
+
+        updateBackSplitMenuButtonItems();
+    }
+
+    private void changeDirectory() {
+        var value = comboBox.getValue();
+
+        if (directoriesList.contains(value)) {
+            directoriesList.remove(value);
+        }
+        directoriesList.add(value);
 
         updateBackSplitMenuButtonItems();
     }
@@ -124,12 +155,14 @@ public class SelectWorkPane {
         }
         while (iterator.hasPrevious()) {
             var menuItem = new MenuItem(iterator.previous());
+            menuItem.setOnAction(historyItemOnAction);
+            menuItem.setId(String.format("historiesListMenuItem%d", historiesList.size()));
             historiesList.add(menuItem);
             if (historiesList.size() > 10) {
                 break;
             }
         }
-        backSplitMenuButton.getItems().setAll(FXCollections.observableArrayList(historiesList));
-        backSplitMenuButton.setDisable(historiesList.size() < 1);
+        backMenuButton.getItems().setAll(FXCollections.observableArrayList(historiesList));
+        backMenuButton.setDisable(historiesList.size() < 1);
     }
 }
