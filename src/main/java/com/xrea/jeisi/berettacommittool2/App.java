@@ -1,6 +1,7 @@
 package com.xrea.jeisi.berettacommittool2;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
@@ -15,14 +16,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
@@ -43,9 +41,9 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 
+    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
-    //private SelectWorkPane selectWorkPane;
     private List<BaseGitPane> gitPanes;
     ConfigInfo configInfo = new ConfigInfo();
     private String topDir;
@@ -96,20 +94,16 @@ public class App extends Application {
     }
 
     private void saveConfig() {
-        //System.out.println("App.saveConfig()");
         try {
-            //configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
             configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), mainStage.getWidth(), mainStage.getHeight());
             configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
-            //System.out.println(splitPane.getDividerPositions()[0]);
             repositoriesPane.saveConfig();
             gitPanes.forEach((var pane) -> {
                 pane.saveConfig();
             });
             configInfo.save();
         } catch (IOException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-            Alert alert = new Alert(AlertType.ERROR, ex.getLocalizedMessage(), ButtonType.CLOSE);
+            errorLogWindow.appendException(ex);
         }
     }
 
@@ -117,9 +111,7 @@ public class App extends Application {
         try {
             configInfo.load();
         } catch (IOException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
-            Alert alert = new Alert(AlertType.ERROR, ex.getLocalizedMessage(), ButtonType.CLOSE);
-            alert.showAndWait();
+            errorLogWindow.appendException(ex);
         }
     }
 
@@ -199,10 +191,6 @@ public class App extends Application {
             mainStage.setY(windowRectangle.getY());
             width = windowRectangle.getWidth();
             height = windowRectangle.getHeight();
-            //width = 640;
-            //height = 480;
-            //mainStage.setWidth(windowRectangle.getWidth());
-            //mainStage.setHeight(windowRectangle.getHeight());
         } else {
             width = 640;
             height = 480;
