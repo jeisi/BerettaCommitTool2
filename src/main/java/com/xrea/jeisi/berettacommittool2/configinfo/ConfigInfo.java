@@ -14,9 +14,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import javafx.collections.ObservableList;
-import javafx.scene.control.TableColumn;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -63,15 +60,15 @@ public class ConfigInfo {
         map.put(windowName + ".rectangle", r);
     }
 
+    public void setWindowRectangle(String windowName, WindowRectangle windowRectangle) {
+        setWindowRectangle(windowName, windowRectangle.getX(), windowRectangle.getY(), windowRectangle.getWidth(), windowRectangle.getHeight());
+    }
+    
     public WindowRectangle getWindowRectangle(String windowName) {
-        //System.out.println("ConfigInfo.getWindowRectangle(" + windowName + ")");
-        //System.out.println(map.get(windowName + ".rectangle"));
         List<Double> r = (List<Double>) map.get(windowName + ".rectangle");
         if(r == null) {
-            System.out.println("return null");
             return null;
         }
-        //System.out.println(r);
         return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
     }
     

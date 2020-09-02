@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
@@ -127,9 +128,14 @@ public class GitStatusPane implements BaseGitPane {
         this.configInfo = configInfo;
     }
 
+    @Override
     public void saveConfig() {
+        XmlWriter.writeStartMethod("GitStatusPane.saveConfig()");
+        
         List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
         configInfo.setTableColumnWidth(tableView.getId(), widths);
+        
+        XmlWriter.writeEndMethod();
     }
 
     private void changeTargetRepositories(TargetRepository target) {
@@ -496,6 +502,9 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void showError(Exception e) {
+        if (configInfo != null) {
+            errorLogWindow.setConfigInfo("gitstatuspane.logwindow", configInfo);
+        }
         errorLogWindow.appendException(e);
     }
 }

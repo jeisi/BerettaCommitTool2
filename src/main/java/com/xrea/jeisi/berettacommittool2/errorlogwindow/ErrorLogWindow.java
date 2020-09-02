@@ -5,6 +5,8 @@
  */
 package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.streamcaputurer.StreamCapturer;
 import java.io.PrintStream;
 import javafx.application.Platform;
@@ -25,14 +27,41 @@ public class ErrorLogWindow {
 
     private Stage stage;
     private TextArea textArea;
+    //private WindowRectangle windowRectangle;
+    private ConfigInfo configInfo;
+    private String identifier = "";
 
+    public void setConfigInfo(String identifier, ConfigInfo configInfo) {
+        this.identifier = identifier;
+        this.configInfo = configInfo;
+    }
+    
     private void open() {
-        Scene scene = new Scene(build(), 640, 480);
+        WindowRectangle windowRectangle = null;
+        if(configInfo != null) {
+            windowRectangle = configInfo.getWindowRectangle(identifier);
+        }
+        
         stage = new Stage();
+        double width, height;
+        if (windowRectangle != null) {
+            stage.setX(windowRectangle.getX());
+            stage.setY(windowRectangle.getY());
+            width = windowRectangle.getWidth();
+            height = windowRectangle.getHeight();
+        } else {
+            width = 640;
+            height = 480;
+        }
+
+        Scene scene = new Scene(build(), width, height);
         stage.setScene(scene);
         stage.setTitle("Error");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
+                if(configInfo != null) {
+                    configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+                }
                 stage = null;
             }
         });
