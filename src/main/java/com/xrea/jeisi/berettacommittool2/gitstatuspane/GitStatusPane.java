@@ -38,8 +38,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -57,7 +55,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
@@ -84,7 +81,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationVisible gitCommitSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
-    private ProgressWindow progressWindow = new ProgressWindow();
+    private final ProgressWindow progressWindow = new ProgressWindow();
     private ConfigInfo configInfo;
 
     @Override
@@ -347,6 +344,7 @@ public class GitStatusPane implements BaseGitPane {
         commitWindow.setConfigInfo(configInfo);
         commitWindow.open();
         commitWindow.getGitCommitPane().setRepositoryDatas(repositories.getSelected());
+        commitWindow.getGitCommitPane().addEventHandler((e) -> refreshSelected());
     }
 
     private void gitAdd() {
