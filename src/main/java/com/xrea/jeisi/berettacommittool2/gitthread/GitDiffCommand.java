@@ -49,6 +49,7 @@ public class GitDiffCommand {
         command.add("difftool");
         command.add("-y");
         command.add("--tool=meld");
+        //command.add("--tool=vimdiff");
         if(bCached) {
             command.add("--cached");
         }
@@ -58,7 +59,9 @@ public class GitDiffCommand {
 
     private static String getErrorMessage(List<String> command, Process p) throws IOException {
         StringBuilder sb = new StringBuilder();
-        sb.append("+ ");
+        sb.append("command error.");
+        sb.append("\n");
+        sb.append("$ ");
         sb.append(String.join(" ", command));
         sb.append("\n");
         try (BufferedReader br = new BufferedReader(
