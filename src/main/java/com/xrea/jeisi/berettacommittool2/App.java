@@ -2,6 +2,7 @@ package com.xrea.jeisi.berettacommittool2;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
@@ -16,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -78,6 +81,12 @@ public class App extends Application {
         }
 
         stage.show();
+
+        try {
+            ExeCreator.create(configInfo).exec();
+        } catch (IOException ex) {
+            errorLogWindow.appendException(ex);
+        }
     }
 
     private static String getBaseTitle() {

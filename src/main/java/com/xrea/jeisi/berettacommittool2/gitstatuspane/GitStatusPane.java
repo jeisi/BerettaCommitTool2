@@ -7,7 +7,6 @@ package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
@@ -269,7 +268,7 @@ public class GitStatusPane implements BaseGitPane {
     public Menu buildMenu() {
         MenuItem addMenuItem = new MenuItem("Git add <file>...");
         addMenuItem.setId("gitStatusAddMenuItem");
-        addMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN));
+        addMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.ALT_DOWN));
         addMenuItem.setOnAction(e -> gitAdd());
         gitAddSituationSelector.getItems().add(addMenuItem);
 
@@ -291,19 +290,20 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem diffMenuItem = new MenuItem("Git difftool <file>");
         diffMenuItem.setId("gitStatusDiffMenuItem");
         diffMenuItem.setOnAction(eh -> gitDiff());
-        diffMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN));
+        diffMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN));
         gitAddPatchSituationSelector.getItems().add(diffMenuItem);
 
         MenuItem diffCachedMenuItem = new MenuItem("Git difftool --cached <file>");
         diffCachedMenuItem.setId("gitStatusDiffCachedMenuItem");
         diffCachedMenuItem.setOnAction(eh -> gitDiffCached());
-        diffCachedMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN));
+        diffCachedMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN));
         gitUnstageSingleSituationSelector.getItems().add(diffCachedMenuItem);
 
         MenuItem commitMenuItem = new MenuItem("Git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
         commitMenuItem.setDisable(true);
         commitMenuItem.setOnAction(e -> gitCommit());
+        commitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.ALT_DOWN));
         gitCommitSituationSelector.getItems().add(commitMenuItem);
 
         var menu = new Menu("Status");
@@ -387,7 +387,8 @@ public class GitStatusPane implements BaseGitPane {
         var selectedItem = getSelectedFile();
         GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
         try {
-            diffCommand.diff(selectedItem.getFileName());
+            String tool = GitDiffCommand.getTool(configInfo);
+            diffCommand.diff(selectedItem.getFileName(), tool);
         } catch (IOException | GitCommandException | InterruptedException ex) {
             showError(ex);
         }
@@ -397,7 +398,8 @@ public class GitStatusPane implements BaseGitPane {
         var selectedItem = getSelectedFile();
         GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
         try {
-            diffCommand.diffCached(selectedItem.getFileName());
+            String tool = GitDiffCommand.getTool(configInfo);
+            diffCommand.diffCached(selectedItem.getFileName(), tool);
         } catch (IOException | GitCommandException | InterruptedException ex) {
             showError(ex);
         }

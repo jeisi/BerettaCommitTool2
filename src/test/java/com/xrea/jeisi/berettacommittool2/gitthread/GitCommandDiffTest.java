@@ -35,7 +35,7 @@ public class GitCommandDiffTest {
 
         File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
         GitDiffCommand diffCommand = new GitDiffCommand(workDir);
-        diffCommand.diff("a.txt");
+        diffCommand.diff("a.txt", "--tool=meld");
     }
 
     @Test
@@ -51,11 +51,11 @@ public class GitCommandDiffTest {
         File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
         GitDiffCommand diffCommand = new GitDiffCommand(workDir) {
             @Override
-            protected List<String> getCommand(String fileName, boolean bCached) {
+            protected List<String> getCommand(String fileName, String tool, boolean bCached) {
                 return Arrays.asList(new String[]{"git", "difftool", "-y", "--tool=vimdiff", fileName});
             }
         };
-        GitCommandException e = assertThrows(GitCommandException.class, () -> diffCommand.diff("a.txt"));
+        GitCommandException e = assertThrows(GitCommandException.class, () -> diffCommand.diff("a.txt", "--tool=meld"));
         String expect = "+ git difftool -y --tool=vimdiff a.txt\n"
                 + "The diff tool vimdiff is not available as 'vim'\n"
                 + "fatal: external diff died, stopping at a.txt\n";
@@ -74,6 +74,6 @@ public class GitCommandDiffTest {
 
         File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
         GitDiffCommand diffCommand = new GitDiffCommand(workDir);
-        diffCommand.diffCached("a.txt");
+        diffCommand.diffCached("a.txt", "--tool=meld");
     }
 }

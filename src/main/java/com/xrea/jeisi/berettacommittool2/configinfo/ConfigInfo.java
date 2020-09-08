@@ -34,6 +34,10 @@ public class ConfigInfo {
         this.configFile = configFile;
     }
 
+    public Path getPath() {
+        return configFile;
+    }
+    
     public void setDirectoryHistory(List<String> directoryHistory) {
         map.put("directoryHistory", directoryHistory);
     }
@@ -70,6 +74,23 @@ public class ConfigInfo {
             return null;
         }
         return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
+    }
+    
+    public void setProgram(String name, String path) {
+        map.put("program." + name, path);
+    }
+    
+    public String getProgram(String name) {
+        return (String) map.get("program." + name);
+    }
+    
+    public void setDiffTool(String difftool) {
+        map.put("difftool", difftool);
+    }
+    
+    public String getDiffTool() {
+        String difftool = (String) map.get("difftool");
+        return difftool;
     }
     
     public void setTableColumnWidth(String tableId, List<Double> widths) {
