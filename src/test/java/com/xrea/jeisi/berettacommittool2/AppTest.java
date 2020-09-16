@@ -6,7 +6,6 @@
 package com.xrea.jeisi.berettacommittool2;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,13 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
-import javafx.scene.Scene;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
 import org.testfx.api.FxRobot;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Disabled;
 
 /**
  *
