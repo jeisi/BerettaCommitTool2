@@ -130,10 +130,10 @@ public class GitStatusPane implements BaseGitPane {
     @Override
     public void saveConfig() {
         XmlWriter.writeStartMethod("GitStatusPane.saveConfig()");
-        
+
         List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
         configInfo.setTableColumnWidth(tableView.getId(), widths);
-        
+
         XmlWriter.writeEndMethod();
     }
 
@@ -265,6 +265,7 @@ public class GitStatusPane implements BaseGitPane {
         return tableView;
     }
 
+    @Override
     public Menu buildMenu() {
         MenuItem addMenuItem = new MenuItem("Git add <file>...");
         addMenuItem.setId("gitStatusAddMenuItem");
@@ -281,6 +282,9 @@ public class GitStatusPane implements BaseGitPane {
         add_uMenuItem.setId("gitStatusAddUpdateMenuItem");
         add_uMenuItem.setOnAction(eh -> gitAddUpdate());
         gitAddUpdateSituationSelector.getItems().add(add_uMenuItem);
+
+        Menu addSubMenu = new Menu("Git add");
+        addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem);
 
         MenuItem unstageMenuItem = new MenuItem("Git reset HEAD <file>...");
         unstageMenuItem.setId("gitStatusUnstageMenuItem");
@@ -299,6 +303,9 @@ public class GitStatusPane implements BaseGitPane {
         diffCachedMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN));
         gitUnstageSingleSituationSelector.getItems().add(diffCachedMenuItem);
 
+        Menu diffSubMenu = new Menu("Git difftool");
+        diffSubMenu.getItems().addAll(diffMenuItem, diffCachedMenuItem);
+        
         MenuItem commitMenuItem = new MenuItem("Git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
         commitMenuItem.setDisable(true);
@@ -308,8 +315,8 @@ public class GitStatusPane implements BaseGitPane {
 
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
-        menu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, new SeparatorMenuItem(),
-                unstageMenuItem, diffMenuItem, diffCachedMenuItem, commitMenuItem);
+        menu.getItems().addAll(addSubMenu,
+                unstageMenuItem, diffSubMenu, commitMenuItem);
         return menu;
     }
 
