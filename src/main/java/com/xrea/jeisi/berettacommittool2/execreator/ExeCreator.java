@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -29,12 +30,16 @@ public abstract class ExeCreator {
     ConfigInfo configInfo;
 
     public static ExeCreator create(ConfigInfo configInfo) {
+        //XmlWriter.writeStartMethod("ExeCreator.create()");
         String os = System.getProperty("os.name").toLowerCase();
         if(os.contains("win")) {
+            //XmlWriter.writeEndMethodWithReturn();
             return new ExeCreatorWin(configInfo);
         } else if(os.contains("mac")) {
+            //XmlWriter.writeEndMethodWithReturn();
             return new ExeCreatorMac(configInfo);
         } else {
+            //XmlWriter.writeEndMethodWithReturn();
             return new ExeCreatorUnix(configInfo);
         }
     }

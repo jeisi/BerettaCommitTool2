@@ -6,22 +6,31 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
  * @author jeisi
  */
 public class ExeCreatorUnix extends ExeCreator {
-    
+
     public ExeCreatorUnix(ConfigInfo configInfo) {
         super(configInfo);
     }
-    
+
     @Override
     public void exec() {
         String difftool = configInfo.getDiffTool();
-        if(difftool == null) {
+        if (difftool == null) {
             configInfo.setDiffTool("meld");
+        }
+
+        List<String> programs = new ArrayList();
+        programs.add("git");
+        SetUpWizard wizard = new SetUpWizard(configInfo, programs);
+        if (wizard.getNullPrograms().size() > 0) {
+            wizard.exec();
         }
     }
 }

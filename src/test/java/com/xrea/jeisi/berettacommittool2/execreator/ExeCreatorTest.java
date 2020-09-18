@@ -36,4 +36,10 @@ public class ExeCreatorTest {
         ExeCreator app = new ExeCreatorWin(configInfo);
         assertThrows(FileNotFoundException.class, () -> app.createExecFile("winmerge.sh"));
     }
+    
+    @Test
+    // 未登録のプログラムがない時はそのまま終了。
+    public void testNoUnregistedProgram() throws IOException {
+
+    }
 }

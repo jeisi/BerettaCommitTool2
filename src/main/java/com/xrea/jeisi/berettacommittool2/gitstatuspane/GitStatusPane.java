@@ -35,6 +35,7 @@ import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -51,6 +53,8 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -260,6 +264,20 @@ public class GitStatusPane implements BaseGitPane {
             }
         });
 
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
+        copyFilePathMenuItem.setOnAction(eh -> {
+            if(tableView.getSelectionModel().getSelectedItems().size() != 1) {
+                throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
+            }
+            final Clipboard clipboard = Clipboard.getSystemClipboard();
+            final ClipboardContent content = new ClipboardContent();
+            GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
+            Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
+            content.putString(path.toString());
+        });
+        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem);
+        tableView.setContextMenu(contextMenu);
+
         //var vbox = new VBox();
         //vbox.getChildren().addAll(tableView);
         return tableView;
@@ -305,7 +323,7 @@ public class GitStatusPane implements BaseGitPane {
 
         Menu diffSubMenu = new Menu("Git difftool");
         diffSubMenu.getItems().addAll(diffMenuItem, diffCachedMenuItem);
-        
+
         MenuItem commitMenuItem = new MenuItem("Git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
         commitMenuItem.setDisable(true);

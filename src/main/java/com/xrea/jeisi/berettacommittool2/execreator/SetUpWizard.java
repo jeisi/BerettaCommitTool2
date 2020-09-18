@@ -6,17 +6,17 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
@@ -35,7 +35,12 @@ public class SetUpWizard extends Stage {
 
     public SetUpWizard(ConfigInfo configInfo, List<String> programs) {
         this.configInfo = configInfo;
-        this.programs = programs;
+        
+        this.programs = programs.stream().filter(p -> configInfo.getProgram(p) == null).collect(Collectors.toList());
+    }
+
+    public List<String> getNullPrograms() {
+        return programs;
     }
 
     public void exec() {
@@ -53,7 +58,8 @@ public class SetUpWizard extends Stage {
             }
         });
 
-        stage.show();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
     }
 
     private Parent build() {
@@ -84,10 +90,6 @@ public class SetUpWizard extends Stage {
     }
 
     private SetUpNode buildSetUpWinMerge(String program) {
-        if (configInfo.getProgram(program) != null) {
-            return null;
-        }
-
         return new SetUpNode(program, this);
     }
 

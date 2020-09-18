@@ -7,8 +7,10 @@ package com.xrea.jeisi.berettacommittool2.execreator;
 
 import java.io.IOException;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.application.Platform;
 
 /**
  *
@@ -22,6 +24,8 @@ public class ExeCreatorWin extends ExeCreator {
 
     @Override
     public void exec() throws IOException {
+        XmlWriter.writeStartMethod("ExeCreatorWin.exec()");
+
         createExecFile("winmerge.sh");
 
         String difftool = configInfo.getDiffTool();
@@ -32,8 +36,12 @@ public class ExeCreatorWin extends ExeCreator {
         List<String> programs = new ArrayList();
         programs.add("git");
         programs.add("WinMergeU");
-
         SetUpWizard wizard = new SetUpWizard(configInfo, programs);
-        wizard.exec();
+        if (wizard.getNullPrograms().size() > 0) {
+            //Platform.runLater(() -> wizard.exec());
+            wizard.exec();
+        }
+
+        XmlWriter.writeEndMethod();
     }
 }
