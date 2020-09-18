@@ -202,7 +202,9 @@ public class App extends Application {
             width = 640;
             height = 480;
         }
-        return new Scene(borderPane, width, height);
+        mainStage.setWidth(width);
+        mainStage.setHeight(height);
+        return new Scene(borderPane/*, width, height*/);
     }
 
     private Menu buildMenu() {

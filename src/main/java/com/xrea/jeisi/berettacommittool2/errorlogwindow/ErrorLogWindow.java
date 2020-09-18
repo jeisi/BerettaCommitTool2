@@ -53,8 +53,10 @@ public class ErrorLogWindow {
             width = 640;
             height = 480;
         }
+        stage.setWidth(width);
+        stage.setHeight(height);
 
-        Scene scene = new Scene(build(), width, height);
+        Scene scene = new Scene(build()/*, width, height*/);
         stage.setScene(scene);
         stage.setTitle("Error");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
