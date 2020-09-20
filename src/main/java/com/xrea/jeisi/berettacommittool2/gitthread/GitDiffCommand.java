@@ -6,10 +6,12 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,13 +21,15 @@ import java.util.List;
  */
 public class GitDiffCommand {
 
+    private final ConfigInfo configInfo;
     private final File repository;
 
-    public GitDiffCommand(File repository) {
-        this.repository = repository;
+    public GitDiffCommand(Path repository, ConfigInfo configInfo) {
+        this.repository = repository.toFile();
+        this.configInfo = configInfo;
     }
 
-    public static String getTool(ConfigInfo configInfo) {
+    private String getTool() {
         String tool = configInfo.getDiffTool();
         switch (tool) {
             case "meld":
@@ -33,17 +37,21 @@ public class GitDiffCommand {
             case "vimdiff":
                 return String.format("--tool=%s", tool);
             case "winmerge":
-                return String.format("--extcmd=%s/bin/winmerge.sh", configInfo.getPath().getParent().toString());
+                return String.format("--extcmd=%s/bin/winmerge.sh", configInfo.getAppDir());
             default:
                 throw new IllegalArgumentException(tool + "に対応する case 文がありません。");
         }
     }
 
-    public void diff(String fileName, String tool) throws IOException, InterruptedException, GitCommandException {
+    public void diff(String fileName) throws IOException, InterruptedException, GitCommandException {
+        XmlWriter.writeStartMethod("GitDiffCommand.diff(%s)", fileName);
+        String tool = getTool();
         diffCommon(fileName, tool, /*bCached=*/ false);
+        XmlWriter.writeEndMethod();
     }
 
-    public void diffCached(String fileName, String tool) throws IOException, InterruptedException, GitCommandException {
+    public void diffCached(String fileName) throws IOException, InterruptedException, GitCommandException {
+        String tool = getTool();
         diffCommon(fileName, tool, /*bCached=*/ true);
     }
 
@@ -59,15 +67,17 @@ public class GitDiffCommand {
     }
 
     protected List<String> getCommand(String fileName, String tool, boolean bCached) {
+        XmlWriter.writeStartMethod("GitDiffCommand.getCommand()");
         ArrayList<String> command = new ArrayList<>();
-        command.add("git");
+        command.add(configInfo.getProgram("git"));
         command.add("difftool");
         command.add("-y");
-
+        command.add(tool);
         if (bCached) {
             command.add("--cached");
         }
         command.add(fileName);
+        XmlWriter.writeEndMethodWithReturnValue(command.toString());
         return command;
     }
 

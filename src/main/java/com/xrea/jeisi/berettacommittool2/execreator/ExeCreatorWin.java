@@ -26,13 +26,6 @@ public class ExeCreatorWin extends ExeCreator {
     public void exec() throws IOException {
         XmlWriter.writeStartMethod("ExeCreatorWin.exec()");
 
-        createExecFile("winmerge.sh");
-
-        String difftool = configInfo.getDiffTool();
-        if (difftool == null) {
-            configInfo.setDiffTool("winmerge");
-        }
-
         List<String> programs = new ArrayList();
         programs.add("git");
         programs.add("WinMergeU");
@@ -40,6 +33,13 @@ public class ExeCreatorWin extends ExeCreator {
         if (wizard.getNullPrograms().size() > 0) {
             //Platform.runLater(() -> wizard.exec());
             wizard.exec();
+        }
+
+        createExecFile("winmerge.sh");
+
+        String difftool = configInfo.getDiffTool();
+        if (difftool == null) {
+            configInfo.setDiffTool("winmerge");
         }
 
         XmlWriter.writeEndMethod();

@@ -5,7 +5,9 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  *
@@ -16,5 +18,5 @@ public interface GitCommandFactory {
     public GitStatusCommand createStatusCommand(File file);
     public GitUnstageCommand createUnstageCommand(File file);
     public GitCommitCommand createGitCommitCommand(File file);
-    public GitDiffCommand createGitDiffCommand(File file);
+    public GitDiffCommand createGitDiffCommand(Path path, ConfigInfo configInfo);
 }

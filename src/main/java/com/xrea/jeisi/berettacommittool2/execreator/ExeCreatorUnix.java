@@ -21,16 +21,16 @@ public class ExeCreatorUnix extends ExeCreator {
 
     @Override
     public void exec() {
-        String difftool = configInfo.getDiffTool();
-        if (difftool == null) {
-            configInfo.setDiffTool("meld");
-        }
-
         List<String> programs = new ArrayList();
         programs.add("git");
         SetUpWizard wizard = new SetUpWizard(configInfo, programs);
         if (wizard.getNullPrograms().size() > 0) {
             wizard.exec();
+        }
+
+        String difftool = configInfo.getDiffTool();
+        if (difftool == null) {
+            configInfo.setDiffTool("meld");
         }
     }
 }

@@ -39,6 +39,10 @@ public class ConfigInfo {
         return configFile;
     }
     
+    public String getAppDir() {
+        return getPath().getParent().toString().replace('\\', '/');
+    }
+    
     public void setDirectoryHistory(List<String> directoryHistory) {
         map.put("directoryHistory", directoryHistory);
     }
@@ -86,7 +90,7 @@ public class ConfigInfo {
     }
     
     public String getProgram(String name) {
-        return (String) map.get("program." + name);
+        return ((String) map.get("program." + name)).replace('\\', '/');
     }
     
     public void setDiffTool(String difftool) {
