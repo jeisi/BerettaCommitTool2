@@ -266,7 +266,7 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
         copyFilePathMenuItem.setOnAction(eh -> {
-            if(tableView.getSelectionModel().getSelectedItems().size() != 1) {
+            if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
                 throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
             }
             final Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -409,25 +409,29 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitDiff() {
+        XmlWriter.writeStartMethod("GitStatusPane.gitDiff()");
         var selectedItem = getSelectedFile();
-        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
-        try {
-            String tool = GitDiffCommand.getTool(configInfo);
-            diffCommand.diff(selectedItem.getFileName(), tool);
-        } catch (IOException | GitCommandException | InterruptedException ex) {
-            showError(ex);
-        }
+        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+        new Thread(() -> {
+            try {
+                diffCommand.diff(selectedItem.getFileName());
+            } catch (IOException | GitCommandException | InterruptedException ex) {
+                showError(ex);
+            }
+        }).start();
+        XmlWriter.writeEndMethod();
     }
 
     private void gitDiffCached() {
         var selectedItem = getSelectedFile();
-        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath().toFile());
-        try {
-            String tool = GitDiffCommand.getTool(configInfo);
-            diffCommand.diffCached(selectedItem.getFileName(), tool);
-        } catch (IOException | GitCommandException | InterruptedException ex) {
-            showError(ex);
-        }
+        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+        new Thread(() -> {
+            try {
+                diffCommand.diffCached(selectedItem.getFileName());
+            } catch (IOException | GitCommandException | InterruptedException ex) {
+                showError(ex);
+            }
+        }).start();
     }
 
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {
