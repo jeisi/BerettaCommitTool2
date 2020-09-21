@@ -53,16 +53,16 @@ public class ErrorLogWindow {
             width = 640;
             height = 480;
         }
-        stage.setWidth(width);
-        stage.setHeight(height);
+        //stage.setWidth(width);
+        //stage.setHeight(height);
 
-        Scene scene = new Scene(build()/*, width, height*/);
+        Scene scene = new Scene(build(), width, height);
         stage.setScene(scene);
         stage.setTitle("Error");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
                 if(configInfo != null) {
-                    configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+                    configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getScene().getWidth(), stage.getScene().getHeight());
                 }
                 stage = null;
             }

@@ -11,6 +11,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkPane;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -58,6 +60,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        XmlWriter.writeStartMethod("App.start()");
+        
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
@@ -85,6 +89,8 @@ public class App extends Application {
         } catch (IOException ex) {
             errorLogWindow.appendException(ex);
         }
+        
+        XmlWriter.writeEndMethod();
     }
 
     private static String getBaseTitle() {
@@ -101,8 +107,10 @@ public class App extends Application {
     }
 
     private void saveConfig() {
+        XmlWriter.writeStartMethod("App.saveConfig()");
         try {
-            configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), mainStage.getWidth(), mainStage.getHeight());
+            var scene = mainStage.getScene();
+            configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), scene.getWidth(), scene.getHeight());
             configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
             repositoriesPane.saveConfig();
             gitPanes.forEach((var pane) -> {
@@ -111,6 +119,8 @@ public class App extends Application {
             configInfo.save();
         } catch (IOException ex) {
             errorLogWindow.appendException(ex);
+        } finally {
+            XmlWriter.writeEndMethod();
         }
     }
 
@@ -123,21 +133,7 @@ public class App extends Application {
     }
 
     Scene buildScene(Stage stage) {
-        /*
-        selectWorkPane = new SelectWorkPane(stage);
-        selectWorkPane.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent e) {
-                String selectedDirectory = ((ComboBox<String>) e.getSource()).getValue();
-                setRootDirectory(selectedDirectory);
-                stage.setTitle(String.format("%s - %s", selectedDirectory, getBaseTitle()));
-            }
-        });
-        var directoryHistory = configInfo.getDirectoryHistory();
-        if (directoryHistory != null && directoryHistory.size() > 0) {
-            selectWorkPane.setDirectoryHistory(directoryHistory);
-        }
-         */
+        XmlWriter.writeStartMethod("App.buildScene()");
 
         repositoriesPane = new RepositoriesPane();
         repositoriesPane.setConfig(configInfo);
@@ -202,9 +198,11 @@ public class App extends Application {
             width = 640;
             height = 480;
         }
-        mainStage.setWidth(width);
-        mainStage.setHeight(height);
-        return new Scene(borderPane/*, width, height*/);
+        //mainStage.setWidth(width);
+        //mainStage.setHeight(height);
+
+        XmlWriter.writeEndMethod();
+        return new Scene(borderPane, width, height);
     }
 
     private Menu buildMenu() {

@@ -41,10 +41,10 @@ public class GitCommitWindow extends Stage {
             width = 640;
             height = 480;
         }
-        stage.setWidth(width);
-        stage.setHeight(height);
+        //stage.setWidth(width);
+        //stage.setHeight(height);
 
-        Scene scene = new Scene(build()/*, width, height*/);
+        Scene scene = new Scene(build(), width, height);
         stage.setScene(scene);
         stage.setTitle("Commit");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -62,13 +62,12 @@ public class GitCommitWindow extends Stage {
     }
 
     private void saveConfig() {
-        System.out.println("GitCommitWindow.saveConfig()");
         if (configInfo == null) {
             return;
         }
 
-        System.out.println("setWindowRectangle()");
-        configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), getWidth(), getHeight());
+        var scene = getScene();
+        configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
     }
 
     public GitCommitPane getGitCommitPane() {
