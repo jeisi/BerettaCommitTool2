@@ -5,10 +5,13 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.errors.AbortedByHookException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoMessageException;
 
@@ -25,23 +28,26 @@ public class GitCommitCommand {
     }
     
     public void commit(String message, boolean amend) throws IOException, GitAPIException {
-        System.out.println("GitCommitcommand.commit() start.");
         Git git = Git.open(repository);
         
         Status gitStatus = git.status().call();
-        if(gitStatus.getChanged().size() == 0 && gitStatus.getAdded().size() == 0 && gitStatus.getRemoved().size() == 0 &&
-                gitStatus.getConflicting().size() == 0) {
+        if(gitStatus.getChanged().isEmpty() && gitStatus.getAdded().isEmpty() && gitStatus.getRemoved().isEmpty() &&
+                gitStatus.getConflicting().isEmpty()) {
             // ステージされていないファイルがなければ何もしない。
             return;
         }
         
-        //System.out.println("message: " + message);
         if(message.length() == 0) {
             throw new NoMessageException("Aborting commit due to empty commit message.");
         }
         
-        git.commit().setAllowEmpty(false).setMessage(message).setAmend(amend).call();
-        System.out.println("GitCommitcommand.commit() end.");
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            git.commit().setAllowEmpty(false).setMessage(message).setAmend(amend)
+                .setHookOutputStream(new PrintStream(outputStream)).call();
+        } catch(AbortedByHookException e) {
+            throw new AbortedByHookException(outputStream.toString(), e.getHookName(), e.getReturnCode());
+        } 
     }
     
     public String readCommitEditMsg() throws IOException {

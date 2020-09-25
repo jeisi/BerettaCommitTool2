@@ -6,7 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;

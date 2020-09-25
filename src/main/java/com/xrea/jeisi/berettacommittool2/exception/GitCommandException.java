@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.xrea.jeisi.berettacommittool2.gitthread;
+package com.xrea.jeisi.berettacommittool2.exception;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 

@@ -90,7 +90,11 @@ public class ConfigInfo {
     }
     
     public String getProgram(String name) {
-        return ((String) map.get("program." + name)).replace('\\', '/');
+        var program = (String) map.get("program." + name);
+        if(program == null) {
+            return null;
+        }
+        return program.replace('\\', '/');
     }
     
     public void setDiffTool(String difftool) {

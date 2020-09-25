@@ -5,6 +5,9 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,8 +27,8 @@ public class GitCommandDiffTest {
     }
 
     @Test
-    // meld が立ち上がるかどうかのテスト。
-    public void testDiff() throws IOException, InterruptedException, GitCommandException {
+    // ConfigInfo に git の設定が行われていなければ GitConfigException がスローされる。
+    public void testGitConfigException() throws IOException, InterruptedException, GitCommandException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testDiff.sh");
 
@@ -33,9 +36,29 @@ public class GitCommandDiffTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
-        GitDiffCommand diffCommand = new GitDiffCommand(workDir);
-        diffCommand.diff("a.txt", "--tool=meld");
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setDiffTool("meld");
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitDiffCommand diffCommand = new GitDiffCommand(workDir, configInfo);
+        GitConfigException e = assertThrows(GitConfigException.class, () -> diffCommand.diff("a.txt"));
+    }
+
+    @Test
+    // meld が立ち上がるかどうかのテスト。
+    public void testDiff() throws IOException, InterruptedException, GitCommandException, GitConfigException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testDiff.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setDiffTool("meld");
+        configInfo.setProgram("git", "/usr/bin/git");
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitDiffCommand diffCommand = new GitDiffCommand(workDir, configInfo);
+        diffCommand.diff("a.txt");
     }
 
     @Test
@@ -48,15 +71,14 @@ public class GitCommandDiffTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
-        GitDiffCommand diffCommand = new GitDiffCommand(workDir) {
-            @Override
-            protected List<String> getCommand(String fileName, String tool, boolean bCached) {
-                return Arrays.asList(new String[]{"git", "difftool", "-y", "--tool=vimdiff", fileName});
-            }
-        };
-        GitCommandException e = assertThrows(GitCommandException.class, () -> diffCommand.diff("a.txt", "--tool=meld"));
-        String expect = "+ git difftool -y --tool=vimdiff a.txt\n"
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setDiffTool("vimdiff");
+        configInfo.setProgram("git", "/usr/bin/git");
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitDiffCommand diffCommand = new GitDiffCommand(workDir, configInfo);
+        GitCommandException e = assertThrows(GitCommandException.class, () -> diffCommand.diff("a.txt"));
+        String expect = "command error.\n"
+                + "$ /usr/bin/git difftool -y --tool=vimdiff a.txt\n"
                 + "The diff tool vimdiff is not available as 'vim'\n"
                 + "fatal: external diff died, stopping at a.txt\n";
         assertEquals(expect, e.getMessage());
@@ -64,7 +86,7 @@ public class GitCommandDiffTest {
 
     @Test
     // diffCached() コマンドを実行したら git difftool -y --tool=meld --cached が実行される。
-    public void testDiffCached() throws IOException, InterruptedException, GitCommandException {
+    public void testDiffCached() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testDiffCached.sh");
 
@@ -72,8 +94,11 @@ public class GitCommandDiffTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
-        GitDiffCommand diffCommand = new GitDiffCommand(workDir);
-        diffCommand.diffCached("a.txt", "--tool=meld");
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setDiffTool("meld");
+        configInfo.setProgram("git", "/usr/bin/git");
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitDiffCommand diffCommand = new GitDiffCommand(workDir, configInfo);
+        diffCommand.diffCached("a.txt");
     }
 }

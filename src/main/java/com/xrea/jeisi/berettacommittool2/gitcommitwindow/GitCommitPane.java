@@ -150,7 +150,7 @@ public class GitCommitPane {
             String workDir = repositoryData.getPath().toString();
             GitThread thread = GitThreadMan.get(workDir);
             GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath().toFile());
-            thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand));
+            thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand, errorLogWindow));
         });
         
         fireActionEvents();
@@ -182,7 +182,6 @@ public class GitCommitPane {
         }
         commitMessageHistory = newCommitMessageHistory;
         summaryComboBox.getItems().setAll(getCommitMessages());
-        System.out.println("summaryComboBox.getItems(): " + summaryComboBox.getItems().toString());
     }
 
     private void amend() {

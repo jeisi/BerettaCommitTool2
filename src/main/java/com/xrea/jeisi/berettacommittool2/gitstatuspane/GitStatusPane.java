@@ -10,7 +10,8 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
-import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
@@ -39,6 +40,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -265,16 +268,8 @@ public class GitStatusPane implements BaseGitPane {
         });
 
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
-        copyFilePathMenuItem.setOnAction(eh -> {
-            if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
-                throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
-            }
-            final Clipboard clipboard = Clipboard.getSystemClipboard();
-            final ClipboardContent content = new ClipboardContent();
-            GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
-            Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
-            content.putString(path.toString());
-        });
+        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
+        singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
         ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem);
         tableView.setContextMenu(contextMenu);
 
@@ -331,10 +326,15 @@ public class GitStatusPane implements BaseGitPane {
         commitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.ALT_DOWN));
         gitCommitSituationSelector.getItems().add(commitMenuItem);
 
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
+        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
+        singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
+
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu,
-                unstageMenuItem, diffSubMenu, commitMenuItem);
+                unstageMenuItem, diffSubMenu, commitMenuItem, new SeparatorMenuItem(),
+                copyFilePathMenuItem);
         return menu;
     }
 
@@ -415,7 +415,7 @@ public class GitStatusPane implements BaseGitPane {
         new Thread(() -> {
             try {
                 diffCommand.diff(selectedItem.getFileName());
-            } catch (IOException | GitCommandException | InterruptedException ex) {
+            } catch (IOException | GitCommandException | InterruptedException | GitConfigException ex) {
                 showError(ex);
             }
         }).start();
@@ -428,10 +428,24 @@ public class GitStatusPane implements BaseGitPane {
         new Thread(() -> {
             try {
                 diffCommand.diffCached(selectedItem.getFileName());
-            } catch (IOException | GitCommandException | InterruptedException ex) {
+            } catch (IOException | GitCommandException | InterruptedException | GitConfigException ex) {
                 showError(ex);
             }
         }).start();
+    }
+
+    private void copyFilePathToClipBoard() {
+        XmlWriter.writeStartMethod("GitStatusPane.copyFilePathToClipBoard()");
+        if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
+            throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
+        }
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
+        Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
+        content.putString(path.toAbsolutePath().toString());
+        clipboard.setContent(content);
+        XmlWriter.writeEndMethod();
     }
 
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {

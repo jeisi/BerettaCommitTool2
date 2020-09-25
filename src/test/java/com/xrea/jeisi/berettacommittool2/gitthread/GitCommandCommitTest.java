@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.eclipse.jgit.api.errors.AbortedByHookException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoMessageException;
 import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
@@ -67,6 +68,22 @@ public class GitCommandCommitTest {
 
         File workDir = Paths.get(userDir, "src/test/resources/work/bob").toFile();
         GitCommitCommand commitCommand = new GitCommitCommand(workDir);
-        assertThrows(WrongRepositoryStateException.class, () -> commitCommand.commit("Commit message.", /*bAmend=*/false));
+        assertThrows(WrongRepositoryStateException.class, () -> commitCommand.commit("Commit message.", /*bAmend=*/ false));
+    }
+
+    @Test
+    // git commit 時に hook script でエラーになった場合は、AbortedByHookException がスローされる。
+    public void testCommit_HookScriptError() throws IOException, InterruptedException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testCommitFail.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
+        GitCommitCommand commitCommand = new GitCommitCommand(workDir);
+        AbortedByHookException e = assertThrows(AbortedByHookException.class, () -> commitCommand.commit("Commit message.", /*bAmend=*/ false));
+        assertEquals("Rejected by \"pre-commit\" hook.\nerror\n", e.getMessage());
     }
 }

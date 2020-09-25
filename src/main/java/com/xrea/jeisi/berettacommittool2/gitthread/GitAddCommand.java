@@ -39,9 +39,9 @@ public class GitAddCommand {
         XmlWriter.writeStartMethod("GitAddCommand.add()");
 
         if (progressWindow != null && files.length > 1) {
+            progressModel = new ProgressModel(String.format("git add %s ...", files[0]), files.length);
             Platform.runLater(() -> {
                 progressWindow.open();
-                progressModel = new ProgressModel(String.format("git add %s ...", files[0]), files.length);
                 progressWindow.addProgressModel(progressModel);
             });
         }

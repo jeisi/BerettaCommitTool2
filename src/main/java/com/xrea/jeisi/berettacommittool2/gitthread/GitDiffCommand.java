@@ -5,7 +5,9 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,19 +45,19 @@ public class GitDiffCommand {
         }
     }
 
-    public void diff(String fileName) throws IOException, InterruptedException, GitCommandException {
+    public void diff(String fileName) throws IOException, InterruptedException, GitCommandException, GitConfigException {
         XmlWriter.writeStartMethod("GitDiffCommand.diff(%s)", fileName);
         String tool = getTool();
         diffCommon(fileName, tool, /*bCached=*/ false);
         XmlWriter.writeEndMethod();
     }
 
-    public void diffCached(String fileName) throws IOException, InterruptedException, GitCommandException {
+    public void diffCached(String fileName) throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String tool = getTool();
         diffCommon(fileName, tool, /*bCached=*/ true);
     }
 
-    private void diffCommon(String fileName, String tool, boolean bCached) throws IOException, InterruptedException, GitCommandException {
+    private void diffCommon(String fileName, String tool, boolean bCached) throws IOException, InterruptedException, GitCommandException, GitConfigException {
         ProcessBuilder pb = new ProcessBuilder(getCommand(fileName, tool, bCached));
         pb.directory(repository);
         Process process = pb.start();
@@ -66,8 +68,15 @@ public class GitDiffCommand {
         }
     }
 
-    protected List<String> getCommand(String fileName, String tool, boolean bCached) {
+    protected List<String> getCommand(String fileName, String tool, boolean bCached) throws GitCommandException, GitConfigException {
         XmlWriter.writeStartMethod("GitDiffCommand.getCommand()");
+        XmlWriter.writeObject("configInfo", configInfo);
+        var git = configInfo.getProgram("git");
+        if(git == null) {
+            XmlWriter.writeEndMethodWithReturn();
+            throw new GitConfigException("git のパス指定が null です。");
+        }
+        
         ArrayList<String> command = new ArrayList<>();
         command.add(configInfo.getProgram("git"));
         command.add("difftool");

@@ -5,13 +5,9 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
+import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoMessageException;
 
@@ -21,14 +17,16 @@ import org.eclipse.jgit.api.errors.NoMessageException;
  */
 public class GitCommitThread implements Runnable {
 
-    private String message;
-    private boolean amend;
-    private GitCommitCommand commitCommand;
+    private final String message;
+    private final boolean amend;
+    private final GitCommitCommand commitCommand;
+    private final ErrorLogWindow errorLogWindow;
 
-    public GitCommitThread(String message, boolean amend, GitCommitCommand commitCommand) {
+    public GitCommitThread(String message, boolean amend, GitCommitCommand commitCommand, ErrorLogWindow errorLogWindow) {
         this.message = message;
         this.amend = amend;
         this.commitCommand = commitCommand;
+        this.errorLogWindow = errorLogWindow;
     }
 
     @Override
@@ -37,10 +35,11 @@ public class GitCommitThread implements Runnable {
             commitCommand.commit(message, amend);
         } catch (NoMessageException ex) {
             throw new AssertionError("コミットメッセージが空文字ならば、GitCommitCommand.commit() が実行される前に弾かれていなければならない。");
-        } catch (IOException ex) {
-            Logger.getLogger(GitCommitThread.class.getName()).log(Level.SEVERE, null, ex);
         } catch (GitAPIException ex) {
-            Logger.getLogger(GitCommitThread.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            errorLogWindow.appendText(ex.getMessage());
+        } catch (IOException ex) {
+            errorLogWindow.appendException(ex);            
         }
     }
 
