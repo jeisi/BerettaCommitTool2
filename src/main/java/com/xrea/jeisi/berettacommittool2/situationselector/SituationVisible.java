@@ -27,12 +27,12 @@ public class SituationVisible {
     }
 
     public void update() {
-        XmlWriter.writeStartMethod("SituationVisible.update()");
+        //XmlWriter.writeStartMethod("SituationVisible.update()");
 
         boolean isValid = situation.isValid();
         items.forEach(item -> item.setVisible(isValid));
         items.forEach(item -> item.setManaged(isValid));
 
-        XmlWriter.writeEndMethod();
+        //XmlWriter.writeEndMethod();
     }
 }

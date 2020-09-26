@@ -33,6 +33,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituat
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -270,7 +271,10 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
-        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem);
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
+
+        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem, openFileManagerMenuItem);
         tableView.setContextMenu(contextMenu);
 
         //var vbox = new VBox();
@@ -327,14 +331,17 @@ public class GitStatusPane implements BaseGitPane {
         gitCommitSituationSelector.getItems().add(commitMenuItem);
 
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
+        copyFilePathMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu,
                 unstageMenuItem, diffSubMenu, commitMenuItem, new SeparatorMenuItem(),
-                copyFilePathMenuItem);
+                copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
 
@@ -369,6 +376,20 @@ public class GitStatusPane implements BaseGitPane {
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;
+    }
+
+    private MenuItem createOpenFileManagerMenuItem() {
+        XmlWriter.writeStartMethod("GitStatusPane.createOpenFileManagerMenuItem()");
+        MenuItem openFileManagerMenuItem = new MenuItem("ファイルマネージャを開く");
+        openFileManagerMenuItem.setOnAction(eh -> openFileManager());
+        XmlWriter.writeObject("Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)", Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR));
+        if (!Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+            openFileManagerMenuItem.setDisable(true);
+        } else {
+            singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
+        }
+        XmlWriter.writeEndMethod();
+        return openFileManagerMenuItem;
     }
 
     private void gitCommit() {
@@ -437,6 +458,7 @@ public class GitStatusPane implements BaseGitPane {
     private void copyFilePathToClipBoard() {
         XmlWriter.writeStartMethod("GitStatusPane.copyFilePathToClipBoard()");
         if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
+            XmlWriter.writeEndMethodWithReturn();
             throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
         }
         final Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -446,6 +468,18 @@ public class GitStatusPane implements BaseGitPane {
         content.putString(path.toAbsolutePath().toString());
         clipboard.setContent(content);
         XmlWriter.writeEndMethod();
+    }
+
+    private void openFileManager() {
+        XmlWriter.writeStartMethod("GitStatusPane.openFileManager()");
+        GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
+        Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
+        try {
+            Desktop.getDesktop().browseFileDirectory(path.toFile());
+            //Platform.runLater(() -> Desktop.getDesktop().browseFileDirectory(path.toFile()));
+        } finally {
+            XmlWriter.writeEndMethod();
+        }
     }
 
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {
