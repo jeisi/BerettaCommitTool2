@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
@@ -382,8 +383,9 @@ public class GitStatusPane implements BaseGitPane {
         XmlWriter.writeStartMethod("GitStatusPane.createOpenFileManagerMenuItem()");
         MenuItem openFileManagerMenuItem = new MenuItem("ファイルマネージャを開く");
         openFileManagerMenuItem.setOnAction(eh -> openFileManager());
-        XmlWriter.writeObject("Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)", Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR));
-        if (!Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+        boolean isSupported = FileBrowser.getInstance().isSupported();
+        XmlWriter.writeObject("isSupported", isSupported);
+        if (!isSupported) {
             openFileManagerMenuItem.setDisable(true);
         } else {
             singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
@@ -474,12 +476,8 @@ public class GitStatusPane implements BaseGitPane {
         XmlWriter.writeStartMethod("GitStatusPane.openFileManager()");
         GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
         Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
-        try {
-            Desktop.getDesktop().browseFileDirectory(path.toFile());
-            //Platform.runLater(() -> Desktop.getDesktop().browseFileDirectory(path.toFile()));
-        } finally {
-            XmlWriter.writeEndMethod();
-        }
+        FileBrowser.getInstance().browseFileDirectory(path);
+        XmlWriter.writeEndMethod();
     }
 
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {
