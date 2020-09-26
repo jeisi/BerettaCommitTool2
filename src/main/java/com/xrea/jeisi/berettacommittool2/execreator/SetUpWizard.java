@@ -6,6 +6,9 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,24 +31,38 @@ public class SetUpWizard extends Stage {
     private final ConfigInfo configInfo;
     private final List<SetUpNode> nodes = new ArrayList<>();
     private int currentPage;
-    private final List<String> programs;
+    private final List<ProgramInfo> programs;
     private SwitchPane switchPane;
     private Button nextButton;
     private Button backButton;
-
-    public SetUpWizard(ConfigInfo configInfo, List<String> programs) {
+    private static boolean isDebug = false;
+    
+    public SetUpWizard(ConfigInfo configInfo, List<ProgramInfo> programs) {
         this.configInfo = configInfo;
-        
-        this.programs = programs.stream().filter(p -> configInfo.getProgram(p) == null).collect(Collectors.toList());
+
+        this.programs = new ArrayList<>();
+        programs.stream().filter(p -> configInfo.getProgram(p.getIdentifier()) == null).forEach(p -> {
+            List<String> existCandidates = p.getCandidates().stream().filter(candidate -> Files.exists(Paths.get(candidate))).collect(Collectors.toList());
+            if (existCandidates.size() > 0) {
+                configInfo.setProgram(p.getIdentifier(), existCandidates.get(0));
+            } else {
+                this.programs.add(p);
+            }
+        });
+    }
+    
+    public static void setDebug(boolean isDebug) {
+        SetUpWizard.isDebug = isDebug;
     }
 
-    public List<String> getNullPrograms() {
+    // ユーザが選択しないといけないプログラム一覧を返す。
+    public List<ProgramInfo> getNullPrograms() {
         return programs;
     }
 
     public void exec() {
         for (var program : programs) {
-            nodes.add(buildSetUpWinMerge(program));
+            nodes.add(buildNode(program));
         }
 
         Scene scene = new Scene(build());
@@ -58,8 +75,12 @@ public class SetUpWizard extends Stage {
             }
         });
 
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.showAndWait();
+        if (isDebug) {
+            stage.show();
+        } else {
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        }
     }
 
     private Parent build() {
@@ -89,13 +110,13 @@ public class SetUpWizard extends Stage {
         return vbox;
     }
 
-    private SetUpNode buildSetUpWinMerge(String program) {
+    private SetUpNode buildNode(ProgramInfo program) {
         return new SetUpNode(program, this);
     }
 
     private void saveConfig() {
         nodes.forEach(node -> {
-            String program = node.getProgram();
+            String program = node.getIdentifier();
             String path = node.getPath();
             configInfo.setProgram(program, path);
         });
@@ -118,6 +139,7 @@ public class SetUpWizard extends Stage {
     }
 
     private void enableButtons() {
+        XmlWriter.writeStartMethod("SetUpWizard.enableButtons()");
         if (currentPage == 0) {
             backButton.setDisable(true);
         } else {
@@ -125,8 +147,11 @@ public class SetUpWizard extends Stage {
         }
         if (currentPage == nodes.size() - 1) {
             nextButton.setText("Finish");
+            XmlWriter.writeStatement("nextButton.setText(\"Finish\")");
         } else {
             nextButton.setText("Next");
+            XmlWriter.writeStartMethod("nextButton.setText(\"Next\")");
         }
+        XmlWriter.writeEndMethod();
     }
 }

@@ -21,15 +21,15 @@ import javafx.stage.Window;
  */
 public class SetUpNode extends VBox {
 
-    private final String program;
+    private final ProgramInfo program;
     private final TextField textField;
     private final Window parent;
 
-    public SetUpNode(String program, Window parent) {
+    public SetUpNode(ProgramInfo program, Window parent) {
         this.parent = parent;
         this.program = program;
         
-        Label nameLabel = new Label(program + ":");
+        Label nameLabel = new Label(program.getExe() + " のフルパスを指定してくだい。");
 
         textField = new TextField();
         textField.setPrefWidth(400);
@@ -42,8 +42,8 @@ public class SetUpNode extends VBox {
         setSpacing(5);
     }
     
-    public String getProgram() {
-        return program;
+    public String getIdentifier() {
+        return program.getIdentifier();
     }
 
     public String getPath() {

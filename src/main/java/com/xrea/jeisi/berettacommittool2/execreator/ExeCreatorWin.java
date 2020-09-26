@@ -26,10 +26,10 @@ public class ExeCreatorWin extends ExeCreator {
     public void exec() throws IOException {
         XmlWriter.writeStartMethod("ExeCreatorWin.exec()");
 
-        List<String> programs = new ArrayList();
-        programs.add("git");
-        programs.add("WinMergeU");
-        SetUpWizard wizard = new SetUpWizard(configInfo, programs);
+        List<ProgramInfo> programInfos = new ArrayList<>();
+        programInfos.add(new ProgramInfo("git", "git.exe", new String[]{"c:/Program Files/Git/bin/git.exe"}));
+        programInfos.add(new ProgramInfo("WinMergeU", "WinMergeU.exe", new String[]{"c:/Program Files/WinMerge/WinMergeU.exe"}));
+        SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
         if (wizard.getNullPrograms().size() > 0) {
             //Platform.runLater(() -> wizard.exec());
             wizard.exec();

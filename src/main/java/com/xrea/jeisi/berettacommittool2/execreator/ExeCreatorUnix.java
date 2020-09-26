@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,9 +22,12 @@ public class ExeCreatorUnix extends ExeCreator {
 
     @Override
     public void exec() {
-        List<String> programs = new ArrayList();
-        programs.add("git");
-        SetUpWizard wizard = new SetUpWizard(configInfo, programs);
+        XmlWriter.writeStartMethod("ExeCreatorUnix.exec()");
+        
+        List<ProgramInfo> programInfos = new ArrayList<>();
+        programInfos.add(new ProgramInfo("git", "git", new String[]{"/usr/bin/git"}));
+        SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
+        XmlWriter.writeObject("wizard.getNullPrograms()", wizard.getNullPrograms());
         if (wizard.getNullPrograms().size() > 0) {
             wizard.exec();
         }
@@ -32,5 +36,7 @@ public class ExeCreatorUnix extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("meld");
         }
+        
+        XmlWriter.writeEndMethod();
     }
 }
