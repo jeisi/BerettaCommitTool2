@@ -57,10 +57,18 @@ public class XmlWriter {
     }
 
     public static void writeObject(String name, Object object) {
+        writeObject(name, object, -1);
+    }
+
+    public static void writeObject(String name, Object object, int line) {
         writePreStartTag();
         String value = (object != null) ? object.toString() : "null";
         String text = String.format("%s=%s", name, value);
-        writePrintf("%s<object>%s</object>\n", getTabSpace(), text);
+        if (line < 0) {
+            writePrintf("%s<object>%s</object>\n", getTabSpace(), text);
+        } else {
+            writePrintf("%s<object line='%d'>%s</object>\n", getTabSpace(), line, text);            
+        }
     }
 
     public static void writeStatement(String statement) {

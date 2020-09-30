@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -72,11 +73,13 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class GitStatusPane implements BaseGitPane {
 
-    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private ConfigInfo configInfo;
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
-    private final TargetRepository targetRepository = TargetRepository.SELECTED;
+    private final AtomicInteger refreshThreadCounter = new AtomicInteger();
+    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private final ProgressWindow progressWindow = new ProgressWindow();
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
     private final SituationSelector gitAddSituationSelector = new SituationSelector();
@@ -90,9 +93,12 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationVisible gitCommitSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
-    private final ProgressWindow progressWindow = new ProgressWindow();
-    private ConfigInfo configInfo;
+    private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
+    public int getRefreshThreadCounter() {
+        return refreshThreadCounter.get();
+    }
+    
     @Override
     public String getTitle() {
         return "Status";
@@ -114,6 +120,7 @@ public class GitStatusPane implements BaseGitPane {
 
     @Override
     public void setRepositories(RepositoriesInfo work) {
+        XmlWriter.writeStartMethod("GitStatusPane.setRepositories()");
         if (this.repositories != null) {
             throw new RuntimeException("setRepositories() を実行するのは一回だけです。");
         }
@@ -121,7 +128,6 @@ public class GitStatusPane implements BaseGitPane {
         this.repositories = work;
 
         ListChangeListener<RepositoryData> selectedListener = (change) -> {
-            //System.out.println("selectedListener()");
             changeTargetRepositories(TargetRepository.SELECTED);
         };
         work.getSelected().addListener(selectedListener);
@@ -129,6 +135,7 @@ public class GitStatusPane implements BaseGitPane {
         work.getChecked().addListener(changedListener);
 
         changeTargetRepositories(targetRepository);
+        XmlWriter.writeEndMethod();
     }
 
     @Override
@@ -178,7 +185,8 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void refreshCommon(ObservableList<RepositoryData> datas) {
-        //System.out.println("refreshCommon(): " + datas.toString());
+        XmlWriter.writeStartMethod("GitStatusPane.refreshCommon()");
+        refreshThreadCounter.set(datas.size());
         datas.forEach((var repository) -> {
             repository.displayNameProperty().set(String.format("%s [updating...]", repository.nameProperty().get()));
             repository.getGitStatusDatas().clear();
@@ -188,23 +196,24 @@ public class GitStatusPane implements BaseGitPane {
                 List<GitStatusData> gitStatusDatas;
                 try {
                     gitStatusDatas = command.status(repository);
-                    //System.out.println("gitStatusDatas: " + gitStatusDatas.toString());
                 } catch (IOException | GitCommandException | GitConfigException | InterruptedException ex) {
                     Platform.runLater(() -> showError(ex));
                     repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
                     return;
                 }
                 Platform.runLater(() -> {
-                    //System.out.println(String.format("[%s].getGitStatusDatas().setAll(gitStatusDatas)", repository.nameProperty().get()));
                     repository.getGitStatusDatas().setAll(gitStatusDatas);
                     if (gitStatusDatas.isEmpty()) {
                         repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
                     } else {
                         repository.displayNameProperty().set(String.format("%s (%d)", repository.nameProperty().get(), gitStatusDatas.size()));
                     }
+                    //updateSituationSelectors();
+                    refreshThreadCounter.decrementAndGet();
                 });
             });
         });
+        XmlWriter.writeEndMethod();
     }
 
     @Override
@@ -563,6 +572,7 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void updateSituationSelectors() {
+        XmlWriter.writeStartMethod("GitStatusPane.updateSituationSelectors()");
         singleSelectionSituationSelector.update();
         multiSelectionSituationSelector.update();
         gitAddSituationSelector.update();
@@ -576,6 +586,7 @@ public class GitStatusPane implements BaseGitPane {
         gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
         gitCommitSituationVisible.update();
+        XmlWriter.writeEndMethod();
     }
 
     private void showError(Exception e) {

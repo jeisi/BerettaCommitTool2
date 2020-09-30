@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
  *
@@ -38,7 +37,8 @@ public class GitStatusCommand {
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
-        XmlWriter.writeStartMethod("GitStatusCommand.status()");
+        //XmlWriter.writeStartMethod("GitStatusCommand.status()");
+        System.out.println("GitStatusCommand.status(): start.");
         ProcessBuilder pb = new ProcessBuilder(getCommand((String[]) null));
         pb.directory(repository);
         Process process = pb.start();
@@ -48,7 +48,8 @@ public class GitStatusCommand {
             throw e;
         }
         List<GitStatusData> status = getStatusDatas(process, repositoryData);
-        XmlWriter.writeEndMethod();
+        //XmlWriter.writeEndMethod();
+        System.out.println("GitStatusCommand.status(): end.");
         return status;
     }
 
@@ -92,13 +93,23 @@ public class GitStatusCommand {
                     throw new AssertionError(line + " が正規表現にマッチしませんでした。");
                 }
 
+                String index = m.group(1);
+                if(index.equals(" ")) {
+                    index = "";
+                }
+                
+                String workTree = m.group(2);
+                if(workTree.equals(" ")) {
+                    workTree = "";
+                }
+                
                 String fileName;
                 if (m.group(4) == null) {
                     fileName = m.group(3);
                 } else {
                     fileName = m.group(5);
                 }
-                list.add(new GitStatusData(m.group(1), m.group(2), fileName, repositoryData));
+                list.add(new GitStatusData(index, workTree, fileName, repositoryData));
             }
         }
         XmlWriter.writeEndMethod();

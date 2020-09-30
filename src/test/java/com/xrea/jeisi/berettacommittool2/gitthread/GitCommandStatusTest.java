@@ -11,21 +11,13 @@ import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.eclipse.jgit.lib.IndexDiff;
 import org.junit.jupiter.api.BeforeEach;
 
 /**
@@ -62,7 +54,7 @@ public class GitCommandStatusTest {
         RepositoryData repositoryData = new RepositoryData(true, "", Paths.get("."));
         List<GitStatusData> list = gitCommand.status(repositoryData);
         // ファイル名でソートされている。
-        assertThat("[{ , D, a.txt, }]").isEqualTo(list.toString());
+        assertThat("[{, D, a.txt, }]").isEqualTo(list.toString());
     }
 
     @Test
