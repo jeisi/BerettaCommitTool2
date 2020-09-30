@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.util.Pair;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -108,6 +109,13 @@ public class ConfigInfo {
         return program.replace('\\', '/');
     }
 
+    public List<Pair<String,String>> getPrograms() {
+        List<Pair<String,String>> programs = new ArrayList<>();
+        map.keySet().stream().filter(e -> e.startsWith("program."))
+                .forEach(key -> programs.add(new Pair(key.substring("program.".length()), map.get(key))));
+        return programs;
+    }
+    
     public void setDiffTool(String difftool) {
         map.put("difftool", difftool);
     }

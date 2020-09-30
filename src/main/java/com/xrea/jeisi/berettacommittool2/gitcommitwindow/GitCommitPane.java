@@ -47,7 +47,7 @@ public class GitCommitPane {
     private CheckBox amendCheckBox;
     private String amendMessage;
     private GitCommandFactory gitCommandFactory;
-    private List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
+    private final List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
     private static int SUMMARY_LENGTH = 40;
 
     void setConfigInfo(ConfigInfo configInfo) {

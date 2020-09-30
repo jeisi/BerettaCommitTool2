@@ -3,12 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
+package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -16,20 +13,19 @@ import javafx.stage.Stage;
  *
  * @author jeisi
  */
-public class GitCommitWindow extends Stage {
+public class PreferenceWindow extends Stage {
 
-    private final GitCommitPane gitCommitPane = new GitCommitPane();
-    private ConfigInfo configInfo;
+    private final ConfigInfo configInfo;
+    private final PreferencePane pane;
 
-    public void setConfigInfo(ConfigInfo configInfo) {
+    public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        gitCommitPane.setConfigInfo(configInfo);
+        pane = new PreferencePane(this, configInfo);
     }
 
     public void open() {
-        XmlWriter.writeStartMethod("GitCommitWindow.open()");
-
         Stage stage = this;
+
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
         if (windowRectangle != null) {
@@ -42,21 +38,19 @@ public class GitCommitWindow extends Stage {
             height = 480;
         }
 
-        Scene scene = new Scene(build(), width, height);
+        Scene scene = new Scene(pane.build(), width, height);
         stage.setScene(scene);
-        stage.setTitle("Commit");
+        stage.setTitle("Preference");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
                 saveConfig();
-                gitCommitPane.close();
+                pane.close();
             }
         });
 
-        gitCommitPane.addEventHandler((e) -> close());
-        
-        stage.show();
+        pane.addEventHandler((e) -> close());
 
-        XmlWriter.writeEndMethod();
+        stage.show();
     }
 
     private void saveConfig() {
@@ -68,15 +62,7 @@ public class GitCommitWindow extends Stage {
         configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
     }
 
-    public GitCommitPane getGitCommitPane() {
-        return gitCommitPane;
-    }
-
-    private Parent build() {
-        return gitCommitPane.build();
-    }
-
     static String getWindowIdentifier() {
-        return "gitcommitwindow";
+        return "preferencewindow";
     }
 }

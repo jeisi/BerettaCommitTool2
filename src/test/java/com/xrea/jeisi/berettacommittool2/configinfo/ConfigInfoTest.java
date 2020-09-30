@@ -151,7 +151,7 @@ public class ConfigInfoTest {
         WindowRectangle rectangle = configInfo.getWindowRectangle("dummy");
         assertEquals(null, rectangle);
     }
-    
+
     @Test
     public void testGetWindowRectangle() {
         ConfigInfo configInfo = new ConfigInfo();
@@ -159,7 +159,7 @@ public class ConfigInfoTest {
         WindowRectangle rectangle = configInfo.getWindowRectangle("dummy2");
         assertEquals("{10.0, 20.0, 30.0, 40.0}", rectangle.toString());
     }
-    
+
     @Test
     public void testDouble() throws IOException {
         ConfigInfo saveConfigInfo = new ConfigInfo();
@@ -187,5 +187,16 @@ public class ConfigInfoTest {
         loadConfigInfo.setConfigFile(configFile);
         loadConfigInfo.load();
         assertNull(loadConfigInfo.getDouble("key"));
+    }
+
+    @Test
+    // getPrograms() は PreferenceWindow でプログラムのパスを編集する際に使用する情報を返す。
+    public void testGetPrograms() {
+        ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setProgram("git", "/usr/bin/git");
+        configInfo.setProgram("WinMergeU", "c:/Programs Files/WinMerge/WinMergeU.exe");
+        
+        var programs = configInfo.getPrograms();
+        assertEquals("[git=/usr/bin/git, WinMergeU=c:/Programs Files/WinMerge/WinMergeU.exe]", programs.toString());
     }
 }

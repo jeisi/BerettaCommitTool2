@@ -39,7 +39,6 @@ public class SelectWorkPane {
     private DirectoryChooserFactory directoryChooserFactory = () -> new DirectoryChooserBridgeImpl();
     private EventHandler<ActionEvent> historyItemOnAction = (event) -> {
         String selectedItem = ((MenuItem)event.getSource()).getText();
-        System.out.println("historyItemOnAction: " + selectedItem);
         comboBox.setValue(selectedItem);
     };
 
@@ -97,12 +96,7 @@ public class SelectWorkPane {
         backMenuButton.setId("backSplitMenuButton");
         backMenuButton.setText("←");
         backMenuButton.setDisable(true);
-        //var menuItem0 = new MenuItem("History0");
-        //var menuItem1 = new MenuItem("History1");
-        //var menuItem2 = new MenuItem("History2");
-        //backMenuButton.getItems().addAll(menuItem0, menuItem1, menuItem2);
 
-        //var selectDirectoryButton = new Button("Select directory");
         var selectDirectoryButton = new Button("...");
         selectDirectoryButton.setId("selectDirectoryButton");
         selectDirectoryButton.addEventHandler(ActionEvent.ACTION, event -> {
