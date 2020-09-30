@@ -5,6 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
@@ -17,6 +21,7 @@ import javafx.stage.Stage;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
@@ -28,6 +33,7 @@ import org.testfx.framework.junit5.Start;
 @ExtendWith(ApplicationExtension.class)
 public class GitCommandAddTest {
 
+    private ConfigInfo configInfo;
     private ProgressWindow progressWindow;
 
     public GitCommandAddTest() {
@@ -38,8 +44,15 @@ public class GitCommandAddTest {
         progressWindow = new ProgressWindow();
     }
 
+    @BeforeEach
+    public void setUp() {
+        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
+        configInfo = new ConfigInfo();
+        configInfo.setupDefaultProgram(programInfo);
+    }
+
     @Test
-    public void testAdd() throws IOException, InterruptedException, GitAPIException {
+    public void testAdd() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAdd.sh");
 
@@ -47,19 +60,19 @@ public class GitCommandAddTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
-        GitAddCommand addCommand = new GitAddCommand(workDir);
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitAddCommand addCommand = new GitAddCommand(workDir.toFile());
         addCommand.add("a.txt");
 
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
-        GitStatusCommand statusCommand = new GitStatusCommand(workDir);
+        GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
         List<GitStatusData> list = statusCommand.status(repositoryData, "a.txt");
         assertEquals("[{A, , a.txt, .}]", list.toString());
     }
 
     @Test
     // ' D' 状態のファイルに対して git add コマンドを実行したら 'D ' になる。
-    public void testAddDeletedFile() throws IOException, InterruptedException, GitAPIException {
+    public void testAddDeletedFile() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAddDeleted.sh");
 
@@ -67,12 +80,12 @@ public class GitCommandAddTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        File workDir = Paths.get(userDir, "src/test/resources/work/beretta").toFile();
-        GitAddCommand addCommand = new GitAddCommand(workDir);
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitAddCommand addCommand = new GitAddCommand(workDir.toFile());
         addCommand.add("a.txt");
 
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
-        GitStatusCommand statusCommand = new GitStatusCommand(workDir);
+        GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
         List<GitStatusData> list = statusCommand.status(repositoryData, "a.txt");
         assertEquals("[{D, , a.txt, .}]", list.toString());
     }

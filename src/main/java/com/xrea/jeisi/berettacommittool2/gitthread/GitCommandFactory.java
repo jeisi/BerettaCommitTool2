@@ -15,7 +15,7 @@ import java.nio.file.Path;
  */
 public interface GitCommandFactory {
     public GitAddCommand createAddCommand(File file);
-    public GitStatusCommand createStatusCommand(File file);
+    public GitStatusCommand createStatusCommand(Path path, ConfigInfo configInfo);
     public GitUnstageCommand createUnstageCommand(File file);
     public GitCommitCommand createGitCommitCommand(File file);
     public GitDiffCommand createGitDiffCommand(Path path, ConfigInfo configInfo);

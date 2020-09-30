@@ -42,10 +42,8 @@ public class SetUpWizard extends Stage {
 
         this.programs = new ArrayList<>();
         programs.stream().filter(p -> configInfo.getProgram(p.getIdentifier()) == null).forEach(p -> {
-            List<String> existCandidates = p.getCandidates().stream().filter(candidate -> Files.exists(Paths.get(candidate))).collect(Collectors.toList());
-            if (existCandidates.size() > 0) {
-                configInfo.setProgram(p.getIdentifier(), existCandidates.get(0));
-            } else {
+            boolean isRegisted = configInfo.setupDefaultProgram(p);
+            if(!isRegisted) {
                 this.programs.add(p);
             }
         });

@@ -184,12 +184,12 @@ public class GitStatusPane implements BaseGitPane {
             repository.getGitStatusDatas().clear();
             GitThread thread = GitThreadMan.get(repository.getPath().toString());
             thread.addCommand(() -> {
-                GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath().toFile());
+                GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
                 List<GitStatusData> gitStatusDatas;
                 try {
                     gitStatusDatas = command.status(repository);
                     //System.out.println("gitStatusDatas: " + gitStatusDatas.toString());
-                } catch (IOException | GitAPIException ex) {
+                } catch (IOException | GitCommandException | GitConfigException | InterruptedException ex) {
                     Platform.runLater(() -> showError(ex));
                     repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
                     return;
@@ -197,7 +197,7 @@ public class GitStatusPane implements BaseGitPane {
                 Platform.runLater(() -> {
                     //System.out.println(String.format("[%s].getGitStatusDatas().setAll(gitStatusDatas)", repository.nameProperty().get()));
                     repository.getGitStatusDatas().setAll(gitStatusDatas);
-                    if (gitStatusDatas.size() == 0) {
+                    if (gitStatusDatas.isEmpty()) {
                         repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
                     } else {
                         repository.displayNameProperty().set(String.format("%s (%d)", repository.nameProperty().get(), gitStatusDatas.size()));
@@ -406,7 +406,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
-            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir);
+            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir.toFile());
             addCommand.setProgressWindow(progressWindow);
             addCommand.add(files);
         });
@@ -416,7 +416,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitAddUpdate() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getModifiedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
-            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir);
+            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir.toFile());
             addCommand.setProgressWindow(progressWindow);
             addCommand.add(files);
         });
@@ -425,7 +425,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitUnstage() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
-            GitUnstageCommand unstageCommand = gitCommandFactory.createUnstageCommand(workDir);
+            GitUnstageCommand unstageCommand = gitCommandFactory.createUnstageCommand(workDir.toFile());
             unstageCommand.setProgressWindow(progressWindow);
             unstageCommand.unstage(files);
         });
@@ -484,8 +484,8 @@ public class GitStatusPane implements BaseGitPane {
         filesPerRepo.forEach((repositoryPath, items) -> {
             GitThread thread = GitThreadMan.get(repositoryPath.toString());
             thread.addCommand(() -> {
-                File workDir = repositoryPath.toFile();
-                GitStatusCommand statusCommand = gitCommandFactory.createStatusCommand(workDir);
+                Path workDir = repositoryPath;
+                GitStatusCommand statusCommand = gitCommandFactory.createStatusCommand(workDir, configInfo);
                 //GitAddCommand unstageCommand = gitCommandFactory.createAddCommand(workDir);
                 List<GitStatusData> statusDatas;
                 try {
@@ -494,7 +494,7 @@ public class GitStatusPane implements BaseGitPane {
                     command.exec(workDir, files);
                     statusDatas = statusCommand.status(items.get(0).getRepositoryData(), files);
                     //System.out.println("statusDatas: " + statusDatas.toString());
-                } catch (IOException | GitAPIException ex) {
+                } catch (IOException | GitAPIException | GitConfigException | InterruptedException ex) {
                     showError(ex);
                     return;
                 }

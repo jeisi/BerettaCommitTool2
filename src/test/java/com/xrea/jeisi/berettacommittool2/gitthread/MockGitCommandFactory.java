@@ -17,12 +17,12 @@ import java.util.Map;
  */
 public class MockGitCommandFactory implements GitCommandFactory {
 
-    private final Map<File, MockGitStatusCommand> gitStatusCommands = new HashMap<>();
-    private Map<File, MockGitAddCommand> gitAddCommands = new HashMap<>();
+    private final Map<Path, MockGitStatusCommand> gitStatusCommands = new HashMap<>();
+    private final Map<File, MockGitAddCommand> gitAddCommands = new HashMap<>();
     private Map<File, MockGitUnstageCommand> gitUnstageCommands = new HashMap<>();
     private final Map<File, MockGitCommitCommand> gitCommitCommands = new HashMap<>();
 
-    public void setMockGitStatusCommand(File file, MockGitStatusCommand gitCommand) {
+    public void setMockGitStatusCommand(Path file, MockGitStatusCommand gitCommand) {
         //System.out.println("MockGitCommandFactory.setMockGitStatusCommand(): file = " + file.toString());
         this.gitStatusCommands.put(file, gitCommand);
     }
@@ -36,15 +36,10 @@ public class MockGitCommandFactory implements GitCommandFactory {
     }
     
     @Override
-    public GitStatusCommand createStatusCommand(File file) {
-        //System.out.println("MockGitCommandFactory.createStatusCommand(): file = " + file.toString());
+    public GitStatusCommand createStatusCommand(Path file, ConfigInfo configInfo) {
         GitStatusCommand command = gitStatusCommands.get(file);
         if (command == null) {
             StringBuilder builder = new StringBuilder();
-            //builder.append(String.format("Error!! GitStatusCommand.createStatusCommand(%s)\n", file.toString()));
-            //builder.append("gitStatusCommands: [");
-            System.out.println(String.format("Error!! GitCommand.create(%s)\n", file.toString()));
-            System.out.println("gitStatusCommands: " + gitStatusCommands.keySet().toString());
         }
         return command;
     }

@@ -16,8 +16,8 @@ import java.nio.file.Path;
 public class GitCommandFactoryImpl implements GitCommandFactory {
 
     @Override
-    public GitStatusCommand createStatusCommand(File file) {
-        return new GitStatusCommand(file);
+    public GitStatusCommand createStatusCommand(Path file, ConfigInfo configInfo) {
+        return new GitStatusCommand(file, configInfo);
     }
 
     @Override

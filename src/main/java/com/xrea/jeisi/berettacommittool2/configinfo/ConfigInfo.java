@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.configinfo;
 
+import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -26,7 +28,7 @@ public class ConfigInfo {
     private Path configFile;
     private HashMap<String, Object> map = new HashMap<>();
     //private static ConfigInfo instance = new ConfigInfo();
-    
+
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
     }
@@ -38,11 +40,11 @@ public class ConfigInfo {
     public Path getPath() {
         return configFile;
     }
-    
+
     public String getAppDir() {
         return getPath().getParent().toString().replace('\\', '/');
     }
-    
+
     public void setDirectoryHistory(List<String> directoryHistory) {
         map.put("directoryHistory", directoryHistory);
     }
@@ -50,15 +52,15 @@ public class ConfigInfo {
     public List<String> getDirectoryHistory() {
         return (List<String>) map.get("directoryHistory");
     }
-    
+
     public void setCommitMessageHistory(List<String> commitMessageHistory) {
         map.put("commitMessageHistory", commitMessageHistory);
     }
-    
+
     public List<String> getCommitMessageHistory() {
         return (List<String>) map.get("commitMessageHistory");
     }
-    
+
     public void setWindowRectangle(String windowName, double x, double y, double width, double height) {
         XmlWriter.writeStartMethod(String.format("ConfigInfo.setWindowRectangle(%s, %f, %f, %f, %f", windowName, x, y, width, height));
 
@@ -69,59 +71,68 @@ public class ConfigInfo {
         r.add(width);
         r.add(height);
         map.put(windowName + ".rectangle", r);
-        
+
         XmlWriter.writeEndMethod();
     }
 
     public void setWindowRectangle(String windowName, WindowRectangle windowRectangle) {
         setWindowRectangle(windowName, windowRectangle.getX(), windowRectangle.getY(), windowRectangle.getWidth(), windowRectangle.getHeight());
     }
-    
+
     public WindowRectangle getWindowRectangle(String windowName) {
         List<Double> r = (List<Double>) map.get(windowName + ".rectangle");
-        if(r == null) {
+        if (r == null) {
             return null;
         }
         return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
     }
-    
+
+    public boolean setupDefaultProgram(ProgramInfo p) {
+        List<String> existCandidates = p.getCandidates().stream().filter(candidate -> Files.exists(Paths.get(candidate))).collect(Collectors.toList());
+        if (existCandidates.size() > 0) {
+            setProgram(p.getIdentifier(), existCandidates.get(0));
+            return true;
+        }
+        return false;
+    }
+
     public void setProgram(String name, String path) {
         map.put("program." + name, path);
     }
-    
+
     public String getProgram(String name) {
         var program = (String) map.get("program." + name);
-        if(program == null) {
+        if (program == null) {
             return null;
         }
         return program.replace('\\', '/');
     }
-    
+
     public void setDiffTool(String difftool) {
         map.put("difftool", difftool);
     }
-    
+
     public String getDiffTool() {
         String difftool = (String) map.get("difftool");
         return difftool;
     }
-    
+
     public void setTableColumnWidth(String tableId, List<Double> widths) {
         map.put(tableId + ".columnWidths", widths);
     }
-    
+
     public List<Double> getTableColumnWidth(String tableId) {
         return (List<Double>) map.get(tableId + ".columnWidths");
     }
-    
+
     public void setDouble(String key, double value) {
         map.put(key, value);
     }
-    
+
     public Double getDouble(String key) {
         return (Double) map.get(key);
     }
-    
+
     public void save() throws IOException {
         pruneDirectoryHistory();
 
@@ -141,8 +152,8 @@ public class ConfigInfo {
         if (!Files.exists(parentDirectory)) {
             return;
         }
-        
-        if(!Files.exists(configFile)) {
+
+        if (!Files.exists(configFile)) {
             return;
         }
 
@@ -154,7 +165,7 @@ public class ConfigInfo {
 
     private void pruneDirectoryHistory() {
         List<String> directoryHistory = getDirectoryHistory();
-        if(directoryHistory == null) {
+        if (directoryHistory == null) {
             return;
         }
         directoryHistory.removeIf(e -> !Files.exists(Paths.get(e)));

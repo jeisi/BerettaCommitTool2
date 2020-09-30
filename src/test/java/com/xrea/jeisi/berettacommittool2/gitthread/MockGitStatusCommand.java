@@ -5,12 +5,8 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
-import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import org.eclipse.jgit.api.errors.GitAPIException;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import java.nio.file.Path;
 
 /**
  *
@@ -18,24 +14,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class MockGitStatusCommand extends GitStatusCommand {
 
-    private MockStatus mockStatus;
-
-    public MockGitStatusCommand(File repoDir) {
-        super(repoDir);
+    public MockGitStatusCommand(Path repoDir, ConfigInfo configInfo) {
+        super(repoDir, configInfo);
     }
-
-    public void setMockStatus(MockStatus mockStatus) {
-        this.mockStatus = mockStatus;
-    }
-
-    @Override
-    public List<GitStatusData> status(RepositoryData repositoryData) throws IOException, GitAPIException {
-        return status(mockStatus, repositoryData);
-    }
-
-    @Override
-    public List<GitStatusData> status(RepositoryData repositoryData, String... paths) throws IOException, GitAPIException {
-        return status(mockStatus, repositoryData);
-    }
-
 }

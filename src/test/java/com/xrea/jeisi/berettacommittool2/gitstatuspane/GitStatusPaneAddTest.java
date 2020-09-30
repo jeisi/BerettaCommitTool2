@@ -6,16 +6,18 @@
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitAddCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
-import com.xrea.jeisi.berettacommittool2.gitthread.MockStatus;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -52,9 +55,10 @@ import org.testfx.util.WaitForAsyncUtils;
 @ExtendWith(ApplicationExtension.class)
 public class GitStatusPaneAddTest {
 
+    private ConfigInfo configInfo;
     private GitStatusPane app;
-    private RepositoriesPane repositoriesPane;
     private Menu statusMenu;
+    private RepositoriesPane repositoriesPane;
     private Stage stage;
 
     public GitStatusPaneAddTest() {
@@ -80,6 +84,13 @@ public class GitStatusPaneAddTest {
         stage.show();
     }
 
+    @BeforeEach
+    public void setUp() {
+        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
+        configInfo = new ConfigInfo();
+        configInfo.setupDefaultProgram(programInfo);
+    }
+    
     @AfterEach
     public void tearDown() {
         Platform.runLater(() -> {
@@ -116,15 +127,12 @@ public class GitStatusPaneAddTest {
         //assertThat(gitStatusTableView.getItems().get(0).toString()).isEqualTo("{?, ?, gyp.sh, .}");
         assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
 
-        MockStatus mockStatus = new MockStatus();
-        mockStatus.setAdded(new HashSet<>(Arrays.asList(new String[]{"gyp.sh"})));
-        File berettaFile = Paths.get("beretta/.").toFile();
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile);
-        mockGitCommand.setMockStatus(mockStatus);
+        Path berettaFile = Paths.get("beretta/.");
+        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile, configInfo);
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile.toFile()));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後、git status の更新内容を反映させる。
@@ -175,15 +183,12 @@ public class GitStatusPaneAddTest {
         }
         assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
 
-        MockStatus mockStatus = new MockStatus();
-        mockStatus.setAdded(new HashSet<>());
-        File berettaFile = Paths.get("beretta/.").toFile();
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile);
-        mockGitCommand.setMockStatus(mockStatus);
+        Path berettaFile = Paths.get("beretta/.");
+        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile, configInfo);
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile.toFile()));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後の git status で行がなくなった場合。
@@ -238,17 +243,12 @@ public class GitStatusPaneAddTest {
         MenuItem addMenuItem = getMenuItem(statusMenu, "gitStatusAddMenuItem");
         assertFalse(addMenuItem.isDisable());
 
-        MockStatus gitStatus = new MockStatus();
-        Set<String> added = new HashSet<>();
-        added.add("update.rb");
-        gitStatus.setAdded(added);
-        File workDir = repositoryData.getPath().toFile();
-        MockGitStatusCommand mockGitStatusCommand = new MockGitStatusCommand(workDir);
-        mockGitStatusCommand.setMockStatus(gitStatus);
+        Path workDir = repositoryData.getPath();
+        MockGitStatusCommand mockGitStatusCommand = new MockGitStatusCommand(workDir, configInfo);
         MockGitCommandFactory factory = new MockGitCommandFactory();
         factory.setMockGitStatusCommand(workDir, mockGitStatusCommand);
-        MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir);
-        factory.setMockGitAddCommand(workDir, mockGitAddCommand);
+        MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir.toFile());
+        factory.setMockGitAddCommand(workDir.toFile(), mockGitAddCommand);
         app.setGitCommandFactory(factory);
 
         robot.clickOn("#gitStatusMenu");

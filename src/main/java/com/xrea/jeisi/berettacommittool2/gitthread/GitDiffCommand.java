@@ -99,7 +99,6 @@ public class GitDiffCommand {
         sb.append("\n");
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(p.getErrorStream()))) {
-            // ping結果の出力
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 sb.append(line);
                 sb.append("\n");
