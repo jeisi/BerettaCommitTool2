@@ -5,7 +5,6 @@
  */
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
-import com.xrea.jeisi.berettacommittool2.selectworkpane.DirectoryChooserBridgeMock;
 import static com.xrea.jeisi.berettacommittool2.JTestUtility.waitForRunLater;
 import java.io.File;
 import javafx.application.Platform;

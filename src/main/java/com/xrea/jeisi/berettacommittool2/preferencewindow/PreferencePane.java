@@ -49,11 +49,11 @@ public class PreferencePane {
         ProgramsTab programTab = new ProgramsTab(parent, configInfo);
         Tab gitDiffTab = new Tab("git diff");
         gitDiffTab.setClosable(false);
-        Tab commonTab = new Tab("Common");
-        commonTab.setClosable(false);
-        tabPane.getTabs().addAll(programTab, gitDiffTab, commonTab);
+        FontTab fontTab = new FontTab(parent, configInfo);
+        tabPane.getTabs().addAll(fontTab, programTab, gitDiffTab);
 
         tabs.add(programTab);
+        tabs.add(fontTab);
 
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tabPane);

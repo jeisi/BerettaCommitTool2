@@ -5,34 +5,147 @@
  */
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.awt.BorderLayout;
-import java.util.List;
-import javafx.scene.control.Alert;
+import java.util.Optional;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Insets;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 /**
  *
  * @author jeisi
  */
-public class SelectWorkDialog extends Alert {
+public class SelectWorkDialog {
 
+    private final ConfigInfo configInfo;
     private final SelectWorkPane selectWorkPane;
+    private final Stage stage;
+    private Optional<ButtonType> result = Optional.empty();
+    private Pane rootNode;
+    private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
+        rootNode.setStyle(String.format("-fx-font-size: %spx;", newValue));
+    };
 
-    public SelectWorkDialog(Stage stage) {
-        super(AlertType.CONFIRMATION);
+    public SelectWorkDialog(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        this.stage = new Stage();
+        this.selectWorkPane = new SelectWorkPane(stage);
+    }
 
-        selectWorkPane = new SelectWorkPane(stage);
-        setTitle("Select working directory");
-        setHeaderText(null);
-        getDialogPane().setContent(selectWorkPane.build());
+    public boolean isShowing() {
+        return stage.isShowing();
+    }
+    
+    public Optional<ButtonType> showAndWait() {
+        var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
+        double width, height;
+        Scene scene;
+        if (windowRectangle != null) {
+            stage.setX(windowRectangle.getX());
+            stage.setY(windowRectangle.getY());
+            width = windowRectangle.getWidth();
+            height = windowRectangle.getHeight();
+            scene = new Scene(build(), width, height);
+        } else {
+            width = 0;
+            height = 0;
+            scene = new Scene(build());
+        }
+
+        stage.setScene(scene);
+        stage.setTitle("Select working directory");
+        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue == true && newValue == false) {
+                close();
+            }
+        });
+
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
+
+        return result;
+    }
+
+    private void close() {
+        saveConfig();
+        configInfo.fontSizeProperty().removeListener(fontSizeChangeListener);
+    }
+
+    private Parent build() {
+        Button okButton = new Button("OK");
+        okButton.setOnAction(eh -> clickOk());
+        ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE);
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setOnAction(eh -> clickCancel());
+        ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        ButtonBar buttonBar = new ButtonBar();
+        buttonBar.getButtons().addAll(okButton, cancelButton);
+
+        Parent centerPane = selectWorkPane.build();
+        BorderPane.setMargin(centerPane, new Insets(5));
+        BorderPane.setMargin(buttonBar, new Insets(5, 5, 5, 5));
+        
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(centerPane);
+        borderPane.setBottom(buttonBar);
+
+        rootNode = borderPane;
+        var fontSize = configInfo.getFontSize();
+        if (fontSize != null) {
+            fontSizeChangeListener.changed(null, "", fontSize);
+        }
+        configInfo.fontSizeProperty().addListener(fontSizeChangeListener);
+
+        return rootNode;
+    }
+
+    private void clickOk() {
+        result = Optional.of(ButtonType.OK);
+        stage.close();
+    }
+
+    private void clickCancel() {
+        result = Optional.of(ButtonType.CANCEL);
+        stage.close();
     }
 
     public SelectWorkPane getSelectWorkPane() {
         return selectWorkPane;
-    }    
+    }
+
+    private void saveConfig() {
+        if (configInfo == null) {
+            return;
+        }
+
+        var scene = getScene();
+        configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
+    }
+
+    private Scene getScene() {
+        return stage.getScene();
+    }
+
+    private double getX() {
+        return stage.getX();
+    }
+
+    private double getY() {
+        return stage.getY();
+    }
+
+    static String getWindowIdentifier() {
+        return "selectworkdialog";
+    }
 }

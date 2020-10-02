@@ -6,6 +6,7 @@ import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
+import com.xrea.jeisi.berettacommittool2.preferencewindow.PreferenceWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -51,7 +53,10 @@ public class App extends Application {
     private String topDir;
     Stage mainStage;
     SplitPane splitPane;
-    //private RepositoriesLoaderFactory repositoriesLoaderFactory = (file) -> new RepositoriesLoader(file);
+    private BorderPane borderPane;
+    private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
+        borderPane.setStyle(String.format("-fx-font-size: %spx;", newValue));
+    };
 
     public void setConfigInfo(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -60,16 +65,14 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         XmlWriter.writeStartMethod("App.start()");
-        
+
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
         stage.setScene(scene);
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
-                saveConfig();
-                gitPanes.forEach(e -> e.close());
-                GitThreadMan.closeAll();
+                close();
             }
         });
         stage.setTitle(getBaseTitle());
@@ -88,8 +91,15 @@ public class App extends Application {
         } catch (IOException ex) {
             errorLogWindow.appendException(ex);
         }
-        
+
         XmlWriter.writeEndMethod();
+    }
+
+    void close() {
+        saveConfig();
+        gitPanes.forEach(e -> e.close());
+        GitThreadMan.closeAll();
+        configInfo.fontSizeProperty().removeListener(fontSizeChangeListener);
     }
 
     private static String getBaseTitle() {
@@ -160,6 +170,7 @@ public class App extends Application {
         menuBar.getMenus().add(buildMenu());
         menuBar.getMenus().add(repositoriesPane.buildMenu());
         gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
+        menuBar.getMenus().add(buildToolsMenu());
 
         //var shortCutButtons = new HBox();
         var toolBar = new ToolBar();
@@ -181,8 +192,7 @@ public class App extends Application {
         bodyBorderPane.setCenter(splitPane);
         BorderPane.setMargin(splitPane, new Insets(5, 0, 0, 0));
 
-        var borderPane = new BorderPane();
-        //borderPane.setTop(menuBar);
+        borderPane = new BorderPane();
         borderPane.setTop(topPane);
         borderPane.setCenter(bodyBorderPane);
 
@@ -197,8 +207,12 @@ public class App extends Application {
             width = 640;
             height = 480;
         }
-        //mainStage.setWidth(width);
-        //mainStage.setHeight(height);
+
+        var fontSize = configInfo.getFontSize();
+        if (fontSize != null) {
+            fontSizeChangeListener.changed(null, "", fontSize);
+        }
+        configInfo.fontSizeProperty().addListener(fontSizeChangeListener);
 
         XmlWriter.writeEndMethod();
         return new Scene(borderPane, width, height);
@@ -225,8 +239,22 @@ public class App extends Application {
         return menu;
     }
 
+    private Menu buildToolsMenu() {
+        MenuItem preferenceMenuItem = new MenuItem("Preference");
+        preferenceMenuItem.setOnAction(eh -> openPreference());
+
+        Menu menu = new Menu("Tools");
+        menu.getItems().addAll(preferenceMenuItem);
+        return menu;
+    }
+
+    private void openPreference() {
+        PreferenceWindow preferenceWindow = new PreferenceWindow(configInfo);
+        preferenceWindow.open();
+    }
+
     private void onChangeDirectory() {
-        SelectWorkDialog dialog = new SelectWorkDialog(mainStage);
+        SelectWorkDialog dialog = new SelectWorkDialog(configInfo);
         SelectWorkPane selectWorkPane = dialog.getSelectWorkPane();
         var directoryHistory = configInfo.getDirectoryHistory();
         if (directoryHistory != null && directoryHistory.size() > 0) {

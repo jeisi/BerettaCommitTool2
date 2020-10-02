@@ -5,11 +5,13 @@
  */
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -21,6 +23,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 //import javafx.scene.control.SplitMenuButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 /**
@@ -31,23 +34,22 @@ public class SelectWorkPane {
 
     private final Stage stage;
     private ComboBox<String> comboBox;
-    //private SplitMenuButton backMenuButton;
     private MenuButton backMenuButton;
     private final List<String> directoriesList = new ArrayList<>();
     private final ObservableList<String> comboItems = FXCollections.observableArrayList();
     private EventHandler<ActionEvent> onAction;
     private DirectoryChooserFactory directoryChooserFactory = () -> new DirectoryChooserBridgeImpl();
-    private EventHandler<ActionEvent> historyItemOnAction = (event) -> {
-        String selectedItem = ((MenuItem)event.getSource()).getText();
+    private final EventHandler<ActionEvent> historyItemOnAction = (event) -> {
+        String selectedItem = ((MenuItem) event.getSource()).getText();
         comboBox.setValue(selectedItem);
     };
+
 
     public SelectWorkPane(Stage stage) {
         this.stage = stage;
     }
 
     public void setDirectoryHistory(List<String> directoryHistory) {
-        //directoriesList.setAll(directoryHistory);
         directoriesList.clear();
         directoriesList.addAll(directoryHistory);
         comboItems.setAll(directoryHistory);
@@ -72,7 +74,7 @@ public class SelectWorkPane {
     public void setOnAction(EventHandler<ActionEvent> event) {
         onAction = event;
     }
-
+    
     public Parent build() {
         var hbox = new HBox();
         hbox.setSpacing(5);
@@ -81,6 +83,7 @@ public class SelectWorkPane {
         comboBox = new ComboBox<String>(comboItems.sorted(comp));
         comboBox.setId("directoryComboBox");
         comboBox.setPrefWidth(400);
+        comboBox.setMaxWidth(1920);
         comboBox.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent t) {
@@ -108,6 +111,7 @@ public class SelectWorkPane {
         });
 
         hbox.getChildren().addAll(comboBox, backMenuButton, selectDirectoryButton);
+        hbox.setHgrow(comboBox, Priority.ALWAYS);
         return hbox;
     }
 

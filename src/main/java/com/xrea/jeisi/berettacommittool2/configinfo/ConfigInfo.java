@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.util.Pair;
 import org.yaml.snakeyaml.Yaml;
 
@@ -28,7 +30,7 @@ public class ConfigInfo {
 
     private Path configFile;
     private HashMap<String, Object> map = new HashMap<>();
-    //private static ConfigInfo instance = new ConfigInfo();
+    private StringProperty fontSizeProperty = new SimpleStringProperty();
 
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
@@ -125,6 +127,19 @@ public class ConfigInfo {
         return difftool;
     }
 
+    public void setFontSize(String size) {
+        map.put("fontsize", size);
+        fontSizeProperty.set(size);
+    }
+    
+    public String getFontSize() {
+        return (String) map.get("fontsize");
+    }
+    
+    public StringProperty fontSizeProperty() {
+        return fontSizeProperty;
+    }
+    
     public void setTableColumnWidth(String tableId, List<Double> widths) {
         map.put(tableId + ".columnWidths", widths);
     }
@@ -132,7 +147,7 @@ public class ConfigInfo {
     public List<Double> getTableColumnWidth(String tableId) {
         return (List<Double>) map.get(tableId + ".columnWidths");
     }
-
+    
     public void setDouble(String key, double value) {
         map.put(key, value);
     }
@@ -140,7 +155,7 @@ public class ConfigInfo {
     public Double getDouble(String key) {
         return (Double) map.get(key);
     }
-
+    
     public void save() throws IOException {
         pruneDirectoryHistory();
 
