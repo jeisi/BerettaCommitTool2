@@ -20,7 +20,11 @@ public class StyleManager {
     private final ConfigInfo configInfo;
     private Parent rootNode;
     private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
-        rootNode.setStyle(String.format("-fx-font-size: %spx;", newValue));
+        if(newValue != null) {
+            rootNode.setStyle(String.format("-fx-font-size: %spx;", newValue));
+        } else {
+            rootNode.setStyle(null);
+        }
     };
 
     public StyleManager(ConfigInfo configInfo) {
