@@ -70,7 +70,6 @@ public class App extends Application {
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
-        styleManager.setRoot(scene.getRoot());
         stage.setScene(scene);
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
@@ -86,6 +85,7 @@ public class App extends Application {
             setRootDirectory(directoryHistory.get(directoryHistory.size() - 1));
         }
 
+        styleManager.setStage(stage);
         stage.show();
 
         try {
@@ -101,7 +101,6 @@ public class App extends Application {
         saveConfig();
         gitPanes.forEach(e -> e.close());
         GitThreadMan.closeAll();
-        styleManager.close();
     }
 
     private static String getBaseTitle() {
@@ -150,10 +149,9 @@ public class App extends Application {
         repositoriesPane.setConfig(configInfo);
 
         gitPanes = new ArrayList<>();
-        gitPanes.add(new GitStatusPane());
+        gitPanes.add(new GitStatusPane(configInfo));
         var tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
-            pane.setConfigInfo(configInfo);
             var tab = new Tab(pane.getTitle(), pane.build());
             tabPane.getTabs().add(tab);
         });

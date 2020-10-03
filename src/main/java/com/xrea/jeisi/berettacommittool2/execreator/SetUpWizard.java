@@ -64,8 +64,6 @@ public class SetUpWizard extends Stage {
         }
 
         Scene scene = new Scene(build());
-        styleManager.setRoot(scene.getRoot());
-        
         Stage stage = this;
         stage.setScene(scene);
         stage.setTitle("Set up programs wizard");
@@ -74,6 +72,7 @@ public class SetUpWizard extends Stage {
                 onClosed();
             }
         });
+        styleManager.setStage(stage);
 
         if (isDebug) {
             stage.show();
@@ -111,7 +110,6 @@ public class SetUpWizard extends Stage {
 
     private void onClosed() {
         saveConfig();
-        styleManager.close();
     }
     
     private void saveConfig() {

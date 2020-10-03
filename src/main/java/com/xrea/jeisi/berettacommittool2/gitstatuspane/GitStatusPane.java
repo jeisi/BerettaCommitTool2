@@ -34,8 +34,6 @@ import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituat
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.awt.Desktop;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,8 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -73,13 +69,13 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class GitStatusPane implements BaseGitPane {
 
-    private ConfigInfo configInfo;
+    private final ConfigInfo configInfo;
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
-    private final ProgressWindow progressWindow = new ProgressWindow();
+    private final ProgressWindow progressWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
     private final SituationSelector gitAddSituationSelector = new SituationSelector();
@@ -95,6 +91,11 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
+    public GitStatusPane(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        this.progressWindow = new ProgressWindow(configInfo);
+    }
+    
     public int getRefreshThreadCounter() {
         return refreshThreadCounter.get();
     }
@@ -136,11 +137,6 @@ public class GitStatusPane implements BaseGitPane {
 
         changeTargetRepositories(targetRepository);
         XmlWriter.writeEndMethod();
-    }
-
-    @Override
-    public void setConfigInfo(ConfigInfo configInfo) {
-        this.configInfo = configInfo;
     }
 
     @Override
@@ -415,7 +411,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
-            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir.toFile());
+            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir, configInfo);
             addCommand.setProgressWindow(progressWindow);
             addCommand.add(files);
         });
@@ -425,7 +421,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitAddUpdate() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getModifiedFiles();
         execCommand(filesPerRepo, (workDir, files) -> {
-            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir.toFile());
+            GitAddCommand addCommand = gitCommandFactory.createAddCommand(workDir, configInfo);
             addCommand.setProgressWindow(progressWindow);
             addCommand.add(files);
         });

@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.stylemanager;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Parent;
+import javafx.stage.Stage;
 
 /**
  *
@@ -25,7 +26,16 @@ public class StyleManager {
         this.configInfo = configInfo;
     }
 
-    public void setRoot(Parent root) {
+    public void setStage(Stage stage) {
+        setRoot(stage.getScene().getRoot());
+        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue == true && newValue == false) {
+                close();
+            }
+        });
+    }
+
+    private void setRoot(Parent root) {
         rootNode = root;
         var fontSize = configInfo.getFontSize();
         if (fontSize != null) {
@@ -34,7 +44,7 @@ public class StyleManager {
         configInfo.fontSizeProperty().addListener(fontSizeChangeListener);
     }
 
-    public void close() {
+    private void close() {
         configInfo.fontSizeProperty().removeListener(fontSizeChangeListener);
     }
 }

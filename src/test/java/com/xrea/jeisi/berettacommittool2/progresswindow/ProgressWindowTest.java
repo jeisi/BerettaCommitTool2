@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.progresswindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -32,7 +33,9 @@ public class ProgressWindowTest {
 
     @Start
     public void start(Stage stage) {
-        app = new ProgressWindow();
+        ConfigInfo configInfo = new ConfigInfo();
+        
+        app = new ProgressWindow(configInfo);
         app.open();
     }
 

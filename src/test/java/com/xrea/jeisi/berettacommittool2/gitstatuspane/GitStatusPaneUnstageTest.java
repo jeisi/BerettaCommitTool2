@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
@@ -15,7 +16,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.control.Menu;
@@ -31,7 +31,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.robot.Motion;
-import org.testfx.util.WaitForAsyncUtils;
 
 /**
  *
@@ -50,8 +49,10 @@ public class GitStatusPaneUnstageTest {
 
     @Start
     public void start(Stage stage) {
+        ConfigInfo configInfo = new ConfigInfo();
+        
         this.stage = stage;
-        app = new GitStatusPane();
+        app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
         menuBar.getMenus().add(statusMenu);

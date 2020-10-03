@@ -14,16 +14,12 @@ import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
@@ -38,8 +34,6 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import static org.assertj.core.api.Assertions.*;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -60,8 +54,12 @@ public class GitStatusPaneTest {
 
     @Start
     public void start(Stage stage) {
+        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
+        configInfo = new ConfigInfo();
+        configInfo.setupDefaultProgram(programInfo);
+
         this.stage = stage;
-        app = new GitStatusPane();
+        app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         menuBar.getMenus().add(app.buildMenu());
 
@@ -81,13 +79,6 @@ public class GitStatusPaneTest {
             }
         });
         stage.show();
-    }
-
-    @BeforeEach
-    public void setUp() {
-        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
-        configInfo = new ConfigInfo();
-        configInfo.setupDefaultProgram(programInfo);
     }
 
     @AfterEach

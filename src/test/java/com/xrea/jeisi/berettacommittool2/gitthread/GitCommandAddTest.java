@@ -12,7 +12,6 @@ import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,14 +40,11 @@ public class GitCommandAddTest {
 
     @Start
     public void start(Stage stage) {
-        progressWindow = new ProgressWindow();
-    }
-
-    @BeforeEach
-    public void setUp() {
         ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
         configInfo = new ConfigInfo();
         configInfo.setupDefaultProgram(programInfo);
+
+        progressWindow = new ProgressWindow(configInfo);
     }
 
     @Test
@@ -61,7 +57,7 @@ public class GitCommandAddTest {
         int ret = process.waitFor();
 
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
-        GitAddCommand addCommand = new GitAddCommand(workDir.toFile());
+        GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
         addCommand.add("a.txt");
 
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
@@ -81,7 +77,7 @@ public class GitCommandAddTest {
         int ret = process.waitFor();
 
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
-        GitAddCommand addCommand = new GitAddCommand(workDir.toFile());
+        GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
         addCommand.add("a.txt");
 
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
@@ -93,8 +89,8 @@ public class GitCommandAddTest {
     @Test
     public void testAddWithProgressWindow() throws IOException, GitAPIException, InterruptedException {
         System.out.println("GitCommandAddTest.testAddWithProgressWindow()");
-        File workDir = Paths.get("src/test/resources/work/beretta").toFile();
-        MockGitAddCommand addCommand = new MockGitAddCommand(workDir);
+        Path workDir = Paths.get("src/test/resources/work/beretta");
+        MockGitAddCommand addCommand = new MockGitAddCommand(workDir, configInfo);
         addCommand.setProgressWindow(progressWindow);
         addCommand.add("test01.cpp", "test02.cpp", "test03.cpp", "test04.cpp", "test05.cpp",
                 "test06.cpp", "test07.cpp", "test08.cpp", "test09.cpp", "test10.cpp");

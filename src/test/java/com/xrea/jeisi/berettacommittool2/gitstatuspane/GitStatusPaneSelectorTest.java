@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
@@ -45,7 +46,9 @@ public class GitStatusPaneSelectorTest {
 
     @Start
     public void start(Stage stage) {
-        app = new GitStatusPane();
+        ConfigInfo configInfo = new ConfigInfo();
+        
+        app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
         menuBar.getMenus().add(statusMenu);

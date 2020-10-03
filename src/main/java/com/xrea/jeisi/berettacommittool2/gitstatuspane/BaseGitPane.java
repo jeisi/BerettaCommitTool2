@@ -20,7 +20,7 @@ public interface BaseGitPane {
     public void refreshChecked();
     public void refreshSelected();
     public void saveConfig();
-    public void setConfigInfo(ConfigInfo configInfo);
+    //public void setConfigInfo(ConfigInfo configInfo);
     public void setRepositories(RepositoriesInfo work);
     public void setUp();
     public String getTitle();

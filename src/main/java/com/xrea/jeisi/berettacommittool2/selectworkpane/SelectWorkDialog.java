@@ -7,9 +7,7 @@ package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
-import java.awt.BorderLayout;
 import java.util.Optional;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,7 +15,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -57,7 +54,6 @@ public class SelectWorkDialog {
         } else {
             scene = new Scene(build());
         }
-        styleManager.setRoot(scene.getRoot());
 
         stage.setScene(scene);
         stage.setTitle("Select working directory");
@@ -67,6 +63,7 @@ public class SelectWorkDialog {
             }
         });
 
+        styleManager.setStage(stage);
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.showAndWait();
 
@@ -75,7 +72,6 @@ public class SelectWorkDialog {
 
     private void close() {
         saveConfig();
-        styleManager.close();
     }
 
     private Parent build() {

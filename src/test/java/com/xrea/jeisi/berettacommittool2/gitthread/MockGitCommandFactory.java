@@ -45,12 +45,12 @@ public class MockGitCommandFactory implements GitCommandFactory {
     }
 
     @Override
-    public GitAddCommand createAddCommand(File file) {
-        GitAddCommand command = gitAddCommands.get(file);
+    public GitAddCommand createAddCommand(Path path, ConfigInfo configInfo) {
+        GitAddCommand command = gitAddCommands.get(path);
         if (command == null) {
             StringBuilder builder = new StringBuilder();
             builder.append("Error!! MockGitCommandFactory.createAddCommand(");
-            builder.append(file.toString());
+            builder.append(path.toString());
             builder.append(")\n");
             builder.append("gitStatusCommands: ");
             builder.append(gitAddCommands.keySet().toString());

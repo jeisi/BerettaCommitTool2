@@ -15,15 +15,11 @@ import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
@@ -36,7 +32,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,8 +61,12 @@ public class GitStatusPaneAddTest {
 
     @Start
     public void start(Stage stage) {
+        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
+        configInfo = new ConfigInfo();
+        configInfo.setupDefaultProgram(programInfo);
+
         this.stage = stage;
-        app = new GitStatusPane();
+        app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
         menuBar.getMenus().add(statusMenu);
@@ -84,13 +83,6 @@ public class GitStatusPaneAddTest {
         stage.show();
     }
 
-    @BeforeEach
-    public void setUp() {
-        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
-        configInfo = new ConfigInfo();
-        configInfo.setupDefaultProgram(programInfo);
-    }
-    
     @AfterEach
     public void tearDown() {
         Platform.runLater(() -> {
@@ -98,7 +90,7 @@ public class GitStatusPaneAddTest {
             GitThreadMan.closeAll();
         });
     }
-    
+
     @Test
     public void testAdd(FxRobot robot) throws InterruptedException, IOException {
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
@@ -132,7 +124,7 @@ public class GitStatusPaneAddTest {
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile.toFile()));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile, configInfo));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後、git status の更新内容を反映させる。
@@ -178,7 +170,7 @@ public class GitStatusPaneAddTest {
         // git add 実行前の状態。
         TableView<GitStatusData> gitStatusTableView = robot.lookup("#gitStatusTableView").queryAs(TableView.class);
         int nCounter = 0;
-        while(gitStatusTableView.getItems().toString().equals("") && ++nCounter < 10) {
+        while (gitStatusTableView.getItems().toString().equals("") && ++nCounter < 10) {
             Thread.sleep(100);
         }
         assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
@@ -188,7 +180,7 @@ public class GitStatusPaneAddTest {
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile.toFile()));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile, configInfo));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後の git status で行がなくなった場合。
@@ -205,7 +197,7 @@ public class GitStatusPaneAddTest {
             System.out.println("Thread.sleep(): " + nCounter);
         }
         assertEquals("[]", gitStatusTableView.getItems().toString());
-        
+
         //while(true) {
         //    Thread.sleep(1000);
         //}
@@ -247,7 +239,7 @@ public class GitStatusPaneAddTest {
         MockGitStatusCommand mockGitStatusCommand = new MockGitStatusCommand(workDir, configInfo);
         MockGitCommandFactory factory = new MockGitCommandFactory();
         factory.setMockGitStatusCommand(workDir, mockGitStatusCommand);
-        MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir.toFile());
+        MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir, configInfo);
         factory.setMockGitAddCommand(workDir.toFile(), mockGitAddCommand);
         app.setGitCommandFactory(factory);
 
@@ -261,7 +253,7 @@ public class GitStatusPaneAddTest {
         assertEquals("[{A, , update.rb, .}]", gitStatusTableView.getItems().toString());
         // git add したことにより状態が変わったので、"Git add" MenuItem は選択不可になる。
         assertTrue(addMenuItem.isDisable());
-        
+
         //while(true) {
         //    Thread.sleep(1000);
         //}

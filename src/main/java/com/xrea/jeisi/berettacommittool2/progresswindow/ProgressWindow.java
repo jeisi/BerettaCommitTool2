@@ -5,9 +5,8 @@
  */
 package com.xrea.jeisi.berettacommittool2.progresswindow;
 
-import com.sun.glass.ui.Cursor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -22,13 +21,21 @@ public class ProgressWindow extends Stage implements CompleteListener {
 
     private ListView<ProgressModel> listView;
     private boolean created = false;
+    private final ConfigInfo configInfo;
+    private final StyleManager styleManager;
 
+    public ProgressWindow(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        this.styleManager = new StyleManager(configInfo);
+    }
+    
     public void open() {
         if (!created) {
             Scene scene = new Scene(build(), 480, 320);
             Stage stage = this;
             stage.setScene(scene);
             stage.setTitle("Progress Window");
+            styleManager.setStage(stage);
             stage.show();
             created = true;
         } else {

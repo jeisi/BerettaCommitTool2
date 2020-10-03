@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
@@ -23,12 +24,14 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class GitAddCommand {
 
+    private final ConfigInfo configInfo;
     private final File repository;
     private ProgressWindow progressWindow;
     private ProgressModel progressModel = null;
 
-    public GitAddCommand(File repository) {
-        this.repository = repository;
+    public GitAddCommand(Path repository, ConfigInfo configInfo) {
+        this.repository = repository.toFile();
+        this.configInfo = configInfo;
     }
 
     public void setProgressWindow(ProgressWindow progressWindow) {

@@ -5,7 +5,6 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
-import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
@@ -27,7 +26,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +51,11 @@ public class GitStatusPaneCommitSelectorTest {
 
     @Start
     public void start(Stage stage) {
-        app = new GitStatusPane();
+        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
+        configInfo = new ConfigInfo();
+        configInfo.setupDefaultProgram(programInfo);
+
+        app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
         menuBar.getMenus().add(statusMenu);
@@ -69,13 +71,6 @@ public class GitStatusPaneCommitSelectorTest {
         Scene scene = new Scene(vbox, 640, 480);
         stage.setScene(scene);
         stage.show();
-    }
-
-    @BeforeEach
-    public void setUp() {
-        ProgramInfo programInfo = new ProgramInfo("git", "git", new String[]{"/usr/bin/git"});
-        configInfo = new ConfigInfo();
-        configInfo.setupDefaultProgram(programInfo);
     }
 
     @Test
@@ -102,11 +97,11 @@ public class GitStatusPaneCommitSelectorTest {
         repositoriesPane.setRepositories(work);
         app.setUp();
         app.setRepositories(work);
-        app.setConfigInfo(configInfo);
+        //app.setConfigInfo(configInfo);
         app.refreshAll();
 
         // RepositoriesPane で "." を選択。
-        while(app.getRefreshThreadCounter() > 0) {
+        while (app.getRefreshThreadCounter() > 0) {
             Thread.sleep(100);
         }
         repositoryTableView.getSelectionModel().select(0);
@@ -211,7 +206,7 @@ public class GitStatusPaneCommitSelectorTest {
         // unmerged なファイルが存在する場合は commit 不可。
         assertTrue(commitMenuItem.isDisable());
     }
-    
+
     private MenuItem getMenuItem(Menu menu, String menuItemId) {
         List<MenuItem> menuItems = menu.getItems().stream().filter(item -> menuItemId.equals(item.getId())).collect(Collectors.toList());
         return menuItems.get(0);
