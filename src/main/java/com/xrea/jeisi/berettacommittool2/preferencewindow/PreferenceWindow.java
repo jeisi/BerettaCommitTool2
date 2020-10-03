@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -17,10 +18,12 @@ public class PreferenceWindow extends Stage {
 
     private final ConfigInfo configInfo;
     private final PreferencePane pane;
+    private final StyleManager styleManager;
 
     public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         pane = new PreferencePane(this, configInfo);
+        styleManager = new StyleManager(configInfo);
     }
 
     public void open() {
@@ -49,7 +52,8 @@ public class PreferenceWindow extends Stage {
         });
 
         pane.addEventHandler((e) -> close());
-
+        styleManager.setStage(stage);
+        
         stage.show();
     }
 
