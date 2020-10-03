@@ -5,10 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
-import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;

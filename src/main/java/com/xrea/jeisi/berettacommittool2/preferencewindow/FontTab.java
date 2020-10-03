@@ -47,8 +47,13 @@ public class FontTab extends Tab implements BaseTab {
         
         gridPane.add(new Label("Size:"), 0, 0);
 
-        String fontSizes[] = {"8", "10", "11", "12", "14", "16", "18", "20", "24", "30", "36", "40", "48", "60", "72"};
+        String fontSizes[] = {"8", "9", "10", "10.5", "11", "12", "14", "16", "18", "20", "24", "30", "36", "40", "48", "60", "72"};
         fontSizeListView = new ListView<>(FXCollections.observableArrayList(fontSizes));
+        fontSizeListView.setId("FontTabFontSizeListView");
+        var fontSize = configInfo.getFontSize();
+        if(fontSize != null) {
+            fontSizeListView.getSelectionModel().select(fontSize);
+        }
         gridPane.add(fontSizeListView, 0, 1);
 
         return gridPane;
