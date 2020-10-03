@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.streamcaputurer.StreamCapturer;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import java.io.PrintStream;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -27,14 +28,21 @@ public class ErrorLogWindow {
 
     private Stage stage;
     private TextArea textArea;
-    //private WindowRectangle windowRectangle;
-    private ConfigInfo configInfo;
-    private String identifier = "";
+    private final ConfigInfo configInfo;
+    private final String identifier = "errorlogwindow";
+    private final StyleManager styleManager;
 
-    public void setConfigInfo(String identifier, ConfigInfo configInfo) {
+    public ErrorLogWindow(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        this.styleManager = new StyleManager(configInfo);
+    }
+    
+    /*
+    private void setConfigInfo(String identifier, ConfigInfo configInfo) {
         this.identifier = identifier;
         this.configInfo = configInfo;
     }
+    */
     
     private void open() {
         WindowRectangle windowRectangle = null;
@@ -67,6 +75,8 @@ public class ErrorLogWindow {
                 stage = null;
             }
         });
+        
+        styleManager.setStage(stage);
         stage.show();
     }
 

@@ -74,7 +74,7 @@ public class GitStatusPane implements BaseGitPane {
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
-    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private final ErrorLogWindow errorLogWindow;
     private final ProgressWindow progressWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
@@ -94,6 +94,7 @@ public class GitStatusPane implements BaseGitPane {
     public GitStatusPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.progressWindow = new ProgressWindow(configInfo);
+        this.errorLogWindow = new ErrorLogWindow(configInfo);
     }
     
     public int getRefreshThreadCounter() {
@@ -585,9 +586,6 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void showError(Exception e) {
-        if (configInfo != null) {
-            errorLogWindow.setConfigInfo("gitstatuspane.logwindow", configInfo);
-        }
         errorLogWindow.appendException(e);
     }
 }

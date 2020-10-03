@@ -18,13 +18,13 @@ import javafx.stage.Stage;
  */
 public class GitCommitWindow extends Stage {
 
-    private final GitCommitPane gitCommitPane = new GitCommitPane();
+    private final GitCommitPane gitCommitPane;
     private final ConfigInfo configInfo;
     private final StyleManager styleManager;
 
     public GitCommitWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        gitCommitPane.setConfigInfo(configInfo);
+        this.gitCommitPane = new GitCommitPane(configInfo);
         this.styleManager = new StyleManager(configInfo);
     }
 

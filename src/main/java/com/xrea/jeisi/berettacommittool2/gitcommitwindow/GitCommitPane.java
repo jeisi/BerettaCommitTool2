@@ -39,7 +39,7 @@ import javafx.scene.layout.BorderPane;
 public class GitCommitPane {
 
     private ConfigInfo configInfo;
-    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private final ErrorLogWindow errorLogWindow;
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
     private List<String> commitMessageHistory = new ArrayList<>();
@@ -50,7 +50,8 @@ public class GitCommitPane {
     private final List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
     private static int SUMMARY_LENGTH = 40;
 
-    void setConfigInfo(ConfigInfo configInfo) {
+    public GitCommitPane(ConfigInfo configInfo) {
+        this.errorLogWindow = new ErrorLogWindow(configInfo);
         this.configInfo = configInfo;
         var commitMessageHistory = configInfo.getCommitMessageHistory();
         if (commitMessageHistory != null) {
@@ -76,7 +77,7 @@ public class GitCommitPane {
     public void addEventHandler(EventHandler<ActionEvent> actionEvent) {
         actionEvents.add(actionEvent);
     }
-    
+
     static void setSummaryLength(int length) {
         SUMMARY_LENGTH = length;
     }
@@ -152,17 +153,17 @@ public class GitCommitPane {
             GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath().toFile());
             thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand, errorLogWindow));
         });
-        
+
         fireActionEvents();
     }
 
     private void fireActionEvents() {
         ActionEvent e = new ActionEvent();
-        for(var event : actionEvents) {
+        for (var event : actionEvents) {
             event.handle(e);
         }
     }
-    
+
     private void addCommitMessageToHistory() {
         System.out.println("GitCommitPane.addCommitMessageToHistory()");
         var commitMessage = messageTextArea.getText();

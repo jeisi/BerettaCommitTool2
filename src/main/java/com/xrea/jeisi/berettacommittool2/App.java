@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -46,7 +45,7 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 
-    private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private ErrorLogWindow errorLogWindow;
     private StyleManager styleManager;
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
@@ -66,6 +65,7 @@ public class App extends Application {
         XmlWriter.writeStartMethod("App.start()");
 
         styleManager = new StyleManager(configInfo);
+        errorLogWindow = new ErrorLogWindow(configInfo);
         
         mainStage = stage;
         loadConfig();

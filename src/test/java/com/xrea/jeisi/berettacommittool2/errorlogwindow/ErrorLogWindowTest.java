@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
@@ -31,8 +32,8 @@ public class ErrorLogWindowTest {
     
     @Start
     public void start(Stage stage) {
-        errorLogWindow = new ErrorLogWindow();
-        //errorLogWindow.open();
+        ConfigInfo configInfo = new ConfigInfo();
+        errorLogWindow = new ErrorLogWindow(configInfo);
     }
     
     @Test

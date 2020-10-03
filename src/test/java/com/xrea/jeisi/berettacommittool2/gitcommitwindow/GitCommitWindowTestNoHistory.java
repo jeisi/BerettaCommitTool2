@@ -67,12 +67,6 @@ public class GitCommitWindowTestNoHistory {
     }
 
     @Test
-    public void testSetConfigInfo() {
-        // 空の ConfigInfo をセットした場合は何もしない。
-        app.getGitCommitPane().setConfigInfo(new ConfigInfo());
-    }
-
-    @Test
     // コミット履歴がない時にコミットした場合。
     public void testCommit(FxRobot robot) throws IOException, InterruptedException {
         String userDir = System.getProperty("user.dir");
