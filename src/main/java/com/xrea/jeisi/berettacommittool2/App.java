@@ -12,6 +12,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkPane;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -46,6 +47,7 @@ import javafx.stage.Stage;
 public class App extends Application {
 
     private final ErrorLogWindow errorLogWindow = new ErrorLogWindow();
+    private StyleManager styleManager;
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
     private List<BaseGitPane> gitPanes;
@@ -53,10 +55,7 @@ public class App extends Application {
     private String topDir;
     Stage mainStage;
     SplitPane splitPane;
-    private BorderPane borderPane;
-    private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
-        borderPane.setStyle(String.format("-fx-font-size: %spx;", newValue));
-    };
+    //private BorderPane borderPane;
 
     public void setConfigInfo(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -66,9 +65,12 @@ public class App extends Application {
     public void start(Stage stage) {
         XmlWriter.writeStartMethod("App.start()");
 
+        styleManager = new StyleManager(configInfo);
+        
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
+        styleManager.setRoot(scene.getRoot());
         stage.setScene(scene);
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
@@ -99,7 +101,7 @@ public class App extends Application {
         saveConfig();
         gitPanes.forEach(e -> e.close());
         GitThreadMan.closeAll();
-        configInfo.fontSizeProperty().removeListener(fontSizeChangeListener);
+        styleManager.close();
     }
 
     private static String getBaseTitle() {
@@ -192,7 +194,7 @@ public class App extends Application {
         bodyBorderPane.setCenter(splitPane);
         BorderPane.setMargin(splitPane, new Insets(5, 0, 0, 0));
 
-        borderPane = new BorderPane();
+        BorderPane borderPane = new BorderPane();
         borderPane.setTop(topPane);
         borderPane.setCenter(bodyBorderPane);
 
@@ -207,12 +209,6 @@ public class App extends Application {
             width = 640;
             height = 480;
         }
-
-        var fontSize = configInfo.getFontSize();
-        if (fontSize != null) {
-            fontSizeChangeListener.changed(null, "", fontSize);
-        }
-        configInfo.fontSizeProperty().addListener(fontSizeChangeListener);
 
         XmlWriter.writeEndMethod();
         return new Scene(borderPane, width, height);

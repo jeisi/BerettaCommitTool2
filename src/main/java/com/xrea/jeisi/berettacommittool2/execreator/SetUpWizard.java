@@ -6,12 +6,10 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -32,6 +30,7 @@ public class SetUpWizard extends Stage {
     private final List<SetUpNode> nodes = new ArrayList<>();
     private int currentPage;
     private final List<ProgramInfo> programs;
+    private final StyleManager styleManager;
     private SwitchPane switchPane;
     private Button nextButton;
     private Button backButton;
@@ -39,6 +38,7 @@ public class SetUpWizard extends Stage {
     
     public SetUpWizard(ConfigInfo configInfo, List<ProgramInfo> programs) {
         this.configInfo = configInfo;
+        this.styleManager = new StyleManager(configInfo);
 
         this.programs = new ArrayList<>();
         programs.stream().filter(p -> configInfo.getProgram(p.getIdentifier()) == null).forEach(p -> {
@@ -64,12 +64,14 @@ public class SetUpWizard extends Stage {
         }
 
         Scene scene = new Scene(build());
+        styleManager.setRoot(scene.getRoot());
+        
         Stage stage = this;
         stage.setScene(scene);
         stage.setTitle("Set up programs wizard");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
-                saveConfig();
+                onClosed();
             }
         });
 
@@ -99,11 +101,6 @@ public class SetUpWizard extends Stage {
         switchPane.setConstraints(nodes.get(0));
         VBox vbox = new VBox(5, switchPane, buttonBar);
 
-        /*        
-        Pagination pagination = new Pagination(programs.size(), 0);
-        pagination.setPageFactory((Integer pageIndex) -> createPage(pageIndex));
-        VBox vbox = new VBox(5, pagination, buttonBar);
-         */
         vbox.setPadding(new Insets(5, 5, 5, 5));
         return vbox;
     }
@@ -112,6 +109,11 @@ public class SetUpWizard extends Stage {
         return new SetUpNode(program, this);
     }
 
+    private void onClosed() {
+        saveConfig();
+        styleManager.close();
+    }
+    
     private void saveConfig() {
         nodes.forEach(node -> {
             String program = node.getIdentifier();

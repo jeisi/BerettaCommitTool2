@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import java.awt.BorderLayout;
 import java.util.Optional;
 import javafx.beans.value.ChangeListener;
@@ -30,15 +31,13 @@ public class SelectWorkDialog {
     private final SelectWorkPane selectWorkPane;
     private final Stage stage;
     private Optional<ButtonType> result = Optional.empty();
-    private Pane rootNode;
-    private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
-        rootNode.setStyle(String.format("-fx-font-size: %spx;", newValue));
-    };
+    private final StyleManager styleManager;
 
     public SelectWorkDialog(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.stage = new Stage();
         this.selectWorkPane = new SelectWorkPane(stage);
+        this.styleManager = new StyleManager(configInfo);
     }
 
     public boolean isShowing() {
@@ -56,10 +55,9 @@ public class SelectWorkDialog {
             height = windowRectangle.getHeight();
             scene = new Scene(build(), width, height);
         } else {
-            width = 0;
-            height = 0;
             scene = new Scene(build());
         }
+        styleManager.setRoot(scene.getRoot());
 
         stage.setScene(scene);
         stage.setTitle("Select working directory");
@@ -77,7 +75,7 @@ public class SelectWorkDialog {
 
     private void close() {
         saveConfig();
-        configInfo.fontSizeProperty().removeListener(fontSizeChangeListener);
+        styleManager.close();
     }
 
     private Parent build() {
@@ -100,14 +98,7 @@ public class SelectWorkDialog {
         borderPane.setCenter(centerPane);
         borderPane.setBottom(buttonBar);
 
-        rootNode = borderPane;
-        var fontSize = configInfo.getFontSize();
-        if (fontSize != null) {
-            fontSizeChangeListener.changed(null, "", fontSize);
-        }
-        configInfo.fontSizeProperty().addListener(fontSizeChangeListener);
-
-        return rootNode;
+        return borderPane;
     }
 
     private void clickOk() {

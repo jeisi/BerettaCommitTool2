@@ -10,7 +10,6 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.application.Platform;
 
 /**
  *
