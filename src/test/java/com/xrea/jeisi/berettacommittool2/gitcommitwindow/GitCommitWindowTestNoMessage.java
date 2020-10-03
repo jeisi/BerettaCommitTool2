@@ -5,12 +5,9 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
-import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
-import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
-import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommitCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
@@ -39,7 +35,8 @@ public class GitCommitWindowTestNoMessage {
 
     @Start
     public void start(Stage stage) {
-        app = new GitCommitWindow();
+        ConfigInfo configInfo = new ConfigInfo();
+        app = new GitCommitWindow(configInfo);
         app.getGitCommitPane().setGitCommandFactory(new GitCommandFactoryImpl());
         app.open();
     }

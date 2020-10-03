@@ -7,13 +7,11 @@ package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -44,8 +42,7 @@ public class GitCommitWindowTestMonoHistory {
         ConfigInfo configInfo = new ConfigInfo();
         configInfo.setCommitMessageHistory(commitMessageHistory);
 
-        app = new GitCommitWindow();
-        app.getGitCommitPane().setConfigInfo(configInfo);
+        app = new GitCommitWindow(configInfo);
         app.open();
     }
 

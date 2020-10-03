@@ -400,9 +400,8 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitCommit() {
-        GitCommitWindow commitWindow = new GitCommitWindow();
+        GitCommitWindow commitWindow = new GitCommitWindow(configInfo);
         commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
-        commitWindow.setConfigInfo(configInfo);
         commitWindow.open();
         commitWindow.getGitCommitPane().setRepositoryDatas(repositories.getSelected());
         commitWindow.getGitCommitPane().addEventHandler((e) -> refreshSelected());

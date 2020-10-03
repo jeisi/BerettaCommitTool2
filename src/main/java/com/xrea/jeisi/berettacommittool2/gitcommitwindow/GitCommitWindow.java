@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -18,11 +19,13 @@ import javafx.stage.Stage;
 public class GitCommitWindow extends Stage {
 
     private final GitCommitPane gitCommitPane = new GitCommitPane();
-    private ConfigInfo configInfo;
+    private final ConfigInfo configInfo;
+    private final StyleManager styleManager;
 
-    public void setConfigInfo(ConfigInfo configInfo) {
+    public GitCommitWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         gitCommitPane.setConfigInfo(configInfo);
+        this.styleManager = new StyleManager(configInfo);
     }
 
     public void open() {
@@ -52,6 +55,7 @@ public class GitCommitWindow extends Stage {
         });
 
         gitCommitPane.addEventHandler((e) -> close());
+        styleManager.setStage(stage);
         
         stage.show();
 

@@ -56,8 +56,7 @@ public class GitCommitWindowTestCommitMessageHistory {
         configInfo.setCommitMessageHistory(commitMessageHistory);
 
         GitCommitPane.setSummaryLength(3);
-        app = new GitCommitWindow();
-        app.setConfigInfo(configInfo);
+        app = new GitCommitWindow(configInfo);
         app.getGitCommitPane().setGitCommandFactory(new GitCommandFactoryImpl());
         app.open();
 

@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.IOException;
@@ -40,7 +41,8 @@ public class GitCommitWindowTestAmend {
 
     @Start
     public void start(Stage stage) {
-        app = new GitCommitWindow();
+        ConfigInfo configInfo = new ConfigInfo();
+        app = new GitCommitWindow(configInfo);
         app.open();
     }
 

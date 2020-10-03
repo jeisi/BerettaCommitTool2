@@ -6,8 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,8 @@ public class GitCommitWindowTestCommit {
 
     @Start
     public void start(Stage stage) {
-        app = new GitCommitWindow();
+        ConfigInfo configInfo = new ConfigInfo();
+        app = new GitCommitWindow(configInfo);
         app.open();
     }
 
