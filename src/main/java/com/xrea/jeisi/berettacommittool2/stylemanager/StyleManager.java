@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.stylemanager;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Parent;
+import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 
 /**
@@ -33,6 +34,13 @@ public class StyleManager {
                 close();
             }
         });
+    }
+
+    public void styleDialog(DialogPane pane) {
+        var fontSize = configInfo.getFontSize();
+        if (fontSize != null) {
+            pane.setStyle(String.format("-fx-font-size: %spx;", fontSize));
+        }
     }
 
     private void setRoot(Parent root) {

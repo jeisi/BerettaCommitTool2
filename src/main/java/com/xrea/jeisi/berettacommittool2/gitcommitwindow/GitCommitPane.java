@@ -12,6 +12,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
+import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +39,9 @@ import javafx.scene.layout.BorderPane;
  */
 public class GitCommitPane {
 
-    private ConfigInfo configInfo;
+    private final ConfigInfo configInfo;
     private final ErrorLogWindow errorLogWindow;
+    private final StyleManager styleManager;
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
     private List<String> commitMessageHistory = new ArrayList<>();
@@ -50,9 +52,10 @@ public class GitCommitPane {
     private final List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
     private static int SUMMARY_LENGTH = 40;
 
-    public GitCommitPane(ConfigInfo configInfo) {
+    public GitCommitPane(ConfigInfo configInfo, StyleManager styleManager) {
         this.errorLogWindow = new ErrorLogWindow(configInfo);
         this.configInfo = configInfo;
+        this.styleManager = styleManager;
         var commitMessageHistory = configInfo.getCommitMessageHistory();
         if (commitMessageHistory != null) {
             this.commitMessageHistory = Collections.unmodifiableList(commitMessageHistory);
@@ -140,6 +143,8 @@ public class GitCommitPane {
                     + " - 第２行: 空白\n"
                     + " - 残りの行: なぜ、この変更が良い変更か、の説明。";
             Alert alert = new Alert(Alert.AlertType.ERROR, errorMessage, ButtonType.OK);
+            styleManager.styleDialog(alert.getDialogPane());
+            alert.getDialogPane().setStyle("-fx-font-size: 24px;");
             alert.setHeaderText("コミット・メッセージを入力してください");
             alert.showAndWait();
             return;

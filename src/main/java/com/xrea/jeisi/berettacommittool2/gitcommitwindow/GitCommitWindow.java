@@ -24,8 +24,8 @@ public class GitCommitWindow extends Stage {
 
     public GitCommitWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        this.gitCommitPane = new GitCommitPane(configInfo);
         this.styleManager = new StyleManager(configInfo);
+        this.gitCommitPane = new GitCommitPane(configInfo, styleManager);
     }
 
     public void open() {
