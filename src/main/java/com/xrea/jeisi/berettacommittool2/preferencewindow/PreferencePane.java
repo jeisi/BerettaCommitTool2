@@ -47,13 +47,13 @@ public class PreferencePane {
     public Parent build() {
         TabPane tabPane = new TabPane();
         ProgramsTab programTab = new ProgramsTab(parent, configInfo);
-        Tab gitDiffTab = new Tab("git diff");
-        gitDiffTab.setClosable(false);
+        DiffToolTab diffToolTab = new DiffToolTab(parent, configInfo);
         FontTab fontTab = new FontTab(parent, configInfo);
-        tabPane.getTabs().addAll(fontTab, programTab, gitDiffTab);
+        tabPane.getTabs().addAll(fontTab, programTab, diffToolTab);
 
         tabs.add(programTab);
         tabs.add(fontTab);
+        tabs.add(diffToolTab);
 
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tabPane);

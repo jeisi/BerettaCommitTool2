@@ -46,8 +46,6 @@ public class FontTab extends Tab implements BaseTab {
     }
 
     private Node build() {
-        XmlWriter.writeStartMethod("FontTab.build()");
-
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
         gridPane.setVgap(5);
@@ -59,13 +57,10 @@ public class FontTab extends Tab implements BaseTab {
         fontSizeListView = new ListView<>(FXCollections.observableArrayList(fontSizes));
         fontSizeListView.setId("FontTabFontSizeListView");
         var fontSize = configInfo.getFontSize();
-        XmlWriter.writeObject("fontSize", fontSize);
         if (fontSize != null) {
             fontSizeListView.getSelectionModel().select(fontSize);
         }
         gridPane.add(fontSizeListView, 0, 1);
-
-        XmlWriter.writeEndMethod();
         return gridPane;
     }
 }
