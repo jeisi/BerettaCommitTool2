@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.configinfo;
 
+import com.xrea.jeisi.berettacommittool2.App;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
@@ -30,7 +31,8 @@ public class ConfigInfo {
 
     private Path configFile;
     private HashMap<String, Object> map = new HashMap<>();
-    private StringProperty fontSizeProperty = new SimpleStringProperty();
+    private final StringProperty fontSizeProperty = new SimpleStringProperty();
+    private App mainApp;
 
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
@@ -138,6 +140,14 @@ public class ConfigInfo {
     
     public StringProperty fontSizeProperty() {
         return fontSizeProperty;
+    }
+    
+    public void setMainApp(App app) {
+        mainApp = app;
+    }
+    
+    public App getMainApp() {
+        return mainApp;
     }
     
     public void setTableColumnWidth(String tableId, List<Double> widths) {

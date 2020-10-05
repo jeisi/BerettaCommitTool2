@@ -14,20 +14,30 @@ import javafx.stage.Stage;
  *
  * @author jeisi
  */
-public class PreferenceWindow extends Stage {
+public class PreferenceWindow {
 
     private final ConfigInfo configInfo;
-    private final PreferencePane pane;
     private final StyleManager styleManager;
+    private PreferencePane pane;
+    private Stage stage;
 
     public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        pane = new PreferencePane(this, configInfo);
         styleManager = new StyleManager(configInfo);
     }
-
+    
     public void open() {
-        Stage stage = this;
+        open(/*defualtTab=*/ null);
+    }
+
+    public void open(String defaultTab) {
+        if(stage != null) {
+            stage.requestFocus();
+            return;
+        }
+        
+        stage = new Stage();
+        pane = new PreferencePane(stage, configInfo, defaultTab);
 
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
@@ -48,13 +58,54 @@ public class PreferenceWindow extends Stage {
             if (oldValue == true && newValue == false) {
                 saveConfig();
                 pane.close();
+                stage = null;
             }
         });
 
-        pane.addEventHandler((e) -> close());
+        pane.addEventHandler((e) -> stage.close());
         styleManager.setStage(stage);
         
         stage.show();
+    }
+    
+    public void close() {
+        if(stage == null) {
+            return;
+        }
+        
+        stage.close();
+    }
+    
+    public double getX() {
+        return stage.getX();
+    }
+    
+    public double getY() {
+        return stage.getY();
+    }
+    
+    public Scene getScene() {
+        return stage.getScene();
+    }
+    
+    public void setX(double x) {
+        stage.setX(x);
+    }
+    
+    public void setY(double y) {
+        stage.setY(y);
+    }
+    
+    public void setWidth(double width) {
+        stage.setWidth(width);
+    }
+    
+    public void setHeight(double height) {
+        stage.setHeight(height);
+    }
+    
+    public boolean isShowing() {
+        return stage.isShowing();
     }
 
     private void saveConfig() {

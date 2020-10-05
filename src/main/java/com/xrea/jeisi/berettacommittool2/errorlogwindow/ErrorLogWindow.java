@@ -5,11 +5,16 @@
  */
 package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 
+import com.xrea.jeisi.berettacommittool2.App;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.streamcaputurer.StreamCapturer;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.PrintStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -36,20 +41,19 @@ public class ErrorLogWindow {
         this.configInfo = configInfo;
         this.styleManager = new StyleManager(configInfo);
     }
-    
+
     /*
     private void setConfigInfo(String identifier, ConfigInfo configInfo) {
         this.identifier = identifier;
         this.configInfo = configInfo;
     }
-    */
-    
+     */
     private void open() {
         WindowRectangle windowRectangle = null;
-        if(configInfo != null) {
+        if (configInfo != null) {
             windowRectangle = configInfo.getWindowRectangle(identifier);
         }
-        
+
         stage = new Stage();
         double width, height;
         if (windowRectangle != null) {
@@ -69,13 +73,11 @@ public class ErrorLogWindow {
         stage.setTitle("Error");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
-                if(configInfo != null) {
-                    configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getScene().getWidth(), stage.getScene().getHeight());
-                }
+                configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getScene().getWidth(), stage.getScene().getHeight());
                 stage = null;
             }
         });
-        
+
         styleManager.setStage(stage);
         stage.show();
     }
@@ -97,11 +99,34 @@ public class ErrorLogWindow {
         Platform.runLater(() -> {
             checkOpen();
             boolean isEmpty = (textArea.getText().length() == 0);
-            e.printStackTrace(new PrintStream(new StreamCapturer(textArea)));
+            if (e instanceof GitCommandException) {
+                textArea.appendText(e.getMessage());
+                analyzeErrorMessage(e.getMessage());
+            } else {
+                e.printStackTrace(new PrintStream(new StreamCapturer(textArea)));
+            }
             if (isEmpty) {
                 textArea.positionCaret(0);
             }
         });
+    }
+
+    private void analyzeErrorMessage(String message) {
+        Pattern p = Pattern.compile("The diff tool (.+) is not available as");
+        Matcher m = p.matcher(message);
+        if (m.find()) {
+            textArea.appendText("\n"
+                    + m.group(1) + " は有効なコマンドではありません。\n"
+                    + "Preference で適切な difftool 用コマンドを選択し直してください。");
+            stage.showingProperty().addListener((observable, oldValue, newValue) -> {
+                if (oldValue == true && newValue == false) {
+                    App app = configInfo.getMainApp();
+                    app.openPreference("DiffTool");
+                    stage = null;
+                }
+            });
+            return;
+        }
     }
 
     private void checkOpen() {

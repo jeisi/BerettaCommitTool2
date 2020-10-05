@@ -47,6 +47,7 @@ public class App extends Application {
 
     private ErrorLogWindow errorLogWindow;
     private StyleManager styleManager;
+    private PreferenceWindow preferenceWindow;
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
     private List<BaseGitPane> gitPanes;
@@ -66,6 +67,8 @@ public class App extends Application {
 
         styleManager = new StyleManager(configInfo);
         errorLogWindow = new ErrorLogWindow(configInfo);
+        preferenceWindow = new PreferenceWindow(configInfo);
+        configInfo.setMainApp(this);
         
         mainStage = stage;
         loadConfig();
@@ -98,6 +101,7 @@ public class App extends Application {
     }
 
     void close() {
+        preferenceWindow.close();
         saveConfig();
         gitPanes.forEach(e -> e.close());
         GitThreadMan.closeAll();
@@ -242,9 +246,12 @@ public class App extends Application {
         return menu;
     }
 
-    private void openPreference() {
-        PreferenceWindow preferenceWindow = new PreferenceWindow(configInfo);
+    public void openPreference() {
         preferenceWindow.open();
+    }
+    
+    public void openPreference(String defaultTab) {
+        preferenceWindow.open(defaultTab);
     }
 
     private void onChangeDirectory() {
