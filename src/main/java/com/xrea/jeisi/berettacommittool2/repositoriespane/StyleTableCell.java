@@ -25,14 +25,14 @@ public class StyleTableCell extends TableCell<RepositoryData, String> {
             setText(item);
             Matcher matcher = modifiedPattern.matcher(item);
             if(matcher.matches()) {
-                setStyle("-fx-font-weight:bold;");
+                setStyle("-fx-text-fill:blue; -fx-font-weight: bolder; -fx-font-family: sans-serif ;");
             } else if(updatingPattern.matcher(item).matches()) {
                 setStyle("-fx-text-fill:yellow;");
             } else if(errorPattern.matcher(item).matches()) {
                 //setStyle("-fx-font-color:red;");
                 setStyle("-fx-text-fill:red;");
             } else {
-                setStyle("");                
+                setStyle(null);                
             }
         } else {
             setText(null);
