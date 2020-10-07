@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
@@ -69,16 +70,9 @@ public class GitDiffCommand {
     }
 
     protected List<String> getCommand(String fileName, String tool, boolean bCached) throws GitCommandException, GitConfigException {
-        XmlWriter.writeStartMethod("GitDiffCommand.getCommand()");
-        XmlWriter.writeObject("configInfo", configInfo);
-        var git = configInfo.getProgram("git");
-        if(git == null) {
-            XmlWriter.writeEndMethodWithReturn();
-            throw new GitConfigException("git のパス指定が null です。");
-        }
-        
+        var git = configInfo.getProgramEx("git");
         ArrayList<String> command = new ArrayList<>();
-        command.add(configInfo.getProgram("git"));
+        command.add(git);
         command.add("difftool");
         command.add("-y");
         command.add(tool);
@@ -86,7 +80,6 @@ public class GitDiffCommand {
             command.add("--cached");
         }
         command.add(fileName);
-        XmlWriter.writeEndMethodWithReturnValue(command.toString());
         return command;
     }
 

@@ -35,8 +35,12 @@ public class ProgramsTab extends Tab implements BaseTab {
     private final Window parent;
     private final List<Pair<String, TextField>> items = new ArrayList<>();
 
+    public static String getTitle() {
+        return "Programs";
+    }
+    
     public ProgramsTab(Window parent, ConfigInfo configInfo) {
-        super("Programs");
+        super(getTitle());
         this.configInfo = configInfo;
         this.parent = parent;
         setClosable(false);

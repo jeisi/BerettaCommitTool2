@@ -8,10 +8,12 @@ package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 import com.xrea.jeisi.berettacommittool2.App;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.preferencewindow.DiffToolTab;
+import com.xrea.jeisi.berettacommittool2.preferencewindow.ProgramsTab;
 import com.xrea.jeisi.berettacommittool2.streamcaputurer.StreamCapturer;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.PrintStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,12 +44,6 @@ public class ErrorLogWindow {
         this.styleManager = new StyleManager(configInfo);
     }
 
-    /*
-    private void setConfigInfo(String identifier, ConfigInfo configInfo) {
-        this.identifier = identifier;
-        this.configInfo = configInfo;
-    }
-     */
     private void open() {
         WindowRectangle windowRectangle = null;
         if (configInfo != null) {
@@ -102,6 +98,8 @@ public class ErrorLogWindow {
             if (e instanceof GitCommandException) {
                 textArea.appendText(e.getMessage());
                 analyzeErrorMessage(e.getMessage());
+            } else if (e instanceof FaultyProgramException) {
+                appendProgramError(e.getMessage());
             } else {
                 e.printStackTrace(new PrintStream(new StreamCapturer(textArea)));
             }
@@ -115,18 +113,27 @@ public class ErrorLogWindow {
         Pattern p = Pattern.compile("The diff tool (.+) is not available as");
         Matcher m = p.matcher(message);
         if (m.find()) {
-            textArea.appendText("\n"
+            String errorMessage = "\n"
                     + m.group(1) + " は有効なコマンドではありません。\n"
-                    + "Preference で適切な difftool 用コマンドを選択し直してください。");
-            stage.showingProperty().addListener((observable, oldValue, newValue) -> {
-                if (oldValue == true && newValue == false) {
-                    App app = configInfo.getMainApp();
-                    app.openPreference("DiffTool");
-                    stage = null;
-                }
-            });
+                    + "Preference で適切な difftool 用コマンドを選択し直してください。";
+            appendErrorMessageCommon(errorMessage, DiffToolTab.getTitle());
             return;
         }
+    }
+    
+    private void appendProgramError(String message) {
+        appendErrorMessageCommon(message + "\nPreference で適切なパスを設定してください。", ProgramsTab.getTitle());
+    }
+
+    private void appendErrorMessageCommon(String message, String defaultPage) {
+        textArea.appendText(message);
+        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue == true && newValue == false) {
+                App app = configInfo.getMainApp();
+                app.openPreference(defaultPage);
+                stage = null;
+            }
+        });
     }
 
     private void checkOpen() {

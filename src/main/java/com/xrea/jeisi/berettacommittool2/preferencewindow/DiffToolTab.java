@@ -25,8 +25,12 @@ public class DiffToolTab extends Tab implements BaseTab {
     private final Window parent;
     private ToggleGroup group;
 
+    public static String getTitle() {
+        return "DiffTool";
+    }
+    
     public DiffToolTab(Window parent, ConfigInfo configInfo) {
-        super("DiffTool");
+        super(getTitle());
         this.configInfo = configInfo;
         this.parent = parent;
         setClosable(false);

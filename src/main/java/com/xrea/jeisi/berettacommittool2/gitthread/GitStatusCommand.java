@@ -37,8 +37,6 @@ public class GitStatusCommand {
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
-        //XmlWriter.writeStartMethod("GitStatusCommand.status()");
-        System.out.println("GitStatusCommand.status(): start.");
         ProcessBuilder pb = new ProcessBuilder(getCommand((String[]) null));
         pb.directory(repository);
         Process process = pb.start();
@@ -48,8 +46,6 @@ public class GitStatusCommand {
             throw e;
         }
         List<GitStatusData> status = getStatusDatas(process, repositoryData);
-        //XmlWriter.writeEndMethod();
-        System.out.println("GitStatusCommand.status(): end.");
         return status;
     }
 
@@ -66,13 +62,9 @@ public class GitStatusCommand {
     }
 
     private List<String> getCommand(String... paths) throws GitCommandException, GitConfigException {
-        var git = configInfo.getProgram("git");
-        if (git == null) {
-            throw new GitConfigException("git のパス指定が null です。");
-        }
-
+        var git = configInfo.getProgramEx("git");
         ArrayList<String> command = new ArrayList<>();
-        command.add(configInfo.getProgram("git"));
+        command.add(git);
         command.add("status");
         command.add("-s");
         command.add("--untracked-files=all");

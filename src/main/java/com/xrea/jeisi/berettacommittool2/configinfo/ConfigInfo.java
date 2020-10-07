@@ -6,6 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.configinfo;
 
 import com.xrea.jeisi.berettacommittool2.App;
+import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
@@ -113,13 +115,24 @@ public class ConfigInfo {
         return program.replace('\\', '/');
     }
 
-    public List<Pair<String,String>> getPrograms() {
-        List<Pair<String,String>> programs = new ArrayList<>();
+    public String getProgramEx(String name) throws GitConfigException {
+        var program = getProgram(name);
+        if (program == null) {
+            throw new FaultyProgramException(name + " のパス指定が null です。");
+        }
+        if (program.equals("")) {
+            throw new FaultyProgramException(name + " のパス指定がされていません。");
+        }
+        return program;
+    }
+
+    public List<Pair<String, String>> getPrograms() {
+        List<Pair<String, String>> programs = new ArrayList<>();
         map.keySet().stream().filter(e -> e.startsWith("program."))
                 .forEach(key -> programs.add(new Pair(key.substring("program.".length()), map.get(key))));
         return programs;
     }
-    
+
     public void setDiffTool(String difftool) {
         map.put("difftool", difftool);
     }
@@ -133,23 +146,23 @@ public class ConfigInfo {
         map.put("fontsize", size);
         fontSizeProperty.set(size);
     }
-    
+
     public String getFontSize() {
         return (String) map.get("fontsize");
     }
-    
+
     public StringProperty fontSizeProperty() {
         return fontSizeProperty;
     }
-    
+
     public void setMainApp(App app) {
         mainApp = app;
     }
-    
+
     public App getMainApp() {
         return mainApp;
     }
-    
+
     public void setTableColumnWidth(String tableId, List<Double> widths) {
         map.put(tableId + ".columnWidths", widths);
     }
@@ -157,7 +170,7 @@ public class ConfigInfo {
     public List<Double> getTableColumnWidth(String tableId) {
         return (List<Double>) map.get(tableId + ".columnWidths");
     }
-    
+
     public void setDouble(String key, double value) {
         map.put(key, value);
     }
@@ -165,7 +178,7 @@ public class ConfigInfo {
     public Double getDouble(String key) {
         return (Double) map.get(key);
     }
-    
+
     public void save() throws IOException {
         pruneDirectoryHistory();
 
