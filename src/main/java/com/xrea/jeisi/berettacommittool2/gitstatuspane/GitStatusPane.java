@@ -32,6 +32,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdateSelection
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.HierarchyMenuSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
@@ -91,6 +92,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCommitSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSingleSituationSelector = new SituationSelector();
+    private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationVisible gitAddSituationVisible = new SituationVisible();
     private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
     private final SituationVisible gitCommitSituationVisible = new SituationVisible();
@@ -340,6 +342,8 @@ public class GitStatusPane implements BaseGitPane {
 
         Menu diffSubMenu = new Menu("git difftool");
         diffSubMenu.getItems().addAll(diffMenuItem, diffCachedMenuItem);
+        gitDiffToolSituationSelector.setSituation(new HierarchyMenuSelectionSituation(diffMenuItem, diffCachedMenuItem));
+        gitDiffToolSituationSelector.getItems().add(diffSubMenu);
 
         MenuItem commitMenuItem = new MenuItem("git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
@@ -606,8 +610,7 @@ public class GitStatusPane implements BaseGitPane {
         });
         return filesPerRepo;
     }
-    */
-
+     */
     // predicator で true になるファイルが存在する RepositoryData を返す。
     private HashSet<RepositoryData> getSpecifiedRepositories(Predicate<GitStatusData> predicator) {
         HashSet<RepositoryData> set = new HashSet<>();
@@ -620,7 +623,6 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void updateSituationSelectors() {
-        XmlWriter.writeStartMethod("GitStatusPane.updateSituationSelectors()");
         singleSelectionSituationSelector.update();
         multiSelectionSituationSelector.update();
         gitAddSituationSelector.update();
@@ -635,7 +637,9 @@ public class GitStatusPane implements BaseGitPane {
         gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
         gitCommitSituationVisible.update();
-        XmlWriter.writeEndMethod();
+        
+        // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。
+        gitDiffToolSituationSelector.update();
     }
 
     private void showError(Exception e) {
