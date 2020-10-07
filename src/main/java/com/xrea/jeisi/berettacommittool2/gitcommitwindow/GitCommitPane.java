@@ -119,6 +119,7 @@ public class GitCommitPane {
 
         messageTextArea = new TextArea();
         messageTextArea.setId("GitCommitPaneMessageTextArea");
+        messageTextArea.setWrapText(true);
         BorderPane.setMargin(messageTextArea, new Insets(5, 0, 5, 0));
 
         Button commitButton = new Button("Commit");
