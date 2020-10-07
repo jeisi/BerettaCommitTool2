@@ -47,7 +47,7 @@ public class GitStatusPaneSelectorTest {
     @Start
     public void start(Stage stage) {
         ConfigInfo configInfo = new ConfigInfo();
-        
+
         app = new GitStatusPane(configInfo);
         MenuBar menuBar = new MenuBar();
         statusMenu = app.buildMenu();
@@ -311,17 +311,20 @@ public class GitStatusPaneSelectorTest {
         assertFalse(diffMenuItem.isDisable());
         // "Git diff --cached" MenuItem は選択可
         assertFalse(diffCachedMenuItem.isDisable());
+        // "git commit" MenuItem は選択可。
+        MenuItem commitMenuItem = getMenuItem(statusMenu, "gitStatusCommitMenuItem");
+        assertFalse(commitMenuItem.isDisable());
     }
 
     private MenuItem getMenuItem(Menu menu, String menuItemId) {
-        for(MenuItem item : menu.getItems()) {
-            if(item instanceof Menu) {
-                MenuItem subItem = getMenuItem((Menu)item, menuItemId);
-                if(subItem != null) {
+        for (MenuItem item : menu.getItems()) {
+            if (item instanceof Menu) {
+                MenuItem subItem = getMenuItem((Menu) item, menuItemId);
+                if (subItem != null) {
                     return subItem;
                 }
             }
-            if(menuItemId.equals(item.getId())) {
+            if (menuItemId.equals(item.getId())) {
                 return item;
             }
         }

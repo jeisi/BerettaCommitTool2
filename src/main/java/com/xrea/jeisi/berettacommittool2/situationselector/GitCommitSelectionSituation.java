@@ -28,6 +28,7 @@ public class GitCommitSelectionSituation implements Situation {
                 return false;
         }
     };
+    /*
     private final Predicate<GitStatusData> ngPredicate = (t) -> {
         String indexStatus = t.indexStatusProperty().get();
         String workTreeStatus = t.workTreeStatusProperty().get();
@@ -43,6 +44,7 @@ public class GitCommitSelectionSituation implements Situation {
 
         return false; // OK.
     };
+    */
 
     public GitCommitSelectionSituation(TableView<GitStatusData> tableView) {
         this.tableView = tableView;
@@ -55,9 +57,11 @@ public class GitCommitSelectionSituation implements Situation {
             return false;
         }
 
+        /*
         if (items.stream().anyMatch(ngPredicate)) {
             return false;
         }
+        */
 
         boolean ret = items.stream().anyMatch(predicate);
         return ret;
