@@ -6,12 +6,19 @@
 package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.Parent;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -21,7 +28,6 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.BorderPane;
 
 /**
  *
@@ -32,6 +38,8 @@ public class RepositoriesPane {
     private ObservableList<RepositoryData> datas;
     private TableView<RepositoryData> tableView;
     private ConfigInfo configInfo;
+    private ErrorLogWindow errorLogWindow;
+    private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
 
     public void setRepositories(RepositoriesInfo work) {
         datas = work.getDatas();
@@ -40,6 +48,10 @@ public class RepositoriesPane {
 
     public void setConfig(ConfigInfo configInfo) {
         this.configInfo = configInfo;
+    }
+    
+    public void setErrorLogWindow(ErrorLogWindow errorLogWindow) {
+        this.errorLogWindow = errorLogWindow;
     }
 
     public TableView<RepositoryData> getTableView() {
@@ -64,6 +76,19 @@ public class RepositoriesPane {
         nameColumn.setCellFactory((p) -> new StyleTableCell());
 
         tableView.getColumns().setAll(checkColumn, nameColumn);
+        tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends Integer> change) {
+                updateSituationSelectors();
+            }
+        });
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
+
+        ContextMenu contextMenu = new ContextMenu(openFileManagerMenuItem);
+        tableView.setContextMenu(contextMenu);
+
+        singleSelectionSituationSelector.setSituation(new SingleSelectionSituation<>(tableView.getSelectionModel()));
 
         if (configInfo != null) {
             List<Double> widths = configInfo.getTableColumnWidth(tableView.getId());
@@ -148,13 +173,33 @@ public class RepositoriesPane {
     }
 
     public void saveConfig() {
-        //System.out.println("RepositoriesPane.saveConfig()");
         if (configInfo == null) {
             return;
         }
 
         List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
         configInfo.setTableColumnWidth(tableView.getId(), widths);
-        //System.out.println("widths: " + widths.toString());
+    }
+
+    private void updateSituationSelectors() {
+        singleSelectionSituationSelector.update();
+    }
+
+    private MenuItem createOpenFileManagerMenuItem() {
+        MenuItem openFileManagerMenuItem = new MenuItem("ファイルマネージャを開く");
+        openFileManagerMenuItem.setOnAction(eh -> openFileManager());
+        boolean isSupported = FileBrowser.getInstance().isSupportedOpen();
+        if (!isSupported) {
+            openFileManagerMenuItem.setDisable(true);
+        } else {
+            singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
+        }
+        return openFileManagerMenuItem;
+    }
+
+    private void openFileManager() {
+        RepositoryData repositoryData = tableView.getSelectionModel().getSelectedItems().get(0);
+        Path path = repositoryData.getPath();
+        FileBrowser.getInstance().setErrorLogWindow(errorLogWindow).browseDirectory(path);
     }
 }

@@ -151,6 +151,7 @@ public class App extends Application {
 
         repositoriesPane = new RepositoriesPane();
         repositoriesPane.setConfig(configInfo);
+        repositoriesPane.setErrorLogWindow(errorLogWindow);
 
         gitPanes = new ArrayList<>();
         gitPanes.add(new GitStatusPane(configInfo));

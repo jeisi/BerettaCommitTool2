@@ -284,7 +284,7 @@ public class GitStatusPane implements BaseGitPane {
             }
         });
 
-        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをクリップボードにコピー");
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
 
@@ -401,17 +401,14 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private MenuItem createOpenFileManagerMenuItem() {
-        XmlWriter.writeStartMethod("GitStatusPane.createOpenFileManagerMenuItem()");
         MenuItem openFileManagerMenuItem = new MenuItem("ファイルマネージャを開く");
         openFileManagerMenuItem.setOnAction(eh -> openFileManager());
-        boolean isSupported = FileBrowser.getInstance().isSupported();
-        XmlWriter.writeObject("isSupported", isSupported);
+        boolean isSupported = FileBrowser.getInstance().isSupportedBrowseFileDir();
         if (!isSupported) {
             openFileManagerMenuItem.setDisable(true);
         } else {
             singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
         }
-        XmlWriter.writeEndMethod();
         return openFileManagerMenuItem;
     }
 
@@ -503,11 +500,9 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void openFileManager() {
-        XmlWriter.writeStartMethod("GitStatusPane.openFileManager()");
         GitStatusData statusData = tableView.getSelectionModel().getSelectedItems().get(0);
         Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
         FileBrowser.getInstance().browseFileDirectory(path);
-        XmlWriter.writeEndMethod();
     }
 
     private void execCommand(HashMap<Path, List<GitStatusData>> filesPerRepo, CommandExecutor command) {

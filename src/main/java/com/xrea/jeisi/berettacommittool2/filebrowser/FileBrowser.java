@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.filebrowser;
 
+import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,32 +23,64 @@ public class FileBrowser {
         DESKTOP,
         EXPLORER,
     }
-    private Type type;
+    private Type browseFileDirType;
+    private Type openType;
+    private ErrorLogWindow errorLogWindow;
     private static FileBrowser instance;
-    
+
     public static FileBrowser getInstance() {
-        if(instance == null) {
+        if (instance == null) {
             instance = new FileBrowser();
         }
         return instance;
     }
-    
-    public boolean isSupported() {
-        return (type != Type.UNSUPPORT);
+
+    public FileBrowser setErrorLogWindow(ErrorLogWindow errorLogWindow) {
+        this.errorLogWindow = errorLogWindow;
+        return this;
+    }
+
+    public boolean isSupportedBrowseFileDir() {
+        return (browseFileDirType != Type.UNSUPPORT);
+    }
+
+    public boolean isSupportedOpen() {
+        return (openType != Type.UNSUPPORT);
     }
 
     public void browseFileDirectory(Path path) {
-        switch (type) {
+        switch (browseFileDirType) {
             case DESKTOP:
                 Desktop.getDesktop().browseFileDirectory(path.toFile());
                 break;
             case EXPLORER:
-                openExplorer(path);
+                openExplorerFile(path);
                 break;
             case UNSUPPORT:
                 throw new UnsupportedOperationException();
             default:
-                throw new AssertionError(type + "　に対応するcase文が定義されていません。");
+                throw new AssertionError(browseFileDirType + "　に対応するcase文が定義されていません。");
+        }
+    }
+
+    public void browseDirectory(Path path) {
+        switch (openType) {
+            case DESKTOP:
+                new Thread(() -> {
+                    try {
+                        Desktop.getDesktop().open(path.toFile());
+                    } catch (IOException ex) {
+                        appendException(ex);
+                    }
+                }).start();
+                break;
+            case EXPLORER:
+                openExplorerDir(path);
+                break;
+            case UNSUPPORT:
+                throw new UnsupportedOperationException();
+            default:
+                throw new AssertionError(browseFileDirType + "　に対応するcase文が定義されていません。");
         }
     }
 
@@ -56,24 +89,59 @@ public class FileBrowser {
     }
 
     private void setupType() {
-        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
-            type = Type.DESKTOP;
+        setupOpenType();
+        setupBrowseFileDirType();
+    }
+
+    private void setupOpenType() {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+            openType = Type.DESKTOP;
             return;
         }
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
-            type = Type.EXPLORER;
+            openType = Type.EXPLORER;
             return;
         }
-        type = Type.UNSUPPORT;
+        openType = Type.UNSUPPORT;
     }
 
-    private void openExplorer(Path path) {
+    private void setupBrowseFileDirType() {
+        if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+            browseFileDirType = Type.DESKTOP;
+            return;
+        }
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            browseFileDirType = Type.EXPLORER;
+            return;
+        }
+        browseFileDirType = Type.UNSUPPORT;
+    }
+
+    private void openExplorerFile(Path path) {
         final String command = "explorer.exe /SELECT,\"" + path.toAbsolutePath().toString() + "\"";
         try {
             Runtime.getRuntime().exec(command);
         } catch (IOException ex) {
-            Logger.getLogger(FileBrowser.class.getName()).log(Level.SEVERE, null, ex);
+            appendException(ex);
+        }
+    }
+
+    private void openExplorerDir(Path path) {
+        final String command = "explorer.exe \"" + path.toAbsolutePath().toString() + "\"";
+        try {
+            Runtime.getRuntime().exec(command);
+        } catch (IOException ex) {
+            appendException(ex);
+        }
+    }
+
+    private void appendException(Exception ex) {
+        if (errorLogWindow != null) {
+            errorLogWindow.appendException(ex);
+        } else {
+            ex.printStackTrace();
         }
     }
 }
