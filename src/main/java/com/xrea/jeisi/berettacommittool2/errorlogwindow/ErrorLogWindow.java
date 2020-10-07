@@ -119,8 +119,18 @@ public class ErrorLogWindow {
             appendErrorMessageCommon(errorMessage, DiffToolTab.getTitle());
             return;
         }
+
+        p = Pattern.compile("winmerge.sh: .* command not found");
+        m = p.matcher(message);
+        if (m.find()) {
+            String errorMessage = "\n"
+                    + "WinMergeU のパスが適切ではありません。\n"
+                    + "Preference で適切なパスを設定してください。";
+            appendErrorMessageCommon(errorMessage, ProgramsTab.getTitle());
+            return;
+        }
     }
-    
+
     private void appendProgramError(String message) {
         appendErrorMessageCommon(message + "\nPreference で適切なパスを設定してください。", ProgramsTab.getTitle());
     }
