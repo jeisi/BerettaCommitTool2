@@ -7,13 +7,10 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +19,7 @@ import java.util.List;
  *
  * @author jeisi
  */
-public class GitDiffCommand {
+public class GitDiffCommand extends BaseGitCommand {
 
     private final ConfigInfo configInfo;
     private final File repository;
@@ -81,22 +78,5 @@ public class GitDiffCommand {
         }
         command.add(fileName);
         return command;
-    }
-
-    private static String getErrorMessage(List<String> command, Process p) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("command error.");
-        sb.append("\n");
-        sb.append("$ ");
-        sb.append(String.join(" ", command));
-        sb.append("\n");
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getErrorStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                sb.append(line);
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
     }
 }

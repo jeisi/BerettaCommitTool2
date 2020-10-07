@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -14,5 +15,5 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  * @author jeisi
  */
 public interface CommandExecutor {
-    public void exec(Path workDir, String[] files) throws IOException, GitAPIException;
+    public void exec(Path workDir, String[] files) throws IOException, GitAPIException, GitConfigException, InterruptedException;
 }

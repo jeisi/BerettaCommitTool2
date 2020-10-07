@@ -86,7 +86,7 @@ public class GitCommandAddTest {
     }
 
     @Test
-    public void testAddWithProgressWindow() throws IOException, GitAPIException, InterruptedException {
+    public void testAddWithProgressWindow() throws IOException, InterruptedException, GitConfigException {
         System.out.println("GitCommandAddTest.testAddWithProgressWindow()");
         Path workDir = Paths.get("src/test/resources/work/beretta");
         MockGitAddCommand addCommand = new MockGitAddCommand(workDir, configInfo);

@@ -193,7 +193,7 @@ public class GitStatusPane implements BaseGitPane {
                 List<GitStatusData> gitStatusDatas;
                 try {
                     gitStatusDatas = command.status(repository);
-                } catch (IOException | GitCommandException | GitConfigException | InterruptedException ex) {
+                } catch (IOException | GitConfigException | InterruptedException ex) {
                     Platform.runLater(() -> showError(ex));
                     repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
                     return;
@@ -443,7 +443,7 @@ public class GitStatusPane implements BaseGitPane {
         new Thread(() -> {
             try {
                 diffCommand.diff(selectedItem.getFileName());
-            } catch (IOException | GitCommandException | InterruptedException | GitConfigException ex) {
+            } catch (IOException | InterruptedException | GitConfigException ex) {
                 showError(ex);
             }
         }).start();
@@ -456,7 +456,7 @@ public class GitStatusPane implements BaseGitPane {
         new Thread(() -> {
             try {
                 diffCommand.diffCached(selectedItem.getFileName());
-            } catch (IOException | GitCommandException | InterruptedException | GitConfigException ex) {
+            } catch (IOException | InterruptedException | GitConfigException ex) {
                 showError(ex);
             }
         }).start();

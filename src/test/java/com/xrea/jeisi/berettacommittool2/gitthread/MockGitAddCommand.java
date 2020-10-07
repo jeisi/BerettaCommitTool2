@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,7 +24,7 @@ public class MockGitAddCommand extends GitAddCommand {
     }
 
     @Override
-    protected void addFile(Git git, String file) throws GitAPIException {
+    protected void addFile(Git git, String file) throws IOException, GitConfigException, InterruptedException {
         try {
             Thread.sleep(100);
         } catch (InterruptedException ex) {

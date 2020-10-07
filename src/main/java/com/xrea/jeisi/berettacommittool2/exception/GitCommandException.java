@@ -5,13 +5,14 @@
  */
 package com.xrea.jeisi.berettacommittool2.exception;
 
+import java.io.IOException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
  *
  * @author jeisi
  */
-public class GitCommandException extends GitAPIException {
+public class GitCommandException extends IOException {
     public GitCommandException(String message) {
         super(message);
     }
