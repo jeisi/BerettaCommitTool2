@@ -13,12 +13,12 @@ import javafx.scene.control.TableView;
  *
  * @author jeisi
  */
-public class GitAddUpdateSelectionSituation implements Situation {
+public class GitAddAllSelectionSituation implements Situation {
 
     private final TableView<GitStatusData> tableView;
-    private final static Predicate<GitStatusData> predicate = new GitAddUpdatePredicate();
+    private final static Predicate<GitStatusData> predicate = new GitAddPredicate();
 
-    public GitAddUpdateSelectionSituation(TableView<GitStatusData> tableView) {
+    public GitAddAllSelectionSituation(TableView<GitStatusData> tableView) {
         this.tableView = tableView;
     }
 

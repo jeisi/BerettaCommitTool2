@@ -314,7 +314,17 @@ public class GitStatusPaneSelectorTest {
     }
 
     private MenuItem getMenuItem(Menu menu, String menuItemId) {
-        List<MenuItem> menuItems = menu.getItems().stream().filter(item -> menuItemId.equals(item.getId())).collect(Collectors.toList());
-        return menuItems.get(0);
+        for(MenuItem item : menu.getItems()) {
+            if(item instanceof Menu) {
+                MenuItem subItem = getMenuItem((Menu)item, menuItemId);
+                if(subItem != null) {
+                    return subItem;
+                }
+            }
+            if(menuItemId.equals(item.getId())) {
+                return item;
+            }
+        }
+        return null;
     }
 }

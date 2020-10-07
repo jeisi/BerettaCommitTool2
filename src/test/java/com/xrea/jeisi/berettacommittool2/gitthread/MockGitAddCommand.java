@@ -22,18 +22,4 @@ public class MockGitAddCommand extends GitAddCommand {
     public MockGitAddCommand(Path path, ConfigInfo configInfo) {
         super(path, configInfo);
     }
-
-    @Override
-    protected void addFile(Git git, String file) throws IOException, GitConfigException, InterruptedException {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ex) {
-           
-        }
-    }
-    
-    @Override
-    protected Git gitOpen() throws IOException {
-        return null;
-    }
 }

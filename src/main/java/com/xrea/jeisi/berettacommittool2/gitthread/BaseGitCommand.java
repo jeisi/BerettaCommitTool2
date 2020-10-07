@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,5 +32,16 @@ public abstract class BaseGitCommand {
             }
         }
         return sb.toString();
+    }
+
+    protected static List<String> getInputStream(Process p) throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(p.getInputStream()))) {
+            for (String line = br.readLine(); line != null; line = br.readLine()) {
+                lines.add(line);
+            }
+        }
+        return lines;
     }
 }

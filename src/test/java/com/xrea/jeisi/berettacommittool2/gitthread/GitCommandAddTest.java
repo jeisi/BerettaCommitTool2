@@ -12,6 +12,7 @@ import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,6 +47,7 @@ public class GitCommandAddTest {
         progressWindow = new ProgressWindow(configInfo);
     }
 
+    /*
     @Test
     public void testAdd() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
@@ -87,12 +89,39 @@ public class GitCommandAddTest {
 
     @Test
     public void testAddWithProgressWindow() throws IOException, InterruptedException, GitConfigException {
-        System.out.println("GitCommandAddTest.testAddWithProgressWindow()");
-        Path workDir = Paths.get("src/test/resources/work/beretta");
-        MockGitAddCommand addCommand = new MockGitAddCommand(workDir, configInfo);
+        XmlWriter.writeStartMethod("GitCommandAddTest.testAddWithProgressWindow()");
+        
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testAddUpdate.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
         addCommand.setProgressWindow(progressWindow);
         addCommand.add("test01.cpp", "test02.cpp", "test03.cpp", "test04.cpp", "test05.cpp",
                 "test06.cpp", "test07.cpp", "test08.cpp", "test09.cpp", "test10.cpp");
+        Thread.sleep(1000);
+        
+        XmlWriter.writeEndMethod();
+    }
+*/
+    
+    @Test
+    public void testAddUpdate() throws IOException, InterruptedException, GitConfigException {
+                String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testAddUpdate.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
+        addCommand.setProgressWindow(progressWindow);
+        addCommand.addUpdate();
         Thread.sleep(1000);
     }
 }

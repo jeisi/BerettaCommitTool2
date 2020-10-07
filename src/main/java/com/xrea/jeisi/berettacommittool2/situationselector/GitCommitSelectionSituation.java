@@ -19,36 +19,28 @@ public class GitCommitSelectionSituation implements Situation {
 
     private final TableView<GitStatusData> tableView;
     private final Predicate<GitStatusData> predicate = (t) -> {
-        XmlWriter.writeStartMethod("predicate.test()");
         switch (t.indexStatusProperty().get()) {
             case "M":
             case "A":
             case "D":
-                XmlWriter.writeEndMethodWithReturnValue(true);
                 return true;
             default:
-                XmlWriter.writeEndMethodWithReturnValue(false);
                 return false;
         }
     };
     private final Predicate<GitStatusData> ngPredicate = (t) -> {
-        XmlWriter.writeStartMethod("ngPredicate.test()");
-        XmlWriter.writeObject("t", t);
         String indexStatus = t.indexStatusProperty().get();
         String workTreeStatus = t.workTreeStatusProperty().get();
 
         // ?? の状態なら無視.
         if (indexStatus.equals("?") && workTreeStatus.equals("?")) {
-            XmlWriter.writeEndMethodWithReturnValue(false);
             return false; // OK.
         }
 
         if (!indexStatus.equals("") && !workTreeStatus.equals("")) {
-            XmlWriter.writeEndMethodWithReturnValue(true);
             return true; // NG!!
         }
 
-        XmlWriter.writeEndMethodWithReturnValue(false);
         return false; // OK.
     };
 
@@ -58,20 +50,16 @@ public class GitCommitSelectionSituation implements Situation {
 
     @Override
     public boolean isValid() {
-        XmlWriter.writeStartMethod("GitCommitSelectionSituation.isValid()");
         var items = tableView.getItems();
         if (items.isEmpty()) {
-            XmlWriter.writeEndMethodWithReturnValue(false);
             return false;
         }
 
         if (items.stream().anyMatch(ngPredicate)) {
-            XmlWriter.writeEndMethodWithReturnValue(false);
             return false;
         }
 
         boolean ret = items.stream().anyMatch(predicate);
-        XmlWriter.writeEndMethodWithReturnValue(ret);
         return ret;
     }
 
