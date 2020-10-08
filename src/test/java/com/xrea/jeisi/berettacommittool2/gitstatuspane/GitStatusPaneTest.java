@@ -144,13 +144,6 @@ public class GitStatusPaneTest {
     // refreshAll() が実行された時に、GitCommand.status() が正しく実行されるかどうか。
     public void testRefreshAll(FxRobot robot) throws IOException, InterruptedException {
         System.out.println("GitStatusPaneTest.testRefreshAll()");
-        /*
-        ObservableList<GitStatusData> gitStatusDatas1 = FXCollections.observableArrayList();
-        System.out.println(gitStatusDatas1.hashCode());
-        ObservableList<GitStatusData> gitStatusDatas2 = FXCollections.observableArrayList();
-        gitStatusDatas2.add(new GitStatusData("A", "", "test.cpp", ""));
-        System.out.println(gitStatusDatas2.hashCode());
-         */
 
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);

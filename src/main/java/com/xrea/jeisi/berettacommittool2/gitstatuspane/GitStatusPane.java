@@ -167,7 +167,6 @@ public class GitStatusPane implements BaseGitPane {
         ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
-        XmlWriter.writeObject("aggregated.getAggregatedList()", aggregated.getAggregatedList());
         tableView.setItems(aggregated.getAggregatedList());
         updateSituationSelectors();
     }
@@ -229,6 +228,7 @@ public class GitStatusPane implements BaseGitPane {
 
         var indexTableColumn = new TableColumn<GitStatusData, String>("X");
         indexTableColumn.setPrefWidth(30);
+        indexTableColumn.setSortable(true);
         indexTableColumn.setCellValueFactory(p -> p.getValue().indexStatusProperty());
         indexTableColumn.setStyle("-fx-alignment: center;");
 
@@ -293,8 +293,6 @@ public class GitStatusPane implements BaseGitPane {
         ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem, openFileManagerMenuItem);
         tableView.setContextMenu(contextMenu);
 
-        //var vbox = new VBox();
-        //vbox.getChildren().addAll(tableView);
         return tableView;
     }
 
