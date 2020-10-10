@@ -13,6 +13,7 @@ import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
@@ -29,6 +30,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPredicate;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdatePredicate;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdateSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutHeadSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
@@ -92,12 +94,14 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCommitSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSingleSituationSelector = new SituationSelector();
+    private final SituationSelector gitCheckoutHeadSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationVisible gitAddSituationVisible = new SituationVisible();
     private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
     private final SituationVisible gitCommitSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
     private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
+    private final SituationVisible gitCheckoutHeadSituationVisible = new SituationVisible();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -273,6 +277,9 @@ public class GitStatusPane implements BaseGitPane {
         var gitUnstageSingleSelectionSituation = new GitUnstageSingleSelectionSituation(selectionModel);
         gitUnstageSingleSituationSelector.setSituation(gitUnstageSingleSelectionSituation);
         gitUnstageSingleSituationVisible.setSituation(gitUnstageSingleSelectionSituation);
+        var gitCheckoutHeadSelectionSituation = new GitCheckoutHeadSelectionSituation(selectionModel);
+        gitCheckoutHeadSituationSelector.setSituation(gitCheckoutHeadSelectionSituation);
+        gitCheckoutHeadSituationVisible.setSituation(gitCheckoutHeadSelectionSituation);
         var gitCommitSelectionSituation = new GitCommitSelectionSituation(tableView);
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
         gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
@@ -321,6 +328,19 @@ public class GitStatusPane implements BaseGitPane {
         Menu addSubMenu = new Menu("git add");
         addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem);
 
+        MenuItem checkoutHyphenMenuItem = new MenuItem("git checkout -- <file>...");
+        checkoutHyphenMenuItem.setOnAction(eh -> gitCheckoutHyphen());
+        gitCheckoutHeadSituationSelector.getItems().add(checkoutHyphenMenuItem);
+
+        MenuItem checkoutOursMenuItem = new MenuItem("git checkout --ours <file>...");
+        checkoutOursMenuItem.setOnAction(eh -> gitCheckoutOurs());
+
+        MenuItem checkoutTheirsMenuItem = new MenuItem("git checkout --theirs <file>...");
+        checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
+        
+        Menu checkoutSubMenu = new Menu("git checkout");
+        checkoutSubMenu.getItems().addAll(checkoutHyphenMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem);
+
         MenuItem unstageMenuItem = new MenuItem("git reset HEAD <file>...");
         unstageMenuItem.setId("gitStatusUnstageMenuItem");
         unstageMenuItem.setOnAction(e -> gitUnstage());
@@ -359,7 +379,7 @@ public class GitStatusPane implements BaseGitPane {
 
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
-        menu.getItems().addAll(addSubMenu,
+        menu.getItems().addAll(addSubMenu, checkoutSubMenu,
                 unstageMenuItem, diffSubMenu, commitMenuItem, new SeparatorMenuItem(),
                 copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
@@ -381,18 +401,23 @@ public class GitStatusPane implements BaseGitPane {
         unstageButton.setOnAction(eh -> gitUnstage());
         gitUnstageSituationVisible.getItems().add(unstageButton);
 
+        Button checkoutHeadButton = new Button("checkout --");
+        checkoutHeadButton.setTooltip(new Tooltip("git checkout -- <file>... (ローカルの編集の破棄)"));
+        checkoutHeadButton.setOnAction(eh -> gitCheckoutHyphen());
+        gitCheckoutHeadSituationVisible.getItems().add(checkoutHeadButton);
+        
         Button diffButton = new Button("Diff");
-        diffButton.setTooltip(new Tooltip("git diff <file>"));
+        diffButton.setTooltip(new Tooltip("git difftool <file>"));
         diffButton.setOnAction(eh -> gitDiff());
         gitAddSingleSituationVisible.getItems().add(diffButton);
 
         Button diffCachedButton = new Button("Diff");
-        diffCachedButton.setTooltip(new Tooltip("git diff --cached <file>"));
+        diffCachedButton.setTooltip(new Tooltip("git difftool --cached <file>"));
         diffCachedButton.setOnAction(eh -> gitDiffCached());
         gitUnstageSingleSituationVisible.getItems().add(diffCachedButton);
 
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton);
+        hbox.getChildren().addAll(commitButton, addButton, unstageButton, checkoutHeadButton, diffButton, diffCachedButton);
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;
@@ -453,6 +478,36 @@ public class GitStatusPane implements BaseGitPane {
             GitUnstageCommand unstageCommand = gitCommandFactory.createUnstageCommand(workDir.toFile());
             unstageCommand.setProgressWindow(progressWindow);
             unstageCommand.unstage(files);
+        });
+    }
+
+    // git checkout -- <file>...
+    private void gitCheckoutHyphen() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, files) -> {
+            GitCheckoutCommand checkoutCommand = gitCommandFactory.createCheckoutCommand(workDir, configInfo);
+            checkoutCommand.setProgressWindow(progressWindow);
+            checkoutCommand.checkoutHead(files);
+        });
+    }
+
+    // git checkout --ours
+    private void gitCheckoutOurs() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, files) -> {
+            GitCheckoutCommand checkoutCommand = gitCommandFactory.createCheckoutCommand(workDir, configInfo);
+            checkoutCommand.setProgressWindow(progressWindow);
+            checkoutCommand.checkoutOurs(files);
+        });
+    }
+
+    // git checkout --theirs
+    private void gitCheckoutTheirs() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, files) -> {
+            GitCheckoutCommand checkoutCommand = gitCommandFactory.createCheckoutCommand(workDir, configInfo);
+            checkoutCommand.setProgressWindow(progressWindow);
+            checkoutCommand.checkoutTheirs(files);
         });
     }
 
@@ -627,10 +682,12 @@ public class GitStatusPane implements BaseGitPane {
         gitUnstageSituationSelector.update();
         gitUnstageSituationVisible.update();
         gitUnstageSingleSituationSelector.update();
+        gitCheckoutHeadSituationSelector.update();
+        gitCheckoutHeadSituationVisible.update();
         gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
         gitCommitSituationVisible.update();
-        
+
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。
         gitDiffToolSituationSelector.update();
     }

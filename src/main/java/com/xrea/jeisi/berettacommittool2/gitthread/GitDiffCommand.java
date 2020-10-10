@@ -21,12 +21,8 @@ import java.util.List;
  */
 public class GitDiffCommand extends BaseGitCommand {
 
-    private final ConfigInfo configInfo;
-    private final File repository;
-
     public GitDiffCommand(Path repository, ConfigInfo configInfo) {
-        this.repository = repository.toFile();
-        this.configInfo = configInfo;
+        super(repository, configInfo);
     }
 
     private String getTool() {
@@ -44,17 +40,18 @@ public class GitDiffCommand extends BaseGitCommand {
     }
 
     public void diff(String fileName) throws IOException, InterruptedException, GitCommandException, GitConfigException {
-        XmlWriter.writeStartMethod("GitDiffCommand.diff(%s)", fileName);
         String tool = getTool();
-        diffCommon(fileName, tool, /*bCached=*/ false);
-        XmlWriter.writeEndMethod();
+        //diffCommon(fileName, tool, /*bCached=*/ false);
+        execProcess("git", "difftool", "-y", tool, fileName);
     }
 
     public void diffCached(String fileName) throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String tool = getTool();
-        diffCommon(fileName, tool, /*bCached=*/ true);
+        //diffCommon(fileName, tool, /*bCached=*/ true);
+        execProcess("git", "difftool", "-y", tool, "--cached", fileName);
     }
 
+    /*
     private void diffCommon(String fileName, String tool, boolean bCached) throws IOException, InterruptedException, GitCommandException, GitConfigException {
         ProcessBuilder pb = new ProcessBuilder(getCommand(fileName, tool, bCached));
         pb.directory(repository);
@@ -79,4 +76,5 @@ public class GitDiffCommand extends BaseGitCommand {
         command.add(fileName);
         return command;
     }
+    */
 }

@@ -26,6 +26,11 @@ public class GitCommandFactoryImpl implements GitCommandFactory {
     }
     
     @Override
+    public GitCheckoutCommand createCheckoutCommand(Path path, ConfigInfo configInfo) {
+        return new GitCheckoutCommand(path, configInfo);
+    }
+    
+    @Override
     public GitUnstageCommand createUnstageCommand(File file) {
         return new GitUnstageCommand(file);
     }

@@ -60,6 +60,11 @@ public class MockGitCommandFactory implements GitCommandFactory {
     }
 
     @Override
+    public GitCheckoutCommand createCheckoutCommand(Path path, ConfigInfo configInfo) {
+        return GitCommitCommand(path, configInfo);
+    }
+    
+    @Override
     public GitUnstageCommand createUnstageCommand(File file) {
         GitUnstageCommand command = gitUnstageCommands.get(file);
         return command;
@@ -74,5 +79,9 @@ public class MockGitCommandFactory implements GitCommandFactory {
     @Override
     public GitDiffCommand createGitDiffCommand(Path path, ConfigInfo configInfo) {
         return new GitDiffCommand(path, configInfo);
+    }
+
+    private GitCheckoutCommand GitCommitCommand(Path path, ConfigInfo configInfo) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

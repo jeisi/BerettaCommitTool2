@@ -47,7 +47,6 @@ public class GitCommandAddTest {
         progressWindow = new ProgressWindow(configInfo);
     }
 
-    /*
     @Test
     public void testAdd() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
@@ -107,7 +106,6 @@ public class GitCommandAddTest {
         
         XmlWriter.writeEndMethod();
     }
-*/
     
     @Test
     public void testAddUpdate() throws IOException, InterruptedException, GitConfigException {
