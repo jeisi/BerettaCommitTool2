@@ -31,8 +31,8 @@ public class GitCommandFactoryImpl implements GitCommandFactory {
     }
     
     @Override
-    public GitUnstageCommand createUnstageCommand(File file) {
-        return new GitUnstageCommand(file);
+    public GitUnstageCommand createUnstageCommand(Path path, ConfigInfo configInfo) {
+        return new GitUnstageCommand(path, configInfo);
     }
     
     @Override

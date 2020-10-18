@@ -5,10 +5,16 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import javafx.application.Platform;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,21 +23,18 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  *
  * @author jeisi
  */
-public class GitUnstageCommand {
+public class GitUnstageCommand extends BaseGitCommand {
 
-    private final File repository;
-    private ProgressWindow progressWindow;
-    private ProgressModel progressModel = null;
-
-    public GitUnstageCommand(File repository) {
-        this.repository = repository;
+    //private final File repository;
+    //private ProgressWindow progressWindow;
+    //private ProgressModel progressModel = null;
+    public GitUnstageCommand(Path repository, ConfigInfo configInfo) {
+        super(repository, configInfo);
     }
 
-    public void setProgressWindow(ProgressWindow progressWindow) {
-        this.progressWindow = progressWindow;
-    }
-
-    public void unstage(String... files) throws IOException, GitAPIException {
+    public void unstage(List<GitStatusData> datas) throws IOException, GitAPIException, GitConfigException, InterruptedException {
+        execEachFile(datas, (data) -> execProcess("git", "reset", "HEAD", data.getFileName()));
+        /*
         if (progressWindow != null && files.length > 1) {
             Platform.runLater(() -> {
                 progressWindow.open();
@@ -54,8 +57,14 @@ public class GitUnstageCommand {
                 progressModel.setCurrentValue(currentValue);
             }
         }
+         */
     }
 
+    public void unstage(GitStatusData data) throws IOException, GitAPIException, GitConfigException, InterruptedException {
+        unstage(Arrays.asList(data));
+    }
+    
+    /*
     protected void unstageFile(Git git, String file) throws GitAPIException {
         git.reset().addPath(file).setRef("HEAD").call();
     }
@@ -67,4 +76,5 @@ public class GitUnstageCommand {
     protected Git gitOpen() throws IOException {
         return Git.open(repository);
     }
+     */
 }

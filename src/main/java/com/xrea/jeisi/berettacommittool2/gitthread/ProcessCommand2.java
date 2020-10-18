@@ -7,12 +7,13 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import java.io.IOException;
 
 /**
  *
  * @author jeisi
  */
-public interface ProcessCommand {
-    public void exec(String file) throws GitConfigException, IOException, InterruptedException, GitCommandException;
+public interface ProcessCommand2 {
+    public void exec(GitStatusData data) throws GitConfigException, IOException, InterruptedException, GitCommandException;
 }

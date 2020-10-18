@@ -51,11 +51,11 @@ public class GitCommandUnstageTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
-        GitUnstageCommand resetCommand = new GitUnstageCommand(workDir.toFile());
-        resetCommand.unstage("b.txt");
-
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitUnstageCommand resetCommand = new GitUnstageCommand(workDir, configInfo);
+        resetCommand.unstage(new GitStatusData("?", "?", "b.txt", repositoryData));
+
         GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
         List<GitStatusData> list = statusCommand.status(repositoryData);
         assertEquals("[{A, , c.txt, .}, {?, ?, b.txt, .}]", list.toString());
@@ -71,11 +71,11 @@ public class GitCommandUnstageTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
-        GitUnstageCommand resetCommand = new GitUnstageCommand(workDir.toFile());
-        resetCommand.unstage("a.txt");
-
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+        GitUnstageCommand resetCommand = new GitUnstageCommand(workDir, configInfo);
+        resetCommand.unstage(new GitStatusData("?", "?", "a.txt", repositoryData));
+
         GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
         List<GitStatusData> list = statusCommand.status(repositoryData);
         assertEquals("[{A, , b.txt, .}, {?, ?, a.txt, .}]", list.toString());

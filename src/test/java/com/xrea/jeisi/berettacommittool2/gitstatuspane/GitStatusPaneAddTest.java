@@ -124,7 +124,7 @@ public class GitStatusPaneAddTest {
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile, configInfo));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile, configInfo));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後、git status の更新内容を反映させる。
@@ -180,7 +180,7 @@ public class GitStatusPaneAddTest {
 
         MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
         mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile.toFile(), new MockGitAddCommand(berettaFile, configInfo));
+        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile, configInfo));
         app.setGitCommandFactory(mockGitCommandFactory);
 
         // git add 実行後の git status で行がなくなった場合。
@@ -240,7 +240,7 @@ public class GitStatusPaneAddTest {
         MockGitCommandFactory factory = new MockGitCommandFactory();
         factory.setMockGitStatusCommand(workDir, mockGitStatusCommand);
         MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir, configInfo);
-        factory.setMockGitAddCommand(workDir.toFile(), mockGitAddCommand);
+        factory.setMockGitAddCommand(workDir, mockGitAddCommand);
         app.setGitCommandFactory(factory);
 
         robot.clickOn("#gitStatusMenu");

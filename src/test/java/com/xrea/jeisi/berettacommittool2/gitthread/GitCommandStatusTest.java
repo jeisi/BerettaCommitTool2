@@ -88,7 +88,7 @@ public class GitCommandStatusTest {
         GitStatusCommand gitCommand = new GitStatusCommand(workDir, configInfo);
 
         RepositoryData repositoryData = new RepositoryData(true, "", Paths.get("."));
-        List<GitStatusData> list = gitCommand.status(repositoryData, "b.txt");
+        List<GitStatusData> list = gitCommand.status(repositoryData, new GitStatusData("?", "?", "b.txt", repositoryData));
         // ファイル名でソートされている。
         assertThat("[{?, ?, b.txt, }]").isEqualTo(list.toString());
 

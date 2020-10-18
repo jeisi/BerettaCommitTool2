@@ -18,7 +18,7 @@ import java.util.Map;
 public class MockGitCommandFactory implements GitCommandFactory {
 
     private final Map<Path, MockGitStatusCommand> gitStatusCommands = new HashMap<>();
-    private final Map<File, MockGitAddCommand> gitAddCommands = new HashMap<>();
+    private final Map<Path, MockGitAddCommand> gitAddCommands = new HashMap<>();
     private Map<File, MockGitUnstageCommand> gitUnstageCommands = new HashMap<>();
     private final Map<File, MockGitCommitCommand> gitCommitCommands = new HashMap<>();
 
@@ -27,8 +27,8 @@ public class MockGitCommandFactory implements GitCommandFactory {
         this.gitStatusCommands.put(file, gitCommand);
     }
 
-    public void setMockGitAddCommand(File file, MockGitAddCommand gitCommand) {
-        this.gitAddCommands.put(file, gitCommand);
+    public void setMockGitAddCommand(Path path, MockGitAddCommand gitCommand) {
+        this.gitAddCommands.put(path, gitCommand);
     }
 
     public void setMockGitCommitCommand(File file, MockGitCommitCommand gitCommand) {
@@ -65,8 +65,8 @@ public class MockGitCommandFactory implements GitCommandFactory {
     }
     
     @Override
-    public GitUnstageCommand createUnstageCommand(File file) {
-        GitUnstageCommand command = gitUnstageCommands.get(file);
+    public GitUnstageCommand createUnstageCommand(Path path, ConfigInfo configInfo) {
+        GitUnstageCommand command = gitUnstageCommands.get(path);
         return command;
     }
 

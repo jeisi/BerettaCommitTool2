@@ -30,6 +30,7 @@ public class GitStatusCommand {
 
     private final ConfigInfo configInfo;
     private final File repository;
+    private final static List<GitStatusData> emptyData = new ArrayList<>();
 
     public GitStatusCommand(Path repoDir, ConfigInfo configInfo) {
         this.repository = repoDir.toFile();
@@ -37,7 +38,7 @@ public class GitStatusCommand {
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
-        ProcessBuilder pb = new ProcessBuilder(getCommand((String[]) null));
+        ProcessBuilder pb = new ProcessBuilder(getCommand(emptyData));
         pb.directory(repository);
         Process process = pb.start();
         int ret = process.waitFor();
@@ -49,6 +50,7 @@ public class GitStatusCommand {
         return status;
     }
 
+    /*
     public List<GitStatusData> status(RepositoryData repositoryData, String... paths) throws IOException, GitCommandException, GitConfigException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(getCommand(paths));
         pb.directory(repository);
@@ -60,7 +62,24 @@ public class GitStatusCommand {
         }
         return getStatusDatas(process, repositoryData);
     }
+     */
+    public List<GitStatusData> status(RepositoryData repositoryData, List<GitStatusData> datas) throws IOException, GitCommandException, GitConfigException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder(getCommand(datas));
+        pb.directory(repository);
+        Process process = pb.start();
+        int ret = process.waitFor();
+        if (ret != 0) {
+            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
+            throw e;
+        }
+        return getStatusDatas(process, repositoryData);
+    }
 
+    public List<GitStatusData> status(RepositoryData repositoryData, GitStatusData data) throws IOException, GitCommandException, GitConfigException, InterruptedException {
+        return status(repositoryData, Arrays.asList(data));
+    }
+
+    /*
     private List<String> getCommand(String... paths) throws GitCommandException, GitConfigException {
         var git = configInfo.getProgramEx("git");
         ArrayList<String> command = new ArrayList<>();
@@ -68,9 +87,20 @@ public class GitStatusCommand {
         command.add("status");
         command.add("-s");
         command.add("--untracked-files=all");
-        if(paths != null) {
+        if (paths != null) {
             command.addAll(Arrays.asList(paths));
-        } 
+        }
+        return command;
+    }
+     */
+    private List<String> getCommand(List<GitStatusData> datas) throws GitCommandException, GitConfigException {
+        var git = configInfo.getProgramEx("git");
+        ArrayList<String> command = new ArrayList<>();
+        command.add(git);
+        command.add("status");
+        command.add("-s");
+        command.add("--untracked-files=all");
+        datas.forEach(d -> command.add(d.getFileName()));
         return command;
     }
 
@@ -86,15 +116,15 @@ public class GitStatusCommand {
                 }
 
                 String index = m.group(1);
-                if(index.equals(" ")) {
+                if (index.equals(" ")) {
                     index = "";
                 }
-                
+
                 String workTree = m.group(2);
-                if(workTree.equals(" ")) {
+                if (workTree.equals(" ")) {
                     workTree = "";
                 }
-                
+
                 String fileName;
                 if (m.group(4) == null) {
                     fileName = m.group(3);

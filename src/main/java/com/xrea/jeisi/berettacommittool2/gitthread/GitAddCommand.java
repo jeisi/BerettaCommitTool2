@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
@@ -35,45 +36,27 @@ public class GitAddCommand extends BaseGitCommand {
         super(repository, configInfo);
     }
 
-    public void add(String... files) throws IOException, GitConfigException, InterruptedException {
-        execEachFile(files, (file) -> execProcess("git", "add", file));
-        /*
-        XmlWriter.writeStartMethod("GitAddCommand.add(%s)", files.toString());
+    public void add(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
+        execEachFile(datas, (data) -> execProcess("git", "add", data.getFileName()));
+    }
 
-        if (progressWindow != null && files.length > 1) {
-            progressModel = new ProgressModel(String.format("git add %s ...", files[0]), files.length);
-            Platform.runLater(() -> {
-                progressWindow.open();
-                progressWindow.addProgressModel(progressModel);
-            });
-        }
-
-        int currentValue = 0;
-        for (var file : files) {
-            addFile(file);
-            ++currentValue;
-            if (progressModel != null) {
-                Platform.runLater(new SetCurrentValue(progressModel, currentValue));
-            }
-        }
-        
-        XmlWriter.writeEndMethod();
-        */
+    public void add(GitStatusData data) throws IOException, GitConfigException, InterruptedException {
+        add(Arrays.asList(data));
     }
 
     // git add -u
     public void addUpdate() throws GitConfigException, IOException, InterruptedException {
         addFilesByOption("-u");
     }
-    
+
     // git add -A
     public void addAll() throws GitConfigException, IOException, InterruptedException {
         addFilesByOption("-A");
     }
-    
+
     private void addFilesByOption(String option) throws GitConfigException, IOException, InterruptedException {
         XmlWriter.writeStartMethod("GitAddCommand.addFilesByOption()");
-        
+
         //List<String> command = getCommand("add", "--dry-run", option);
         List<String> lines = execProcessWithOutput("git", "add", "--dry-run", option);
         if (progressWindow != null && lines.size() > 1) {
@@ -106,8 +89,8 @@ public class GitAddCommand extends BaseGitCommand {
             GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
             throw e;
         }
-        
-        XmlWriter.writeEndMethod(); 
+
+        XmlWriter.writeEndMethod();
     }
 
     /*
@@ -135,5 +118,5 @@ public class GitAddCommand extends BaseGitCommand {
         command.addAll(Arrays.asList(args));
         return command;
     }
-    */
+     */
 }

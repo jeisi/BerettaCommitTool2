@@ -5,8 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
@@ -16,21 +18,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public class MockGitUnstageCommand extends GitUnstageCommand {
 
-    public MockGitUnstageCommand(File repoDir) {
-        super(repoDir);
+    public MockGitUnstageCommand(Path path, ConfigInfo configInfo) {
+        super(path, configInfo);
     }
 
-    @Override
-    protected void unstageFile(Git git, String file) throws GitAPIException {
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ex) {
-
-        }
-    }
-
-    @Override
-    protected Git gitOpen() throws IOException {
-        return null;
-    }
 }

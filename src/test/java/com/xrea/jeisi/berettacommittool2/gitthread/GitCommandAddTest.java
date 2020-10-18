@@ -16,6 +16,7 @@ import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import javafx.stage.Stage;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -56,13 +57,13 @@ public class GitCommandAddTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
+        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
-        addCommand.add("a.txt");
+        addCommand.add(new GitStatusData("?", "?", "a.txt", repositoryData));
 
-        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
-        List<GitStatusData> list = statusCommand.status(repositoryData, "a.txt");
+        List<GitStatusData> list = statusCommand.status(repositoryData, new GitStatusData("?", "?", "a.txt", repositoryData));
         assertEquals("[{A, , a.txt, .}]", list.toString());
     }
 
@@ -76,13 +77,13 @@ public class GitCommandAddTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
+        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
-        addCommand.add("a.txt");
+        addCommand.add(new GitStatusData("?", "?", "a.txt", repositoryData));
 
-        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
-        List<GitStatusData> list = statusCommand.status(repositoryData, "a.txt");
+        List<GitStatusData> list = statusCommand.status(repositoryData, new GitStatusData("?", "?", "a.txt", repositoryData));
         assertEquals("[{D, , a.txt, .}]", list.toString());
     }
 
@@ -100,8 +101,19 @@ public class GitCommandAddTest {
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
         addCommand.setProgressWindow(progressWindow);
-        addCommand.add("test01.cpp", "test02.cpp", "test03.cpp", "test04.cpp", "test05.cpp",
-                "test06.cpp", "test07.cpp", "test08.cpp", "test09.cpp", "test10.cpp");
+        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        List<GitStatusData> datas = new ArrayList<GitStatusData>();
+        datas.add(new GitStatusData("?", "?", "test01.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test02.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test03.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test04.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test05.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test06.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test07.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test08.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test09.cpp", repositoryData));
+        datas.add(new GitStatusData("?", "?", "test10.cpp", repositoryData));
+        addCommand.add(datas);
         Thread.sleep(1000);
         
         XmlWriter.writeEndMethod();

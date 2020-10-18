@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
@@ -37,13 +38,14 @@ public abstract class BaseGitCommand {
         this.configInfo = configInfo;
     }
 
-    public void setProgressWindow(ProgressWindow progressWindow) {
+    public final void setProgressWindow(ProgressWindow progressWindow) {
         this.progressWindow = progressWindow;
     }
 
+    /*
     protected void execEachFile(String[] files, ProcessCommand command) throws IOException, GitConfigException, InterruptedException {
         XmlWriter.writeStartMethod("BseGitCommand.execEachFile(%s)", Arrays.toString(files));
-        
+
         if (progressWindow != null && files.length > 1) {
             progressModel = new ProgressModel(String.format("git checkout -- %s ...", files[0]), files.length);
             Platform.runLater(() -> {
@@ -60,8 +62,28 @@ public abstract class BaseGitCommand {
                 Platform.runLater(new SetCurrentValue(progressModel, currentValue));
             }
         }
-        
+
         XmlWriter.writeEndMethod();
+    }
+    */
+
+    protected void execEachFile(List<GitStatusData> datas, ProcessCommand2 command) throws IOException, GitConfigException, InterruptedException {
+        if (progressWindow != null && datas.size() > 1) {
+            progressModel = new ProgressModel(String.format("git checkout -- %s ...", datas.get(0).getFileName()), datas.size());
+            Platform.runLater(() -> {
+                progressWindow.open();
+                progressWindow.addProgressModel(progressModel);
+            });
+        }
+
+        int currentValue = 0;
+        for (var data : datas) {
+            command.exec(data);
+            ++currentValue;
+            if (progressModel != null) {
+                Platform.runLater(new SetCurrentValue(progressModel, currentValue));
+            }
+        }
     }
 
     protected void execProcess(String... args) throws GitConfigException, IOException, InterruptedException, GitCommandException {
@@ -75,7 +97,7 @@ public abstract class BaseGitCommand {
             GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
             throw e;
         }
-        
+
         XmlWriter.writeEndMethod();
     }
 
