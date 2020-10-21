@@ -17,7 +17,10 @@ public class GitUnstageSelectionSituation implements Situation {
 
     protected final MultipleSelectionModel<GitStatusData> selectionModel;
     private final Predicate<GitStatusData> predicate = (t) -> {
-        //System.out.println(t.workTreeStatusProperty().get());
+        if(t.indexStatusProperty().get().equals("A") && t.workTreeStatusProperty().get().equals("A")) {
+            return false;
+        }
+
         switch (t.indexStatusProperty().get()) {
             case "M":
             case "A":
