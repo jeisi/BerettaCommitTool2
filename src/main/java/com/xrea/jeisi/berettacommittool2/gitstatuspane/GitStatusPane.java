@@ -41,7 +41,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.HierarchyMenuSelectio
 import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
-import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
+//import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -434,6 +434,16 @@ public class GitStatusPane implements BaseGitPane {
         checkoutHeadButton.setOnAction(eh -> gitCheckoutHyphen());
         gitCheckoutHeadSituationSelector.getVisibleButotns().add(checkoutHeadButton);
 
+        Button checkoutTheirsButton = new Button("checkout --theirs");
+        checkoutTheirsButton.setTooltip(new Tooltip("git checkout --theirs <file>..."));
+        checkoutTheirsButton.setOnAction(eh -> gitCheckoutTheirs());
+        gitCheckoutOursTheirsSituationSelector.getVisibleButotns().add(checkoutTheirsButton);
+        
+        Button checkoutOursButton = new Button("checkout --ours");
+        checkoutOursButton.setTooltip(new Tooltip("git checkout --ours <file>..."));
+        checkoutOursButton.setOnAction(eh -> gitCheckoutOurs());
+        gitCheckoutOursTheirsSituationSelector.getVisibleButotns().add(checkoutOursButton);
+        
         Button diffButton = new Button("Diff");
         diffButton.setTooltip(new Tooltip("git difftool <file>"));
         diffButton.setOnAction(eh -> gitDiff());
@@ -445,7 +455,7 @@ public class GitStatusPane implements BaseGitPane {
         gitUnstageSingleSituationSelector.getVisibleButotns().add(diffCachedButton);
 
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(commitButton, addButton, unstageButton, checkoutHeadButton, diffButton, diffCachedButton);
+        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton);
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;
