@@ -11,7 +11,6 @@ import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
-import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
@@ -58,22 +57,16 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -82,8 +75,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
@@ -102,6 +93,7 @@ public class GitStatusPane implements BaseGitPane {
     private final ProgressWindow progressWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
+    private final SituationSelector gitAddMenuSituationSelector = new SituationSelector();
     private final SituationSelector gitAddSituationSelector = new SituationSelector();
     private final SituationSelector gitAddPatchSituationSelector = new SituationSelector();
     private final SituationSelector gitAddUpdateSituationSelector = new SituationSelector();
@@ -109,6 +101,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCommitSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSituationSelector = new SituationSelector();
     private final SituationSelector gitUnstageSingleSituationSelector = new SituationSelector();
+    private final SituationSelector gitCheckoutMenuSituationSelector = new SituationSelector();
     private final SituationSelector gitCheckoutHeadSituationSelector = new SituationSelector();
     private final SituationSelector gitCheckoutOursTheirsSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
@@ -351,7 +344,9 @@ public class GitStatusPane implements BaseGitPane {
 
         Menu addSubMenu = new Menu("git add");
         addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem);
-
+        gitAddMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem));
+        gitAddMenuSituationSelector.getItems().add(addSubMenu);
+        
         MenuItem checkoutHyphenMenuItem = new MenuItem("git checkout -- <file>...");
         checkoutHyphenMenuItem.setOnAction(eh -> gitCheckoutHyphen());
         gitCheckoutHeadSituationSelector.getItems().add(checkoutHyphenMenuItem);
@@ -366,6 +361,8 @@ public class GitStatusPane implements BaseGitPane {
 
         Menu checkoutSubMenu = new Menu("git checkout");
         checkoutSubMenu.getItems().addAll(checkoutHyphenMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem);
+        gitCheckoutMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(checkoutHyphenMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem));
+        gitCheckoutMenuSituationSelector.getItems().add(checkoutSubMenu);
 
         MenuItem unstageMenuItem = new MenuItem("git reset HEAD <file>...");
         unstageMenuItem.setId("gitStatusUnstageMenuItem");
@@ -734,6 +731,8 @@ public class GitStatusPane implements BaseGitPane {
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。
         gitDiffToolSituationSelector.update();
+        gitAddMenuSituationSelector.update();
+        gitCheckoutMenuSituationSelector.update();
     }
 
     private void showError(Exception e) {
