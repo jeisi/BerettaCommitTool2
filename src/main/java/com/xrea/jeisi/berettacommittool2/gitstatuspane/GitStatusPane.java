@@ -604,9 +604,7 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void copyFilePathToClipBoard() {
-        XmlWriter.writeStartMethod("GitStatusPane.copyFilePathToClipBoard()");
         if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
-            XmlWriter.writeEndMethodWithReturn();
             throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
         }
         final Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -615,7 +613,6 @@ public class GitStatusPane implements BaseGitPane {
         Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
         content.putString(path.toAbsolutePath().toString());
         clipboard.setContent(content);
-        XmlWriter.writeEndMethod();
     }
 
     private void openFileManager() {

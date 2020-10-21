@@ -8,10 +8,12 @@ package com.xrea.jeisi.berettacommittool2.repositoriespane;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.ListChangeListener;
@@ -25,6 +27,8 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -49,7 +53,7 @@ public class RepositoriesPane {
     public void setConfig(ConfigInfo configInfo) {
         this.configInfo = configInfo;
     }
-    
+
     public void setErrorLogWindow(ErrorLogWindow errorLogWindow) {
         this.errorLogWindow = errorLogWindow;
     }
@@ -82,11 +86,7 @@ public class RepositoriesPane {
                 updateSituationSelectors();
             }
         });
-
-        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
-
-        ContextMenu contextMenu = new ContextMenu(openFileManagerMenuItem);
-        tableView.setContextMenu(contextMenu);
+        tableView.setContextMenu(buildContextMenu());
 
         singleSelectionSituationSelector.setSituation(new SingleSelectionSituation<>(tableView.getSelectionModel()));
 
@@ -170,6 +170,29 @@ public class RepositoriesPane {
         menu.getItems().addAll(checkAllMenuItem, uncheckAllMenuItem, checkSelectionMenuItem, invertCheckedMenuItem,
                 selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem);
         return menu;
+    }
+
+    private ContextMenu buildContextMenu() {
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
+        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
+        singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
+
+        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem, openFileManagerMenuItem);
+        return contextMenu;
+    }
+
+    private void copyFilePathToClipBoard() {
+        if (tableView.getSelectionModel().getSelectedItems().size() != 1) {
+            throw new AssertionError("ファイルは一つだけ選択されている時しか使用できません");
+        }
+        final Clipboard clipboard = Clipboard.getSystemClipboard();
+        final ClipboardContent content = new ClipboardContent();
+        RepositoryData repositoryData = tableView.getSelectionModel().getSelectedItems().get(0);
+        Path path = repositoryData.getPath();
+        content.putString(path.normalize().toString());
+        clipboard.setContent(content);
     }
 
     public void saveConfig() {
