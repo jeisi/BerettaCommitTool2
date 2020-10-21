@@ -106,14 +106,14 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCheckoutOursTheirsSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
-    private final SituationVisible gitAddSituationVisible = new SituationVisible();
-    private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
-    private final SituationVisible gitCommitSituationVisible = new SituationVisible();
-    private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
-    private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
-    private final SituationVisible gitCheckoutHeadSituationVisible = new SituationVisible();
+    //private final SituationVisible gitAddSituationVisible = new SituationVisible();
+    //private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
+    //private final SituationVisible gitCommitSituationVisible = new SituationVisible();
+    //private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
+    //private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
+    //private final SituationVisible gitCheckoutHeadSituationVisible = new SituationVisible();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
-    
+
     public GitStatusPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.progressWindow = new ProgressWindow(configInfo);
@@ -275,25 +275,25 @@ public class GitStatusPane implements BaseGitPane {
         multiSelectionSituationSelector.setSituation(new MultiSelectionSituation<>(tableView.getSelectionModel()));
         var gitAddSelectionSituation = new GitAddSelectionSituation(tableView.getSelectionModel());
         gitAddSituationSelector.setSituation(gitAddSelectionSituation);
-        gitAddSituationVisible.setSituation(gitAddSelectionSituation);
+        //gitAddSituationVisible.setSituation(gitAddSelectionSituation);
         var gitAddSingleSelectionSituation = new GitAddPatchSelectionSituation(selectionModel);
         gitAddPatchSituationSelector.setSituation(gitAddSingleSelectionSituation);
-        gitAddSingleSituationVisible.setSituation(gitAddSingleSelectionSituation);
+        //gitAddSingleSituationVisible.setSituation(gitAddSingleSelectionSituation);
         gitAddUpdateSituationSelector.setSituation(new GitAddUpdateSelectionSituation(tableView));
         gitAddAllSituationSelector.setSituation(new GitAddAllSelectionSituation(tableView));
         var gitUnstageSelectionSituation = new GitUnstageSelectionSituation(selectionModel);
         gitUnstageSituationSelector.setSituation(gitUnstageSelectionSituation);
-        gitUnstageSituationVisible.setSituation(gitUnstageSelectionSituation);
+        //gitUnstageSituationVisible.setSituation(gitUnstageSelectionSituation);
         var gitUnstageSingleSelectionSituation = new GitUnstageSingleSelectionSituation(selectionModel);
         gitUnstageSingleSituationSelector.setSituation(gitUnstageSingleSelectionSituation);
-        gitUnstageSingleSituationVisible.setSituation(gitUnstageSingleSelectionSituation);
+        //gitUnstageSingleSituationVisible.setSituation(gitUnstageSingleSelectionSituation);
         var gitCheckoutHeadSelectionSituation = new GitCheckoutHeadSelectionSituation(selectionModel);
         gitCheckoutHeadSituationSelector.setSituation(gitCheckoutHeadSelectionSituation);
-        gitCheckoutHeadSituationVisible.setSituation(gitCheckoutHeadSelectionSituation);
+        //gitCheckoutHeadSituationVisible.setSituation(gitCheckoutHeadSelectionSituation);
         gitCheckoutOursTheirsSituationSelector.setSituation(new GitCheckoutOursTheirsSelectionSituation(selectionModel));
         var gitCommitSelectionSituation = new GitCommitSelectionSituation(tableView);
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
-        gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
+        //gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
         gitRmSituationSelector.setSituation(new GitRemoveSelectionSituation(selectionModel));
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
@@ -303,112 +303,105 @@ public class GitStatusPane implements BaseGitPane {
             }
         });
 
-        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
-        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
-        singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
+        tableView.setContextMenu(buildContextMenu());
 
-        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
-
-        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem, openFileManagerMenuItem);
-        tableView.setContextMenu(contextMenu);
-        
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tableView);
         borderPane.setBottom(filterPane.build());
-        
+
         //return tableView;
         return borderPane;
     }
-    
+
     @Override
     public Menu buildMenu() {
         MenuItem addMenuItem = new MenuItem("git add <file>...");
         addMenuItem.setId("gitStatusAddMenuItem");
         addMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.ALT_DOWN));
         addMenuItem.setOnAction(e -> gitAdd());
-        gitAddSituationSelector.getItems().add(addMenuItem);
+        gitAddSituationSelector.getEnableMenuItems().add(addMenuItem);
 
         MenuItem add_pMenuItem = new MenuItem("git add -p <file>");
         add_pMenuItem.setId("gitStatusAddpMenuItem");
-        gitAddPatchSituationSelector.getItems().add(add_pMenuItem);
+        gitAddPatchSituationSelector.getEnableMenuItems().add(add_pMenuItem);
         // TODO: 選択できる条件はほぼ git add と同じだが、厳密にはまだブランチがない時は選択不可。
 
         MenuItem add_uMenuItem = new MenuItem("git add -u");
         add_uMenuItem.setId("gitStatusAddUpdateMenuItem");
         add_uMenuItem.setOnAction(eh -> gitAddUpdate());
-        gitAddUpdateSituationSelector.getItems().add(add_uMenuItem);
+        gitAddUpdateSituationSelector.getEnableMenuItems().add(add_uMenuItem);
 
         MenuItem addAllMenuItem = new MenuItem("git add -A");
         addAllMenuItem.setOnAction(eh -> gitAddAll());
-        gitAddAllSituationSelector.getItems().add(addAllMenuItem);
+        gitAddAllSituationSelector.getEnableMenuItems().add(addAllMenuItem);
 
         Menu addSubMenu = new Menu("git add");
         addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem);
         gitAddMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem));
-        gitAddMenuSituationSelector.getItems().add(addSubMenu);
-        
+        gitAddMenuSituationSelector.getEnableMenuItems().add(addSubMenu);
+
         MenuItem checkoutHyphenMenuItem = new MenuItem("git checkout -- <file>...");
         checkoutHyphenMenuItem.setOnAction(eh -> gitCheckoutHyphen());
-        gitCheckoutHeadSituationSelector.getItems().add(checkoutHyphenMenuItem);
+        gitCheckoutHeadSituationSelector.getEnableMenuItems().add(checkoutHyphenMenuItem);
 
         MenuItem checkoutOursMenuItem = new MenuItem("git checkout --ours <file>...");
         checkoutOursMenuItem.setOnAction(eh -> gitCheckoutOurs());
-        gitCheckoutOursTheirsSituationSelector.getItems().add(checkoutOursMenuItem);
+        gitCheckoutOursTheirsSituationSelector.getEnableMenuItems().add(checkoutOursMenuItem);
 
         MenuItem checkoutTheirsMenuItem = new MenuItem("git checkout --theirs <file>...");
         checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
-        gitCheckoutOursTheirsSituationSelector.getItems().add(checkoutTheirsMenuItem);
+        gitCheckoutOursTheirsSituationSelector.getEnableMenuItems().add(checkoutTheirsMenuItem);
 
         Menu checkoutSubMenu = new Menu("git checkout");
         checkoutSubMenu.getItems().addAll(checkoutHyphenMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem);
         gitCheckoutMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(checkoutHyphenMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem));
-        gitCheckoutMenuSituationSelector.getItems().add(checkoutSubMenu);
+        gitCheckoutMenuSituationSelector.getEnableMenuItems().add(checkoutSubMenu);
 
         MenuItem unstageMenuItem = new MenuItem("git reset HEAD <file>...");
         unstageMenuItem.setId("gitStatusUnstageMenuItem");
         unstageMenuItem.setOnAction(e -> gitUnstage());
-        gitUnstageSituationSelector.getItems().add(unstageMenuItem);
+        gitUnstageSituationSelector.getEnableMenuItems().add(unstageMenuItem);
 
         MenuItem rmMenuItem = new MenuItem("git rm -f <file>...");
         rmMenuItem.setOnAction(e -> gitRm());
-        gitRmSituationSelector.getItems().add(rmMenuItem);
+        gitRmSituationSelector.getEnableMenuItems().add(rmMenuItem);
 
         MenuItem diffMenuItem = new MenuItem("git difftool <file>");
         diffMenuItem.setId("gitStatusDiffMenuItem");
         diffMenuItem.setOnAction(eh -> gitDiff());
         diffMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN));
-        gitAddPatchSituationSelector.getItems().add(diffMenuItem);
+        gitAddPatchSituationSelector.getEnableMenuItems().add(diffMenuItem);
 
         MenuItem diffCachedMenuItem = new MenuItem("git difftool --cached <file>");
         diffCachedMenuItem.setId("gitStatusDiffCachedMenuItem");
         diffCachedMenuItem.setOnAction(eh -> gitDiffCached());
         diffCachedMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.D, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN));
-        gitUnstageSingleSituationSelector.getItems().add(diffCachedMenuItem);
+        gitUnstageSingleSituationSelector.getEnableMenuItems().add(diffCachedMenuItem);
 
         Menu diffSubMenu = new Menu("git difftool");
         diffSubMenu.getItems().addAll(diffMenuItem, diffCachedMenuItem);
         gitDiffToolSituationSelector.setSituation(new HierarchyMenuSelectionSituation(diffMenuItem, diffCachedMenuItem));
-        gitDiffToolSituationSelector.getItems().add(diffSubMenu);
+        gitDiffToolSituationSelector.getEnableMenuItems().add(diffSubMenu);
 
         MenuItem commitMenuItem = new MenuItem("git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
         commitMenuItem.setDisable(true);
         commitMenuItem.setOnAction(e -> gitCommit());
         commitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.ALT_DOWN));
-        gitCommitSituationSelector.getItems().add(commitMenuItem);
+        gitCommitSituationSelector.getEnableMenuItems().add(commitMenuItem);
 
         CheckMenuItem filterMenuItem = new CheckMenuItem("Filter");
         filterMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN));
         filterMenuItem.setOnAction(eh -> {
-            boolean isSelected = ((CheckMenuItem)eh.getSource()).isSelected();
+            boolean isSelected = ((CheckMenuItem) eh.getSource()).isSelected();
             filterPane.setEnabled(isSelected);
         });
         filterMenuItem.setSelected(filterPane.isEnabled());
-        
+
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
-        singleSelectionSituationSelector.getItems().add(copyFilePathMenuItem);
+        singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
@@ -424,38 +417,57 @@ public class GitStatusPane implements BaseGitPane {
         Button commitButton = new Button("Commit");
         commitButton.setTooltip(new Tooltip("git commit"));
         commitButton.setOnAction(eh -> gitCommit());
-        gitCommitSituationVisible.getItems().add(commitButton);
+        gitCommitSituationSelector.getVisibleButotns().add(commitButton);
 
         Button addButton = new Button("+");
         addButton.setTooltip(new Tooltip("git add <file>..."));
         addButton.setOnAction(eh -> gitAdd());
-        gitAddSituationVisible.getItems().add(addButton);
+        gitAddSituationSelector.getVisibleButotns().add(addButton);
 
         Button unstageButton = new Button("-");
         unstageButton.setTooltip(new Tooltip("git reset HEAD <file>..."));
         unstageButton.setOnAction(eh -> gitUnstage());
-        gitUnstageSituationVisible.getItems().add(unstageButton);
+        gitUnstageSituationSelector.getVisibleButotns().add(unstageButton);
 
         Button checkoutHeadButton = new Button("checkout --");
         checkoutHeadButton.setTooltip(new Tooltip("git checkout -- <file>... (ローカルの編集の破棄)"));
         checkoutHeadButton.setOnAction(eh -> gitCheckoutHyphen());
-        gitCheckoutHeadSituationVisible.getItems().add(checkoutHeadButton);
+        gitCheckoutHeadSituationSelector.getVisibleButotns().add(checkoutHeadButton);
 
         Button diffButton = new Button("Diff");
         diffButton.setTooltip(new Tooltip("git difftool <file>"));
         diffButton.setOnAction(eh -> gitDiff());
-        gitAddSingleSituationVisible.getItems().add(diffButton);
+        gitAddPatchSituationSelector.getVisibleButotns().add(diffButton);
 
         Button diffCachedButton = new Button("Diff");
         diffCachedButton.setTooltip(new Tooltip("git difftool --cached <file>"));
         diffCachedButton.setOnAction(eh -> gitDiffCached());
-        gitUnstageSingleSituationVisible.getItems().add(diffCachedButton);
+        gitUnstageSingleSituationSelector.getVisibleButotns().add(diffCachedButton);
 
         HBox hbox = new HBox();
         hbox.getChildren().addAll(commitButton, addButton, unstageButton, checkoutHeadButton, diffButton, diffCachedButton);
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;
+    }
+
+    private ContextMenu buildContextMenu() {
+        MenuItem checkoutOursMenuItem = new MenuItem("git checkout --ours <file>...");
+        checkoutOursMenuItem.setOnAction(eh -> gitCheckoutOurs());
+        gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutOursMenuItem);
+
+        MenuItem checkoutTheirsMenuItem = new MenuItem("git checkout --theirs <file>...");
+        checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
+        gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutTheirsMenuItem);
+        
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
+        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
+        singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
+
+        ContextMenu contextMenu = new ContextMenu(checkoutOursMenuItem, checkoutTheirsMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
+        return contextMenu;
     }
 
     private MenuItem createOpenFileManagerMenuItem() {
@@ -465,7 +477,7 @@ public class GitStatusPane implements BaseGitPane {
         if (!isSupported) {
             openFileManagerMenuItem.setDisable(true);
         } else {
-            singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
+            singleSelectionSituationSelector.getEnableMenuItems().add(openFileManagerMenuItem);
         }
         return openFileManagerMenuItem;
     }
@@ -678,7 +690,7 @@ public class GitStatusPane implements BaseGitPane {
     /*
     private HashMap<Path, List<GitStatusData>> getModifiedFiles() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = new HashMap<>();
-        tableView.getItems().forEach(item -> {
+        tableView.getEnableMenuItems().forEach(item -> {
             switch (item.getWorkTreeStatus()) {
                 case "M":
                 case "A":
@@ -713,20 +725,20 @@ public class GitStatusPane implements BaseGitPane {
         singleSelectionSituationSelector.update();
         multiSelectionSituationSelector.update();
         gitAddSituationSelector.update();
-        gitAddSituationVisible.update();
+        //gitAddSituationVisible.update();
         gitAddPatchSituationSelector.update();
-        gitAddSingleSituationVisible.update();
+        //gitAddSingleSituationVisible.update();
         gitAddUpdateSituationSelector.update();
         gitAddAllSituationSelector.update();
         gitUnstageSituationSelector.update();
-        gitUnstageSituationVisible.update();
+        //gitUnstageSituationVisible.update();
         gitUnstageSingleSituationSelector.update();
         gitCheckoutHeadSituationSelector.update();
-        gitCheckoutHeadSituationVisible.update();
+        //gitCheckoutHeadSituationVisible.update();
         gitCheckoutOursTheirsSituationSelector.update();
-        gitUnstageSingleSituationVisible.update();
+        //gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
-        gitCommitSituationVisible.update();
+        //gitCommitSituationVisible.update();
         gitRmSituationSelector.update();
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。

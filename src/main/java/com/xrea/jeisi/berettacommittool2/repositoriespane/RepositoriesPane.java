@@ -192,7 +192,7 @@ public class RepositoriesPane {
         if (!isSupported) {
             openFileManagerMenuItem.setDisable(true);
         } else {
-            singleSelectionSituationSelector.getItems().add(openFileManagerMenuItem);
+            singleSelectionSituationSelector.getEnableMenuItems().add(openFileManagerMenuItem);
         }
         return openFileManagerMenuItem;
     }
