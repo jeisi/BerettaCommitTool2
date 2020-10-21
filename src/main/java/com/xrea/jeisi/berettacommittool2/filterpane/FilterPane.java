@@ -5,12 +5,8 @@
  */
 package com.xrea.jeisi.berettacommittool2.filterpane;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -32,8 +28,12 @@ public class FilterPane {
     private CheckBox caseInsensitive;
     private CheckBox regexpCheckBox;
     private FilteredList<GitStatusData> filteredList;
+    private final ConfigInfo configInfo;
+    private final String identifier;
 
-    public FilterPane() {
+    public FilterPane(ConfigInfo configInfo, String identifier) {
+        this.configInfo = configInfo;
+        this.identifier = identifier;
     }
 
     public HBox build() {
@@ -54,8 +54,13 @@ public class FilterPane {
         hbox.setAlignment(Pos.CENTER);
         hbox.setSpacing(5);
         hbox.setPadding(new Insets(5));
-        hbox.setVisible(false);
-        hbox.setManaged(false);
+        
+        enabled = configInfo.getBoolean(identifier + ".filter.enabled");
+        hbox.setVisible(enabled);
+        hbox.setManaged(enabled);
+        caseInsensitive.setSelected(configInfo.getBoolean(identifier + ".filter.caseinsensitive"));
+        regexpCheckBox.setSelected(configInfo.getBoolean(identifier + ".filter.regexp"));
+        
         return hbox;
     }
 
@@ -63,12 +68,26 @@ public class FilterPane {
         this.enabled = enabled;
         hbox.setVisible(enabled);
         hbox.setManaged(enabled);
+        
+        if(enabled) {
+            textField.requestFocus();
+        }
+    }
+    
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public void setFilteredList(FilteredList<GitStatusData> filteredList) {
         this.filteredList = filteredList;
     }
 
+    public void saveConfig() {
+        configInfo.setBoolean(identifier + ".filter.enabled", enabled);
+        configInfo.setBoolean(identifier + ".filter.caseinsensitive", caseInsensitive.isSelected());
+        configInfo.setBoolean(identifier + ".filter.regexp", regexpCheckBox.isSelected());
+    }
+    
     private void filterTextFieldOnChange() {
         if (!enabled) {
             filteredList.setPredicate(null);

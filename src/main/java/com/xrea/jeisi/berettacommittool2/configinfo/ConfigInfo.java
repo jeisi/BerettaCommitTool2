@@ -178,6 +178,18 @@ public class ConfigInfo {
     public Double getDouble(String key) {
         return (Double) map.get(key);
     }
+    
+    public void setBoolean(String key, boolean value) {
+        map.put(key, value);
+    }
+    
+    public boolean getBoolean(String key) {
+        Boolean b = (Boolean) map.get(key);
+        if(b == null) {
+            return false;
+        }
+        return b.booleanValue();
+    }
 
     public void save() throws IOException {
         pruneDirectoryHistory();

@@ -96,7 +96,7 @@ public class GitStatusPane implements BaseGitPane {
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
-    private final FilterPane filterPane = new FilterPane();
+    private final FilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ErrorLogWindow errorLogWindow;
     private final ProgressWindow progressWindow;
@@ -125,6 +125,7 @@ public class GitStatusPane implements BaseGitPane {
         this.configInfo = configInfo;
         this.progressWindow = new ProgressWindow(configInfo);
         this.errorLogWindow = new ErrorLogWindow(configInfo);
+        this.filterPane = new FilterPane(configInfo, "gitstatuspane");
     }
 
     public int getRefreshThreadCounter() {
@@ -152,7 +153,6 @@ public class GitStatusPane implements BaseGitPane {
 
     @Override
     public void setRepositories(RepositoriesInfo work) {
-        XmlWriter.writeStartMethod("GitStatusPane.setRepositories()");
         if (this.repositories != null) {
             throw new RuntimeException("setRepositories() を実行するのは一回だけです。");
         }
@@ -167,17 +167,14 @@ public class GitStatusPane implements BaseGitPane {
         work.getChecked().addListener(changedListener);
 
         changeTargetRepositories(targetRepository);
-        XmlWriter.writeEndMethod();
     }
 
     @Override
     public void saveConfig() {
-        XmlWriter.writeStartMethod("GitStatusPane.saveConfig()");
-
         List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
         configInfo.setTableColumnWidth(tableView.getId(), widths);
 
-        XmlWriter.writeEndMethod();
+        filterPane.saveConfig();
     }
 
     private void changeTargetRepositories(TargetRepository target) {
@@ -329,25 +326,6 @@ public class GitStatusPane implements BaseGitPane {
         //return tableView;
         return borderPane;
     }
-
-    private HBox buildFilter() {
-        Label label = new Label("Filter:");
-        
-        TextField filterTextField = new TextField();
-        
-        CheckBox caseInsensitive = new CheckBox("Case insensitive");
-        
-        CheckBox regexpCheckBox = new CheckBox("Regexp");
-        
-        HBox hbox = new HBox(label, filterTextField, caseInsensitive, regexpCheckBox);
-        hbox.setHgrow(filterTextField, Priority.ALWAYS);
-        hbox.setAlignment(Pos.CENTER);
-        hbox.setSpacing(5);
-        hbox.setPadding(new Insets(5));
-        hbox.setVisible(false);
-        hbox.setManaged(false);
-        return hbox;
-    }
     
     @Override
     public Menu buildMenu() {
@@ -428,6 +406,7 @@ public class GitStatusPane implements BaseGitPane {
             boolean isSelected = ((CheckMenuItem)eh.getSource()).isSelected();
             filterPane.setEnabled(isSelected);
         });
+        filterMenuItem.setSelected(filterPane.isEnabled());
         
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.CONTROL_DOWN));
