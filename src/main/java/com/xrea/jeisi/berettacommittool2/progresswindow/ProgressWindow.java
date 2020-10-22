@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.progresswindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -31,7 +32,8 @@ public class ProgressWindow extends Stage implements CompleteListener {
     
     public void open() {
         if (!created) {
-            Scene scene = new Scene(build(), 480, 320);
+            Scene scene = StageSizeManager.build(this, configInfo, build(), "progresswindow", 480, 320);            
+            //Scene scene = new Scene(build(), 480, 320);
             Stage stage = this;
             stage.setScene(scene);
             stage.setTitle("Progress Window");
