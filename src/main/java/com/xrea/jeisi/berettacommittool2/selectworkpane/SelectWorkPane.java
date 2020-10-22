@@ -5,13 +5,11 @@
  */
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
-import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;

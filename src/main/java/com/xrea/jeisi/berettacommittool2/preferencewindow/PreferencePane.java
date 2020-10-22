@@ -86,7 +86,7 @@ public class PreferencePane {
         
         Button okButton = new Button("OK");
         okButton.setOnAction(eh -> ok());
-        ButtonBar.setButtonData(applyButton, ButtonBar.ButtonData.OK_DONE);
+        ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE);
         
         ButtonBar buttonBar = new ButtonBar();
         buttonBar.getButtons().addAll(cancelButton, applyButton, okButton);

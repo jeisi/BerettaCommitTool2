@@ -11,6 +11,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog;
+import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog2;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkPane;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
@@ -63,13 +64,11 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        XmlWriter.writeStartMethod("App.start()");
-
         styleManager = new StyleManager(configInfo);
         errorLogWindow = new ErrorLogWindow(configInfo);
         preferenceWindow = new PreferenceWindow(configInfo);
         configInfo.setMainApp(this);
-        
+
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
@@ -85,7 +84,7 @@ public class App extends Application {
 
         var directoryHistory = configInfo.getDirectoryHistory();
         if (directoryHistory != null && directoryHistory.size() > 0) {
-            setRootDirectory(directoryHistory.get(directoryHistory.size() - 1));
+            setRootDirectory(directoryHistory.get(0));
         }
 
         styleManager.setStage(stage);
@@ -96,8 +95,6 @@ public class App extends Application {
         } catch (IOException ex) {
             errorLogWindow.appendException(ex);
         }
-
-        XmlWriter.writeEndMethod();
     }
 
     void close() {
@@ -121,7 +118,6 @@ public class App extends Application {
     }
 
     private void saveConfig() {
-        XmlWriter.writeStartMethod("App.saveConfig()");
         try {
             var scene = mainStage.getScene();
             configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), scene.getWidth(), scene.getHeight());
@@ -133,8 +129,6 @@ public class App extends Application {
             configInfo.save();
         } catch (IOException ex) {
             errorLogWindow.appendException(ex);
-        } finally {
-            XmlWriter.writeEndMethod();
         }
     }
 
@@ -250,11 +244,12 @@ public class App extends Application {
     public void openPreference() {
         preferenceWindow.open();
     }
-    
+
     public void openPreference(String defaultTab) {
         preferenceWindow.open(defaultTab);
     }
 
+    /*
     private void onChangeDirectory() {
         SelectWorkDialog dialog = new SelectWorkDialog(configInfo);
         SelectWorkPane selectWorkPane = dialog.getSelectWorkPane();
@@ -266,8 +261,16 @@ public class App extends Application {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String selectedDirectory = selectWorkPane.getCurrentDirectory();
             setRootDirectory(selectedDirectory);
-            System.out.println(selectWorkPane.getDirectoryHistory());
             configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
+        }
+    }
+     */
+    private void onChangeDirectory() {
+        SelectWorkDialog2 dialog = new SelectWorkDialog2(configInfo);
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            String selectedDirectory = dialog.getCurrentDirectory();
+            setRootDirectory(selectedDirectory);
         }
     }
 
@@ -280,7 +283,6 @@ public class App extends Application {
     }
 
     void refreshAll(String topDir) {
-        //System.out.println("App.refreshAll(" + topDir + ")");
         if (topDir == null) {
             return;
         }

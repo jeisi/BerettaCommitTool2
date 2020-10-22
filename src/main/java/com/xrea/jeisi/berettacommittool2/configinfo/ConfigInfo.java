@@ -190,6 +190,18 @@ public class ConfigInfo {
         }
         return b.booleanValue();
     }
+    
+    public void setString(String key, String value) {
+        map.put(key, value);
+    }
+    
+    public String getString(String key) {
+        String s = (String) map.get(key);
+        if(s == null) {
+            return "";
+        }
+        return s;
+    }
 
     public void save() throws IOException {
         pruneDirectoryHistory();
