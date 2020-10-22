@@ -77,6 +77,7 @@ public class PreferencePane {
     
     private Node buildBottom() {
         Button cancelButton = new Button("Cancel");
+        cancelButton.setCancelButton(true);
         cancelButton.setOnAction(eh -> cancel());
         ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE);
         
@@ -85,6 +86,7 @@ public class PreferencePane {
         ButtonBar.setButtonData(applyButton, ButtonBar.ButtonData.APPLY);
         
         Button okButton = new Button("OK");
+        okButton.setDefaultButton(true);
         okButton.setOnAction(eh -> ok());
         ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE);
         
