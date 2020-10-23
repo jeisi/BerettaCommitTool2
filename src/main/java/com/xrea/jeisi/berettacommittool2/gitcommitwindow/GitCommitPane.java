@@ -31,6 +31,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -124,6 +127,7 @@ public class GitCommitPane {
 
         Button commitButton = new Button("Commit");
         commitButton.setId("GitCommitPaneCommitButton");
+        commitButton.setDefaultButton(true);
         BorderPane.setAlignment(commitButton, Pos.CENTER);
         commitButton.setOnAction(e -> commit());
 
@@ -136,7 +140,7 @@ public class GitCommitPane {
         return borderPane;
     }
 
-    private void commit() {
+    public void commit() {
         String commitMessage = messageTextArea.getText();
         if (commitMessage.length() == 0) {
             String errorMessage = "正しいコミット・メッセージは:\n"
