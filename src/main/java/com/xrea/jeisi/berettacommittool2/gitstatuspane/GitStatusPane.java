@@ -106,12 +106,6 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCheckoutOursTheirsSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
-    //private final SituationVisible gitAddSituationVisible = new SituationVisible();
-    //private final SituationVisible gitAddSingleSituationVisible = new SituationVisible();
-    //private final SituationVisible gitCommitSituationVisible = new SituationVisible();
-    //private final SituationVisible gitUnstageSituationVisible = new SituationVisible();
-    //private final SituationVisible gitUnstageSingleSituationVisible = new SituationVisible();
-    //private final SituationVisible gitCheckoutHeadSituationVisible = new SituationVisible();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -159,6 +153,9 @@ public class GitStatusPane implements BaseGitPane {
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
         work.getChecked().addListener(changedListener);
 
+        var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository);
+        gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
+        
         changeTargetRepositories(targetRepository);
     }
 
@@ -291,8 +288,6 @@ public class GitStatusPane implements BaseGitPane {
         gitCheckoutHeadSituationSelector.setSituation(gitCheckoutHeadSelectionSituation);
         //gitCheckoutHeadSituationVisible.setSituation(gitCheckoutHeadSelectionSituation);
         gitCheckoutOursTheirsSituationSelector.setSituation(new GitCheckoutOursTheirsSelectionSituation(selectionModel));
-        var gitCommitSelectionSituation = new GitCommitSelectionSituation(tableView);
-        gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
         //gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
         gitRmSituationSelector.setSituation(new GitRemoveSelectionSituation(selectionModel));
 

@@ -41,6 +41,10 @@ public class SituationSelector {
     }
 
     public void update() {
+        if(situation == null) {
+            return;
+        }
+        
         updateEnableMenuItems();
         updateVisibleMenuItems();
         updateVisibleButtons();

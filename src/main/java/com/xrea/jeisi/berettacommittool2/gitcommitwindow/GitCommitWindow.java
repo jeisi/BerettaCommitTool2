@@ -48,7 +48,7 @@ public class GitCommitWindow extends Stage {
         }
 
         Scene scene = new Scene(build(), width, height);
-        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.ALT_DOWN), () -> gitCommitPane.commit());
+        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);
         stage.setTitle("Commit");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -62,6 +62,7 @@ public class GitCommitWindow extends Stage {
         styleManager.setStage(stage);
         
         stage.show();
+        gitCommitPane.requestDefaultFocus();
 
         XmlWriter.writeEndMethod();
     }

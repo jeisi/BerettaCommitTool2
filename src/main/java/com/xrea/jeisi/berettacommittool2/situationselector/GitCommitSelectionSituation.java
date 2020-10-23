@@ -5,10 +5,15 @@
  */
 package com.xrea.jeisi.berettacommittool2.situationselector;
 
+import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
+import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.List;
 import java.util.function.Predicate;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TableView;
 
 /**
@@ -17,54 +22,21 @@ import javafx.scene.control.TableView;
  */
 public class GitCommitSelectionSituation implements Situation {
 
-    private final TableView<GitStatusData> tableView;
-    private final Predicate<GitStatusData> predicate = (t) -> {
-        switch (t.indexStatusProperty().get()) {
-            case "M":
-            case "A":
-            case "D":
-                return true;
-            default:
-                return false;
-        }
-    };
-    /*
-    private final Predicate<GitStatusData> ngPredicate = (t) -> {
-        String indexStatus = t.indexStatusProperty().get();
-        String workTreeStatus = t.workTreeStatusProperty().get();
+    private RepositoriesInfo repositories;
+    private TargetRepository targetRepository;
 
-        // ?? の状態なら無視.
-        if (indexStatus.equals("?") && workTreeStatus.equals("?")) {
-            return false; // OK.
-        }
-
-        if (!indexStatus.equals("") && !workTreeStatus.equals("")) {
-            return true; // NG!!
-        }
-
-        return false; // OK.
-    };
-    */
-
-    public GitCommitSelectionSituation(TableView<GitStatusData> tableView) {
-        this.tableView = tableView;
+    public GitCommitSelectionSituation(RepositoriesInfo repositories, TargetRepository targetRepository) {
+        this.repositories = repositories;
+        this.targetRepository = targetRepository;
     }
 
     @Override
     public boolean isValid() {
-        var items = tableView.getItems();
-        if (items.isEmpty()) {
+        ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
+        if(targetRepositories.isEmpty()) {
             return false;
         }
-
-        /*
-        if (items.stream().anyMatch(ngPredicate)) {
-            return false;
-        }
-        */
-
-        boolean ret = items.stream().anyMatch(predicate);
-        return ret;
+        return true;
     }
 
 }

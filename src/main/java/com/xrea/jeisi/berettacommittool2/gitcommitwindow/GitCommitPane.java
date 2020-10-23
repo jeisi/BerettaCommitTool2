@@ -92,6 +92,10 @@ public class GitCommitPane {
         saveConfig();
         errorLogWindow.close();
     }
+    
+    public void requestDefaultFocus() {
+        messageTextArea.requestFocus();
+    }
 
     private void saveConfig() {
         if (configInfo == null) {
