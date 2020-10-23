@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -156,7 +159,7 @@ public class GitCommitPane {
         repositoryDatas.forEach((var repositoryData) -> {
             String workDir = repositoryData.getPath().toString();
             GitThread thread = GitThreadMan.get(workDir);
-            GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath().toFile());
+            GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath(), configInfo);
             thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand, errorLogWindow));
         });
 
@@ -202,14 +205,14 @@ public class GitCommitPane {
     private String getAmendMessage() {
         List<String> amendMessages = new ArrayList<>();
         for (var repositoryData : repositoryDatas) {
-            GitCommitCommand commitCommand = new GitCommitCommand(repositoryData.getPath().toFile());
+            GitCommitCommand commitCommand = new GitCommitCommand(repositoryData.getPath(), configInfo);
             try {
                 String amendMessage = commitCommand.readCommitEditMsg();
                 if (amendMessage == null) {
                     return null;
                 }
                 amendMessages.add(amendMessage);
-            } catch (IOException ex) {
+            } catch (IOException | GitConfigException | InterruptedException ex) {
                 errorLogWindow.appendException(ex);
             }
         }

@@ -5,8 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
@@ -17,8 +19,8 @@ public class MockGitCommitCommand extends GitCommitCommand {
 
     private GitAPIException exception;
 
-    public MockGitCommitCommand(File repository) {
-        super(repository);
+    public MockGitCommitCommand(Path repository, ConfigInfo configInfo) {
+        super(repository, configInfo);
     }
 
     public void setException(GitAPIException exception) {

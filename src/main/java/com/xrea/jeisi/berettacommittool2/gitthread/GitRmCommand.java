@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * @author jeisi
  */
-public class GitRmCommand extends BaseGitCommand {
+public class GitRmCommand extends BaseMultiGitCommand {
 
     private Pattern pattern;
 

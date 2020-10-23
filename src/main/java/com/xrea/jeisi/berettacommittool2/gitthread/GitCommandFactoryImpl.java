@@ -36,8 +36,8 @@ public class GitCommandFactoryImpl implements GitCommandFactory {
     }
     
     @Override
-    public GitCommitCommand createGitCommitCommand(File file) {
-        return new GitCommitCommand(file);
+    public GitCommitCommand createGitCommitCommand(Path path, ConfigInfo configInfo) {
+        return new GitCommitCommand(path, configInfo);
     }
     
     @Override

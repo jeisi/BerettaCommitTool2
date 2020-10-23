@@ -18,6 +18,6 @@ public interface GitCommandFactory {
     public GitCheckoutCommand createCheckoutCommand(Path path, ConfigInfo configInfo);
     public GitStatusCommand createStatusCommand(Path path, ConfigInfo configInfo);
     public GitUnstageCommand createUnstageCommand(Path path, ConfigInfo configInfo);
-    public GitCommitCommand createGitCommitCommand(File file);
+    public GitCommitCommand createGitCommitCommand(Path path, ConfigInfo configInfo);
     public GitDiffCommand createGitDiffCommand(Path path, ConfigInfo configInfo);
 }

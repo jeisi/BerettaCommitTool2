@@ -6,8 +6,11 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommitCommand;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoMessageException;
 
@@ -36,9 +39,12 @@ public class GitCommitThread implements Runnable {
         } catch (NoMessageException ex) {
             throw new AssertionError("コミットメッセージが空文字ならば、GitCommitCommand.commit() が実行される前に弾かれていなければならない。");
         } catch (GitAPIException ex) {
-            System.out.println(ex.getMessage());
             errorLogWindow.appendText(ex.getMessage());
         } catch (IOException ex) {
+            errorLogWindow.appendException(ex);            
+        } catch (GitConfigException ex) {
+            errorLogWindow.appendException(ex);            
+        } catch (InterruptedException ex) {
             errorLogWindow.appendException(ex);            
         }
     }

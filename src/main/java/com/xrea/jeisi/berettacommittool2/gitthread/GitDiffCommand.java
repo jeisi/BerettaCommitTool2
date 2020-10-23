@@ -19,7 +19,7 @@ import java.util.List;
  *
  * @author jeisi
  */
-public class GitDiffCommand extends BaseGitCommand {
+public class GitDiffCommand extends BaseMultiGitCommand {
 
     public GitDiffCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);

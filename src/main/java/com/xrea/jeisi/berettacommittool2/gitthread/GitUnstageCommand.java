@@ -23,7 +23,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  *
  * @author jeisi
  */
-public class GitUnstageCommand extends BaseGitCommand {
+public class GitUnstageCommand extends BaseMultiGitCommand {
 
     //private final File repository;
     //private ProgressWindow progressWindow;

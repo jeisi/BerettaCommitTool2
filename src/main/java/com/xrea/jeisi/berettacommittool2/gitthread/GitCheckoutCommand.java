@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author jeisi
  */
-public class GitCheckoutCommand extends BaseGitCommand {
+public class GitCheckoutCommand extends BaseMultiGitCommand {
 
     public GitCheckoutCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);

@@ -26,7 +26,7 @@ import javafx.application.Platform;
  *
  * @author jeisi
  */
-public class GitAddCommand extends BaseGitCommand {
+public class GitAddCommand extends BaseMultiGitCommand {
 
     public GitAddCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);

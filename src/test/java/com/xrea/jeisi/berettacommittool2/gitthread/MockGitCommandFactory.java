@@ -71,8 +71,8 @@ public class MockGitCommandFactory implements GitCommandFactory {
     }
 
     @Override
-    public GitCommitCommand createGitCommitCommand(File file) {
-        GitCommitCommand command = gitCommitCommands.get(file);
+    public GitCommitCommand createGitCommitCommand(Path path, ConfigInfo configInfo) {
+        GitCommitCommand command = gitCommitCommands.get(path);
         return command;
     }
     
