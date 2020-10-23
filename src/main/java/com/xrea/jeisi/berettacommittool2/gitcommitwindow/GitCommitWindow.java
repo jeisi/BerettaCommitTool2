@@ -10,6 +10,9 @@ import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 
 /**
@@ -45,6 +48,7 @@ public class GitCommitWindow extends Stage {
         }
 
         Scene scene = new Scene(build(), width, height);
+        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);
         stage.setTitle("Commit");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -58,6 +62,7 @@ public class GitCommitWindow extends Stage {
         styleManager.setStage(stage);
         
         stage.show();
+        gitCommitPane.requestDefaultFocus();
 
         XmlWriter.writeEndMethod();
     }
