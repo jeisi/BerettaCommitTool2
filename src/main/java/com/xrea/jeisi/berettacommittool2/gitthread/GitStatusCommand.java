@@ -26,18 +26,19 @@ import java.util.regex.Pattern;
  *
  * @author jeisi
  */
-public class GitStatusCommand {
+public class GitStatusCommand extends BaseSingleGitCommand {
 
-    private final ConfigInfo configInfo;
-    private final File repository;
     private final static List<GitStatusData> emptyData = new ArrayList<>();
 
-    public GitStatusCommand(Path repoDir, ConfigInfo configInfo) {
-        this.repository = repoDir.toFile();
-        this.configInfo = configInfo;
+    public GitStatusCommand(Path repository, ConfigInfo configInfo) {
+        super(repository, configInfo);
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
+        List<String> command = getStatusCommand(emptyData);
+        List<String> lines = execProcessWithOutput(command, command);
+        return getStatusDatas(lines, repositoryData);
+        /*
         ProcessBuilder pb = new ProcessBuilder(getCommand(emptyData));
         pb.directory(repository);
         Process process = pb.start();
@@ -48,22 +49,14 @@ public class GitStatusCommand {
         }
         List<GitStatusData> status = getStatusDatas(process, repositoryData);
         return status;
+         */
     }
 
-    /*
-    public List<GitStatusData> status(RepositoryData repositoryData, String... paths) throws IOException, GitCommandException, GitConfigException, InterruptedException {
-        ProcessBuilder pb = new ProcessBuilder(getCommand(paths));
-        pb.directory(repository);
-        Process process = pb.start();
-        int ret = process.waitFor();
-        if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
-            throw e;
-        }
-        return getStatusDatas(process, repositoryData);
-    }
-     */
     public List<GitStatusData> status(RepositoryData repositoryData, List<GitStatusData> datas) throws IOException, GitCommandException, GitConfigException, InterruptedException {
+        List<String> command = getStatusCommand(datas);
+        List<String> lines = execProcessWithOutput(command, command);
+        return getStatusDatas(lines, repositoryData);
+        /*
         ProcessBuilder pb = new ProcessBuilder(getCommand(datas));
         pb.directory(repository);
         Process process = pb.start();
@@ -73,30 +66,16 @@ public class GitStatusCommand {
             throw e;
         }
         return getStatusDatas(process, repositoryData);
+        */
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData, GitStatusData data) throws IOException, GitCommandException, GitConfigException, InterruptedException {
         return status(repositoryData, Arrays.asList(data));
     }
 
-    /*
-    private List<String> getCommand(String... paths) throws GitCommandException, GitConfigException {
-        var git = configInfo.getProgramEx("git");
+    private List<String> getStatusCommand(List<GitStatusData> datas) throws GitCommandException, GitConfigException {
         ArrayList<String> command = new ArrayList<>();
-        command.add(git);
-        command.add("status");
-        command.add("-s");
-        command.add("--untracked-files=all");
-        if (paths != null) {
-            command.addAll(Arrays.asList(paths));
-        }
-        return command;
-    }
-     */
-    private List<String> getCommand(List<GitStatusData> datas) throws GitCommandException, GitConfigException {
-        var git = configInfo.getProgramEx("git");
-        ArrayList<String> command = new ArrayList<>();
-        command.add(git);
+        command.add("git");
         command.add("status");
         command.add("-s");
         command.add("--untracked-files=all");
@@ -104,37 +83,33 @@ public class GitStatusCommand {
         return command;
     }
 
-    private static List<GitStatusData> getStatusDatas(Process p, RepositoryData repositoryData) throws IOException {
-        XmlWriter.writeStartMethod("GitStatusCommand.getStatusDatas()");
+    private static List<GitStatusData> getStatusDatas(List<String> lines, RepositoryData repositoryData) throws IOException {
         Pattern pattern = Pattern.compile("^(.)(.) (.+)( -> (.+))?");
         List<GitStatusData> list = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                Matcher m = pattern.matcher(line);
-                if (!m.matches()) {
-                    throw new AssertionError(line + " が正規表現にマッチしませんでした。");
-                }
-
-                String index = m.group(1);
-                if (index.equals(" ")) {
-                    index = "";
-                }
-
-                String workTree = m.group(2);
-                if (workTree.equals(" ")) {
-                    workTree = "";
-                }
-
-                String fileName;
-                if (m.group(4) == null) {
-                    fileName = m.group(3);
-                } else {
-                    fileName = m.group(5);
-                }
-                list.add(new GitStatusData(index, workTree, fileName, repositoryData));
+        for (var line : lines) {
+            Matcher m = pattern.matcher(line);
+            if (!m.matches()) {
+                throw new AssertionError(line + " が正規表現にマッチしませんでした。");
             }
+
+            String index = m.group(1);
+            if (index.equals(" ")) {
+                index = "";
+            }
+
+            String workTree = m.group(2);
+            if (workTree.equals(" ")) {
+                workTree = "";
+            }
+
+            String fileName;
+            if (m.group(4) == null) {
+                fileName = m.group(3);
+            } else {
+                fileName = m.group(5);
+            }
+            list.add(new GitStatusData(index, workTree, fileName, repositoryData));
         }
-        XmlWriter.writeEndMethod();
         return list;
     }
 

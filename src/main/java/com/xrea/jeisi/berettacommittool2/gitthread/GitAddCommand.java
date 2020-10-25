@@ -51,9 +51,6 @@ public class GitAddCommand extends BaseMultiGitCommand {
     }
 
     private void addFilesByOption(String option) throws GitConfigException, IOException, InterruptedException {
-        XmlWriter.writeStartMethod("GitAddCommand.addFilesByOption()");
-
-        //List<String> command = getCommand("add", "--dry-run", option);
         List<String> lines = execProcessWithOutput("git", "add", "--dry-run", option);
         if (progressWindow != null && lines.size() > 1) {
             progressModel = new ProgressModel(String.format("git %s ...", lines.get(0)), lines.size());
@@ -82,37 +79,9 @@ public class GitAddCommand extends BaseMultiGitCommand {
         }
         int ret = process.waitFor();
         if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
-            throw e;
-        }
-
-        XmlWriter.writeEndMethod();
-    }
-
-    /*
-    protected void addFile(String file) throws GitConfigException, IOException, InterruptedException, GitCommandException {
-        Path path = Paths.get(repository.toString(), file);
-        List<String> command = getCommand("add", file);
-        execCommand(command);
-    }
-
-    private void execCommand(List<String> command) throws IOException, InterruptedException {
-        ProcessBuilder pb = new ProcessBuilder(command);
-        pb.directory(repository);
-        Process process = pb.start();
-        int ret = process.waitFor();
-        if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
+            List<String> displayCommand = Arrays.asList("git", "add", option);
+            GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), getInputStream(process), getErrorStream(process));
             throw e;
         }
     }
-
-    private List<String> getCommand(String... args) throws GitConfigException {
-        var git = configInfo.getProgramEx("git");
-        ArrayList<String> command = new ArrayList<>();
-        command.add(git);
-        command.addAll(Arrays.asList(args));
-        return command;
-    }
-     */
 }

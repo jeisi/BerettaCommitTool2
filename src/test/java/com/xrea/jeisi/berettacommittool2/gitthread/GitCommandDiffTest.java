@@ -77,7 +77,8 @@ public class GitCommandDiffTest {
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitDiffCommand diffCommand = new GitDiffCommand(workDir, configInfo);
         GitCommandException e = assertThrows(GitCommandException.class, () -> diffCommand.diff("a.txt"));
-        String expect = "command error.\n"
+        String expect = "command error:\n"
+                + "[/home/jeisi/NetBeansProjects/BerettaCommitTool2/src/test/resources/work/beretta]\n"
                 + "$ /usr/bin/git difftool -y --tool=vimdiff a.txt\n"
                 + "The diff tool vimdiff is not available as 'vim'\n"
                 + "fatal: external diff died, stopping at a.txt\n";

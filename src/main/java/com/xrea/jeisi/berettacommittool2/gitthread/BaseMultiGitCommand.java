@@ -55,31 +55,5 @@ public abstract class BaseMultiGitCommand extends BaseSingleGitCommand {
         }
     }
 
-    protected static String getErrorMessage(List<String> command, Process p) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("command error.");
-        sb.append("\n");
-        sb.append("$ ");
-        sb.append(String.join(" ", command));
-        sb.append("\n");
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getErrorStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                sb.append(line);
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
-    }
 
-    protected static List<String> getInputStream(Process p) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getInputStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                lines.add(line);
-            }
-        }
-        return lines;
-    }
 }
