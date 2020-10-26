@@ -16,7 +16,18 @@ import javafx.scene.control.MultipleSelectionModel;
 public class GitAddPatchSelectionSituation implements Situation {
 
     private final MultipleSelectionModel<GitStatusData> selectionModel;
-    private final static Predicate<GitStatusData> predicate = new GitAddPredicate();
+    private final static Predicate<GitStatusData> predicate = (t) -> {
+        if (t == null) {
+            return false;
+        }
+        switch (t.workTreeStatusProperty().get()) {
+            case "M":
+            case "D":
+                return true;
+            default:
+                return false;
+        }
+    };
 
     public GitAddPatchSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
         this.selectionModel = selectionModel;
