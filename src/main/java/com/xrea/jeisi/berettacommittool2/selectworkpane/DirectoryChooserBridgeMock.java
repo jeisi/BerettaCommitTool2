@@ -14,6 +14,7 @@ import javafx.stage.Window;
  */
 public class DirectoryChooserBridgeMock implements DirectoryChooserBridge {
     private File file;
+    private File initialDirectory;
     
     public DirectoryChooserBridgeMock(File file) {
         this.file = file;
@@ -22,6 +23,11 @@ public class DirectoryChooserBridgeMock implements DirectoryChooserBridge {
     @Override
     public File showDialog(Window ownerWindow) {
         return file;
+    }
+
+    @Override
+    public void setInitialDirectory(File value) {
+        initialDirectory = value;
     }
     
 }

@@ -20,4 +20,9 @@ public class DirectoryChooserBridgeImpl implements DirectoryChooserBridge {
     public File showDialog(Window ownerWindow) {
         return chooser.showDialog(ownerWindow);
     }
+    
+    @Override
+    public void setInitialDirectory(File value) {
+        chooser.setInitialDirectory(value);
+    }
 }

@@ -14,4 +14,5 @@ import javafx.stage.Window;
  */
 public interface DirectoryChooserBridge {
     public File showDialog(Window ownerWindow);
+    public void setInitialDirectory(File value);
 }

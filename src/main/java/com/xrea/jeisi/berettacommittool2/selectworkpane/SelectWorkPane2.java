@@ -9,6 +9,7 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -214,6 +215,14 @@ public class SelectWorkPane2 {
 
     private void selectDirectory() {
         DirectoryChooserBridge chooser = directoryChooserFactory.create();
+        String lastChoosedDirectory = configInfo.getString("directoryHistory.lastChoosedDirectory");
+        //XmlWriter.writeObject("lastChoosedDirectory", lastChoosedDirectory);
+        if(!lastChoosedDirectory.isEmpty()) {
+            Path path = Paths.get(lastChoosedDirectory);
+            if(Files.exists(path)) {
+                chooser.setInitialDirectory(path.toFile());                            
+            }
+        }
         File selectedDirectory = chooser.showDialog(parent);
         if (selectedDirectory != null) {
             addDirectory(selectedDirectory);
@@ -227,6 +236,8 @@ public class SelectWorkPane2 {
         }
 
         listView.getSelectionModel().select(selectedDirectory);
+        
+        configInfo.setString("directoryHistory.lastChoosedDirectory", selectedDirectory);
     }
 
     private void cancel() {
