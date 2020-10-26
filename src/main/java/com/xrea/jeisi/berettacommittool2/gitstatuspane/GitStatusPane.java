@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -58,7 +59,10 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
@@ -154,7 +158,7 @@ public class GitStatusPane implements BaseGitPane {
 
         var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository);
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
-        
+
         changeTargetRepositories(targetRepository);
     }
 
@@ -432,12 +436,12 @@ public class GitStatusPane implements BaseGitPane {
         checkoutTheirsButton.setTooltip(new Tooltip("git checkout --theirs <file>..."));
         checkoutTheirsButton.setOnAction(eh -> gitCheckoutTheirs());
         gitCheckoutOursTheirsSituationSelector.getVisibleButotns().add(checkoutTheirsButton);
-        
+
         Button checkoutOursButton = new Button("checkout --ours");
         checkoutOursButton.setTooltip(new Tooltip("git checkout --ours <file>..."));
         checkoutOursButton.setOnAction(eh -> gitCheckoutOurs());
         gitCheckoutOursTheirsSituationSelector.getVisibleButotns().add(checkoutOursButton);
-        
+
         Button diffButton = new Button("Diff");
         diffButton.setTooltip(new Tooltip("git difftool <file>"));
         diffButton.setOnAction(eh -> gitDiff());
@@ -463,7 +467,7 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem checkoutTheirsMenuItem = new MenuItem("git checkout --theirs <file>...");
         checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
         gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutTheirsMenuItem);
-        
+
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
@@ -543,6 +547,13 @@ public class GitStatusPane implements BaseGitPane {
 
     // git checkout -- <file>...
     private void gitCheckoutHyphen() {
+        Alert alert = new Alert(AlertType.CONFIRMATION, "ローカルの作業内容を破棄します。\nよろしいですか？", ButtonType.YES, ButtonType.NO);
+        alert.setHeaderText(null);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (!result.isPresent() || result.get() == ButtonType.NO) {
+            return;
+        }
+
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, datas) -> {
             GitCheckoutCommand checkoutCommand = gitCommandFactory.createCheckoutCommand(workDir, configInfo);
