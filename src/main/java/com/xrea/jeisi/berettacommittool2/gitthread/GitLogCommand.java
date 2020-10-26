@@ -7,11 +7,6 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import java.io.File;
 import java.io.IOException;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.revwalk.RevCommit;
 
 /**
  *
@@ -25,14 +20,7 @@ public class GitLogCommand {
         this.repository = repository;
     }
 
-    public Iterable<RevCommit> getLog() throws IOException, GitAPIException {
-        Git git = gitOpen();
-        ObjectId head = git.getRepository().resolve(Constants.HEAD);
-        return git.log().add(head).setMaxCount(10).call();
+    public String getLog() throws IOException {
+        return "";
     }
-
-    private Git gitOpen() throws IOException {
-        return Git.open(repository);
-    }
-
 }

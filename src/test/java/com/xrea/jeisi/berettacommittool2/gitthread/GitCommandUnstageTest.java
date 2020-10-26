@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +42,7 @@ public class GitCommandUnstageTest {
     }
 
     @Test
-    public void testUnstage() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
+    public void testUnstage() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testUnstage2.sh");
 
@@ -63,7 +62,7 @@ public class GitCommandUnstageTest {
 
     @Test
     // まだコミットがない状態では git reset HEAD <file> ではなく、git rm --cached <file> を実行する必要がある。
-    public void testUnstageWhenNoCommit() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
+    public void testUnstageWhenNoCommit() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testUnstage.sh");
 

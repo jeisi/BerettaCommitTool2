@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
+import com.xrea.jeisi.berettacommittool2.exception.GitCommitNoMessageException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommitNothingAddedException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommitUnmergedFilesException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
@@ -15,10 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.eclipse.jgit.api.errors.AbortedByHookException;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoMessageException;
-import org.eclipse.jgit.api.errors.WrongRepositoryStateException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +89,7 @@ public class GitCommandCommitTest {
     }
 
     @Test
-    public void testCommit_コミットメッセージが空のときはNoMessageExceptionがスローされる() throws IOException, InterruptedException, GitAPIException {
+    public void testCommit_コミットメッセージが空のときはGitCommitNoMessageExceptionがスローされる() throws IOException, InterruptedException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testUnstage.sh");
 
@@ -102,11 +99,11 @@ public class GitCommandCommitTest {
 
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitCommitCommand commitCommand = new GitCommitCommand(workDir, configInfo);
-        assertThrows(NoMessageException.class, () -> commitCommand.commit("", false));
+        assertThrows(GitCommitNoMessageException.class, () -> commitCommand.commit("", false));
     }
 
     @Test
-    public void testCommit_コンフリクトが解消されていない時にコミットを実行した場合はGitCommitUnmergedFilesExceptionがスローされる() throws IOException, InterruptedException, GitAPIException {
+    public void testCommit_コンフリクトが解消されていない時にコミットを実行した場合はGitCommitUnmergedFilesExceptionがスローされる() throws IOException, InterruptedException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testCommitConflict.sh");
 

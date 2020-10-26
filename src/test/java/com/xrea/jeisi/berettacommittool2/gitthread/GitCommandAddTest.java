@@ -19,7 +19,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.stage.Stage;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +48,7 @@ public class GitCommandAddTest {
     }
 
     @Test
-    public void testAdd() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
+    public void testAdd() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAdd.sh");
 
@@ -69,7 +68,7 @@ public class GitCommandAddTest {
 
     @Test
     // ' D' 状態のファイルに対して git add コマンドを実行したら 'D ' になる。
-    public void testAddDeletedFile() throws IOException, InterruptedException, GitAPIException, GitCommandException, GitConfigException {
+    public void testAddDeletedFile() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAddDeleted.sh");
 

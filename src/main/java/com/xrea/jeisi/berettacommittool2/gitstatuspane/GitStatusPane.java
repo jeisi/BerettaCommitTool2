@@ -75,7 +75,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
  *
@@ -628,7 +627,7 @@ public class GitStatusPane implements BaseGitPane {
                     //String[] files = filesList.toArray(new String[filesList.size()]);
                     command.exec(workDir, items);
                     statusDatas = statusCommand.status(items.get(0).getRepositoryData(), items);
-                } catch (IOException | GitAPIException | GitConfigException | InterruptedException ex) {
+                } catch (IOException | GitConfigException | InterruptedException ex) {
                     showError(ex);
                     return;
                 }
@@ -659,7 +658,7 @@ public class GitStatusPane implements BaseGitPane {
                 List<GitStatusData> statusDatas;
                 try {
                     command.exec(workDir, null);
-                } catch (IOException | GitAPIException | GitConfigException | InterruptedException ex) {
+                } catch (IOException | GitConfigException | InterruptedException ex) {
                     showError(ex);
                     return;
                 }

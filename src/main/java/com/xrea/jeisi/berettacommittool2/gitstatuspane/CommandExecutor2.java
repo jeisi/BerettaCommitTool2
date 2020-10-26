@@ -9,7 +9,6 @@ import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
  *
@@ -17,6 +16,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
  */
 public interface CommandExecutor2 {
 
-    public void exec(Path workDir, List<GitStatusData> datas) throws IOException, GitAPIException, GitConfigException, InterruptedException;
+    public void exec(Path workDir, List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException;
 
 }

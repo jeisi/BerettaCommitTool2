@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +75,7 @@ public class GitCommandStatusTest {
     }
 
     @Test
-    public void testStatus_SpecifiedFile() throws IOException, InterruptedException, GitCommandException, GitConfigException, GitAPIException {
+    public void testStatus_SpecifiedFile() throws IOException, InterruptedException, GitCommandException, GitConfigException {
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAdd.sh");
 

@@ -6,12 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 
 /**
  *
