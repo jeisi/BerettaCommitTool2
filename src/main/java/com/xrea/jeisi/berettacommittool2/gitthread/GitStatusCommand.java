@@ -8,11 +8,11 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -35,38 +35,22 @@ public class GitStatusCommand extends BaseSingleGitCommand {
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
-        List<String> command = getStatusCommand(emptyData);
-        List<String> lines = execProcessWithOutput(command, command);
-        return getStatusDatas(lines, repositoryData);
-        /*
-        ProcessBuilder pb = new ProcessBuilder(getCommand(emptyData));
-        pb.directory(repository);
-        Process process = pb.start();
-        int ret = process.waitFor();
-        if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
-            throw e;
-        }
-        List<GitStatusData> status = getStatusDatas(process, repositoryData);
-        return status;
-         */
+        return status(repositoryData, emptyData);
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData, List<GitStatusData> datas) throws IOException, GitCommandException, GitConfigException, InterruptedException {
         List<String> command = getStatusCommand(datas);
-        List<String> lines = execProcessWithOutput(command, command);
-        return getStatusDatas(lines, repositoryData);
-        /*
-        ProcessBuilder pb = new ProcessBuilder(getCommand(datas));
-        pb.directory(repository);
-        Process process = pb.start();
-        int ret = process.waitFor();
-        if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessage(pb.command(), process));
+        List<String> displayCommand = getStatusCommand(datas);
+        List<String> lines;
+        try {
+            lines = execProcessWithOutput(command, displayCommand);
+        } catch (GitCommandException e) {
+            if(e.getStdErr().stream().anyMatch(l -> l.contains("not a git repository"))) {
+                throw new RepositoryNotFoundException(repositoryData.getPath(), e);
+            }
             throw e;
         }
-        return getStatusDatas(process, repositoryData);
-        */
+        return getStatusDatas(lines, repositoryData);
     }
 
     public List<GitStatusData> status(RepositoryData repositoryData, GitStatusData data) throws IOException, GitCommandException, GitConfigException, InterruptedException {
@@ -113,6 +97,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         return list;
     }
 
+    /*
     private static String getErrorMessage(List<String> command, Process p) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("command error.");
@@ -129,4 +114,5 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         }
         return sb.toString();
     }
+     */
 }

@@ -17,12 +17,6 @@ public class GitCommandException extends IOException {
     protected final List<String> stdout;
     protected final List<String> stderr;
     
-    /*
-    public GitCommandException(String message) {
-        super(message);
-    }
-    */
-    
     public GitCommandException(String header, List<String> stdout, List<String> stderr) {
         this.header = header;
         this.stdout = stdout;

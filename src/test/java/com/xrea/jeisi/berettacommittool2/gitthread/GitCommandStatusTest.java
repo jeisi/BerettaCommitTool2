@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.gitthread;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
@@ -17,7 +18,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -90,6 +93,17 @@ public class GitCommandStatusTest {
         List<GitStatusData> list = gitCommand.status(repositoryData, new GitStatusData("?", "?", "b.txt", repositoryData));
         // ファイル名でソートされている。
         assertThat("[{?, ?, b.txt, }]").isEqualTo(list.toString());
+    }
 
+    @Test
+    // ディレクトリが git 作業ディレクトリでない場合は RepositoryNotFoundException がスローされる。
+    public void testStatus_RepositoryNotFound() throws IOException, InterruptedException {
+        String userDir = System.getProperty("user.home");
+
+        Path workDir = Paths.get(userDir);
+        GitStatusCommand gitCommand = new GitStatusCommand(workDir, configInfo);
+        RepositoryData repositoryData = new RepositoryData(true, "", Paths.get("."));
+        RepositoryNotFoundException e = assertThrows(RepositoryNotFoundException.class, () -> gitCommand.status(repositoryData));
+        assertEquals("repository not found: .", e.getMessage());
     }
 }

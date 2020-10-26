@@ -69,17 +69,12 @@ public class ConfigInfo {
     }
 
     public void setWindowRectangle(String windowName, double x, double y, double width, double height) {
-        XmlWriter.writeStartMethod(String.format("ConfigInfo.setWindowRectangle(%s, %f, %f, %f, %f", windowName, x, y, width, height));
-
-        //map.put(windowName + ".rectangle", new double[]{x, y, width, height});
         List<Double> r = new ArrayList<>();
         r.add(x);
         r.add(y);
         r.add(width);
         r.add(height);
         map.put(windowName + ".rectangle", r);
-
-        XmlWriter.writeEndMethod();
     }
 
     public void setWindowRectangle(String windowName, WindowRectangle windowRectangle) {

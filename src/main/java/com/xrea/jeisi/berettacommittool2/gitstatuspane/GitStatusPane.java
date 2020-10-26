@@ -12,6 +12,7 @@ import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
@@ -216,6 +217,10 @@ public class GitStatusPane implements BaseGitPane {
             List<GitStatusData> gitStatusDatas;
             try {
                 gitStatusDatas = command.status(repository);
+            } catch (RepositoryNotFoundException ex) {
+                Platform.runLater(() -> showError(ex));
+                repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getShortMessage()));
+                return;
             } catch (IOException | GitConfigException | InterruptedException ex) {
                 Platform.runLater(() -> showError(ex));
                 repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
