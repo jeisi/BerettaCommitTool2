@@ -32,8 +32,6 @@ public class GitCommitWindow extends Stage {
     }
 
     public void open() {
-        XmlWriter.writeStartMethod("GitCommitWindow.open()");
-
         Stage stage = this;
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
@@ -63,8 +61,6 @@ public class GitCommitWindow extends Stage {
         
         stage.show();
         gitCommitPane.requestDefaultFocus();
-
-        XmlWriter.writeEndMethod();
     }
 
     private void saveConfig() {

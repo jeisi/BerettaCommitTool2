@@ -26,6 +26,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitUnstageCommand;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.situationselector.DeleteSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddAllSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPatchSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPredicate;
@@ -45,6 +46,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 //import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -110,6 +112,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCheckoutOursTheirsSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
+    private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -298,6 +301,7 @@ public class GitStatusPane implements BaseGitPane {
         gitCheckoutOursTheirsSituationSelector.setSituation(new GitCheckoutOursTheirsSelectionSituation(selectionModel));
         //gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
         gitRmSituationSelector.setSituation(new GitRemoveSelectionSituation(selectionModel));
+        deleteSituationSelector.setSituation(new DeleteSelectionSituation(selectionModel));
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
             @Override
@@ -393,6 +397,10 @@ public class GitStatusPane implements BaseGitPane {
         commitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.ALT_DOWN));
         gitCommitSituationSelector.getEnableMenuItems().add(commitMenuItem);
 
+        MenuItem deleteMenuItem = new MenuItem("rm <file>...");
+        deleteMenuItem.setOnAction(eh -> deleteFile());
+        deleteSituationSelector.getEnableMenuItems().add(deleteMenuItem);
+
         CheckMenuItem filterMenuItem = new CheckMenuItem("Filter");
         filterMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN));
         filterMenuItem.setOnAction(eh -> {
@@ -411,7 +419,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, commitMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, commitMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -473,13 +481,17 @@ public class GitStatusPane implements BaseGitPane {
         checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
         gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutTheirsMenuItem);
 
+        MenuItem deleteMenuItem = new MenuItem("rm <file>...");
+        deleteMenuItem.setOnAction(eh -> deleteFile());
+        deleteSituationSelector.getVisibleMenuItems().add(deleteMenuItem);
+
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(checkoutOursMenuItem, checkoutTheirsMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
+        ContextMenu contextMenu = new ContextMenu(checkoutOursMenuItem, checkoutTheirsMenuItem, deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
 
@@ -588,7 +600,6 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitDiff() {
-        XmlWriter.writeStartMethod("GitStatusPane.gitDiff()");
         var selectedItem = getSelectedFile();
         GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath(), configInfo);
         new Thread(() -> {
@@ -598,7 +609,6 @@ public class GitStatusPane implements BaseGitPane {
                 showError(ex);
             }
         }).start();
-        XmlWriter.writeEndMethod();
     }
 
     private void gitDiffCached() {
@@ -611,6 +621,15 @@ public class GitStatusPane implements BaseGitPane {
                 showError(ex);
             }
         }).start();
+    }
+
+    private void deleteFile() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, datas) -> {
+            for (var data : datas) {
+                Files.delete(Paths.get(workDir.toString(), data.getFileName()));
+            }
+        });
     }
 
     private void copyFilePathToClipBoard() {
@@ -757,6 +776,7 @@ public class GitStatusPane implements BaseGitPane {
         gitCommitSituationSelector.update();
         //gitCommitSituationVisible.update();
         gitRmSituationSelector.update();
+        deleteSituationSelector.update();
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。
         gitDiffToolSituationSelector.update();
