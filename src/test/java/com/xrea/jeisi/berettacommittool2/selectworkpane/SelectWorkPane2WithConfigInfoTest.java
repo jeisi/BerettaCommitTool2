@@ -72,8 +72,23 @@ public class SelectWorkPane2WithConfigInfoTest {
         // sortedByNewestRadioButton が選択された状態になっている。
         assertTrue(sortByNewestRadioButton.isSelected());
 
-        while (myStage.isShowing()) {
-            Thread.sleep(1000);
-        }
+//        while (myStage.isShowing()) {
+//            Thread.sleep(100);
+//        }
+    }
+    
+    @Test
+    // 選択したディレクトリをリストから除去。
+    public void testRemove(FxRobot robot) {
+        ListView<String> listView = robot.lookup("#SelectWorkPane2ListView").queryAs(ListView.class);
+        
+        // /home/jeisi/Downloads を選択。
+        listView.getSelectionModel().select("/home/jeisi/Downloads");
+        
+        // '-' Button をクリック。
+        robot.clickOn("#removeDirectoryButton");
+        
+        // リストは /home/jeisi/Controls のみとなっている。
+        assertEquals("[/home/jeisi/Controls]", listView.getItems().toString());
     }
 }

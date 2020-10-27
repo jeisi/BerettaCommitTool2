@@ -75,10 +75,6 @@ public class SelectWorkPane2Test {
         robot.clickOn("#addDirectoryButton");
         app.setDirectoryChooserFactory(() -> new DirectoryChooserBridgeMock(new File("/home/jeisi/Downloads")));
         robot.clickOn("#addDirectoryButton");
-
-        //while(myStage.isShowing()) {
-        //    Thread.sleep(1000);
-        //}
         
         // ディレクトリが一つ以上追加されれば OK Button は enabled.
         Button okButton = robot.lookup("#SelectWorkPane2OkButton").queryAs(Button.class);

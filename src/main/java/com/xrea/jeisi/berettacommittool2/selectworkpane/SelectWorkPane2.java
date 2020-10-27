@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -35,6 +36,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 /**
@@ -201,7 +203,19 @@ public class SelectWorkPane2 {
         Button addDirectoryButton = new Button("+");
         addDirectoryButton.setId("addDirectoryButton");
         addDirectoryButton.setOnAction(eh -> selectDirectory());
-        return addDirectoryButton;
+        addDirectoryButton.setStyle("-fx-font-family: monospace");
+        
+        Button removeDirectoryButton = new Button("-");
+        removeDirectoryButton.setId("removeDirectoryButton");
+        //removeDirectoryButton.setDisable(true);
+        removeDirectoryButton.setOnAction(eh -> removeDirectory());
+        removeDirectoryButton.setStyle("-fx-font-family: monospace");
+        removeDirectoryButton.disableProperty().bind(Bindings.createBooleanBinding(() -> listView.getSelectionModel().getSelectedIndices().size() == 0, listView.getSelectionModel().selectedIndexProperty()));
+        
+        VBox vbox = new VBox(addDirectoryButton, removeDirectoryButton);
+        vbox.setSpacing(5);
+        
+        return vbox;
     }
 
     boolean checkExist(String selectedItem) {
@@ -238,6 +252,16 @@ public class SelectWorkPane2 {
         listView.getSelectionModel().select(selectedDirectory);
         
         configInfo.setString("directoryHistory.lastChoosedDirectory", selectedDirectory);
+    }
+    
+    private void removeDirectory() {
+        var selectedItems = listView.getSelectionModel().getSelectedItems();
+        //XmlWriter.writeObject("selectedItems", selectedItems);
+        selectedItems.forEach((item) -> {
+            //XmlWriter.writeObject("listView.getItems()", listView.getItems());
+            directoriesList.remove(item);
+        });
+        listView.getSelectionModel().clearSelection();
     }
 
     private void cancel() {

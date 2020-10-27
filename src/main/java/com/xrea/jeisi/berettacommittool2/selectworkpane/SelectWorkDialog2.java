@@ -7,7 +7,6 @@ package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
-import static com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog.getWindowIdentifier;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import java.util.Optional;
 import javafx.scene.Parent;
@@ -52,9 +51,12 @@ public class SelectWorkDialog2 {
     public String getCurrentDirectory() {
         return selectWorkPane.getCurrentDirectory();
     }
-    
+
     private Parent build() {
         return selectWorkPane.build();
     }
 
+    static String getWindowIdentifier() {
+        return "selectworkdialog";
+    }
 }
