@@ -23,8 +23,6 @@ public class ExeCreatorWin extends ExeCreator {
 
     @Override
     public void exec() throws IOException {
-        XmlWriter.writeStartMethod("ExeCreatorWin.exec()");
-
         List<ProgramInfo> programInfos = new ArrayList<>();
         programInfos.add(new ProgramInfo("git", "git.exe", new String[]{"c:/Program Files/Git/bin/git.exe"}));
         programInfos.add(new ProgramInfo("WinMergeU", "WinMergeU.exe", new String[]{"c:/Program Files/WinMerge/WinMergeU.exe"}));
@@ -40,7 +38,5 @@ public class ExeCreatorWin extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("winmerge");
         }
-
-        XmlWriter.writeEndMethod();
     }
 }

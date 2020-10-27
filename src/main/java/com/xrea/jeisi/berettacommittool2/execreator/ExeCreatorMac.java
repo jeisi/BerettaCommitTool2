@@ -6,6 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -19,6 +21,13 @@ public class ExeCreatorMac extends ExeCreator {
 
     @Override
     public void exec() {
+        List<ProgramInfo> programInfos = new ArrayList<>();
+        programInfos.add(new ProgramInfo("git", "git", new String[]{"/usr/local/bin/git"}));
+        SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
+        if (wizard.getNullPrograms().size() > 0) {
+            wizard.exec();
+        }
+
         String difftool = configInfo.getDiffTool();
         if (difftool == null) {
             configInfo.setDiffTool("p4merge");

@@ -22,12 +22,9 @@ public class ExeCreatorUnix extends ExeCreator {
 
     @Override
     public void exec() {
-        XmlWriter.writeStartMethod("ExeCreatorUnix.exec()");
-        
         List<ProgramInfo> programInfos = new ArrayList<>();
         programInfos.add(new ProgramInfo("git", "git", new String[]{"/usr/bin/git"}));
         SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
-        XmlWriter.writeObject("wizard.getNullPrograms()", wizard.getNullPrograms());
         if (wizard.getNullPrograms().size() > 0) {
             wizard.exec();
         }
@@ -36,7 +33,5 @@ public class ExeCreatorUnix extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("meld");
         }
-        
-        XmlWriter.writeEndMethod();
     }
 }
