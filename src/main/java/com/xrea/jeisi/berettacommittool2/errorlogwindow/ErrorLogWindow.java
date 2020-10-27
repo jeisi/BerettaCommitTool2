@@ -115,7 +115,7 @@ public class ErrorLogWindow {
         if (m.find()) {
             String errorMessage = "\n"
                     + m.group(1) + " は有効なコマンドではありません。\n"
-                    + "Preference で適切な difftool 用コマンドを選択し直してください。";
+                    + "Preference で適切な difftool 用コマンドを選択し直してください。\n";
             appendErrorMessageCommon(errorMessage, DiffToolTab.getTitle());
             return;
         }
@@ -125,14 +125,14 @@ public class ErrorLogWindow {
         if (m.find()) {
             String errorMessage = "\n"
                     + "WinMergeU のパスが適切ではありません。\n"
-                    + "Preference で適切なパスを設定してください。";
+                    + "Preference で適切なパスを設定してください。\n";
             appendErrorMessageCommon(errorMessage, ProgramsTab.getTitle());
             return;
         }
     }
 
     private void appendProgramError(String message) {
-        appendErrorMessageCommon(message + "\nPreference で適切なパスを設定してください。", ProgramsTab.getTitle());
+        appendErrorMessageCommon(message + "\nPreference で適切なパスを設定してください。\n", ProgramsTab.getTitle());
     }
 
     private void appendErrorMessageCommon(String message, String defaultPage) {
