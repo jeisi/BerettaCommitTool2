@@ -91,7 +91,6 @@ public class GitStatusPaneTest {
 
     @Test
     public void testSetRepositories(FxRobot robot) throws InterruptedException {
-        System.out.println("GitStatusPaneTest.testSetRepositories()");
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
@@ -143,7 +142,15 @@ public class GitStatusPaneTest {
     @Test
     // refreshAll() が実行された時に、GitCommand.status() が正しく実行されるかどうか。
     public void testRefreshAll(FxRobot robot) throws IOException, InterruptedException {
-        System.out.println("GitStatusPaneTest.testRefreshAll()");
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testStatusRefreshAll.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        Path workDir = Paths.get(userDir, "src/test/resources/work");
 
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
@@ -151,21 +158,12 @@ public class GitStatusPaneTest {
         ArrayList<String> repositories = new ArrayList<>();
         repositories.add("beretta");
         repositories.add("beretta/gyp");
-        work.setRepositories(repositories, ".");
+        //work.setRepositories(repositories, ".");
+        work.setRepositories(repositories, workDir.toString());
 
         repositoriesPane.setRepositories(work);
         app.setRepositories(work);
 
-        Path berettaFile = Paths.get("./beretta");
-        MockGitStatusCommand berettaMockGitCommand = new MockGitStatusCommand(berettaFile, configInfo);
-
-        Path berettaGypFile = Paths.get("./beretta/gyp");
-        MockGitStatusCommand berettaGypMockGitCommand = new MockGitStatusCommand(berettaGypFile, configInfo);
-
-        MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(berettaFile, berettaMockGitCommand);
-        mockGitCommandFactory.setMockGitStatusCommand(berettaGypFile, berettaGypMockGitCommand);
-        app.setGitCommandFactory(mockGitCommandFactory);
         Platform.runLater(() -> repositoryTableView.getSelectionModel().selectAll());
         JTestUtility.waitForRunLater();
         app.refreshAll();
@@ -183,45 +181,43 @@ public class GitStatusPaneTest {
     // git status コマンド実行時に RepositoryNotFoundException 例外が発生した場合は、
     // RepositoriesPane のリポジトリ名を "beretta [error! repository not found: ...]" のようにする。
     public void testError(FxRobot robot) throws InterruptedException {
-        System.out.println("GitStatusPaneTest.testError()");
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
+        String userDir = System.getProperty("user.home");
+        Path workDir = Paths.get(userDir);
         var work = new RepositoriesInfo(repositoryTableView);
-        work.setRepositories(Arrays.asList("beretta"), ".");
+        work.setRepositories(Arrays.asList("."), workDir.toString());
         repositoriesPane.setRepositories(work);
         app.setRepositories(work);
 
-        Path workDir = Paths.get("./beretta");
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(workDir, configInfo);
-        MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(workDir, mockGitCommand);
-        app.setGitCommandFactory(mockGitCommandFactory);
         app.refreshAll();
-        while (work.getData(0).displayNameProperty().get().equals("beretta [updating...]")) {
+        while (work.getData(0).displayNameProperty().get().equals(". [updating...]")) {
             Thread.sleep(1000);
         }
 
-        assertThat("beretta [error! repository not found: repository not found: /home/jeisi/test/git/sandbox/work/beretta/beretta/gyp]")
+//        while (stage.isShowing()) {
+//            Thread.sleep(1000);
+//        }
+        assertThat(". [error! repository not found: /home/jeisi/.]")
                 .isEqualTo(work.getData(0).displayNameProperty().get());
 
-        //while (true) {
-        //    Thread.sleep(1000);
-        //}
     }
 
     @Test
-    public void testUpdating(FxRobot robot) throws InterruptedException {
-        System.out.println("GitStatusPaneTest.testUpdating()");
+    public void testUpdating(FxRobot robot) throws InterruptedException, IOException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testStatusUpdating.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir, "create");
+        Process process = pb.start();
+        int ret = process.waitFor();
+
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
+        Path workDir = Paths.get(userDir, "src/test/resources/work");
         var work = new RepositoriesInfo(repositoryTableView);
-        work.setRepositories(Arrays.asList("beretta"), ".");
+        work.setRepositories(Arrays.asList("beretta"), workDir.toString());
         repositoriesPane.setRepositories(work);
         app.setRepositories(work);
 
-        Path workDir = Paths.get("./beretta");
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(workDir, configInfo);
-        MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(workDir, mockGitCommand);
-        app.setGitCommandFactory(mockGitCommandFactory);
         app.refreshAll();
         JTestUtility.waitForRunLater();
 
@@ -235,10 +231,11 @@ public class GitStatusPaneTest {
         // 更新完了後作業ディレクトリがクリーンな時の表示は "beretta"
         assertThat("beretta").isEqualTo(work.getData(0).displayNameProperty().get());
 
-        mockGitCommand = new MockGitStatusCommand(workDir, configInfo);
-        mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(workDir, mockGitCommand);
-        app.setGitCommandFactory(mockGitCommandFactory);
+        // 作業ディレクトリに編集済みのファイルを一つ生成
+        pb = new ProcessBuilder("bash", bashCommand.toString(), userDir, "update");
+        process = pb.start();
+        ret = process.waitFor();
+
         app.refreshAll();
         JTestUtility.waitForRunLater();
         while (work.getData(0).displayNameProperty().get().equals("beretta [updating...]")) {

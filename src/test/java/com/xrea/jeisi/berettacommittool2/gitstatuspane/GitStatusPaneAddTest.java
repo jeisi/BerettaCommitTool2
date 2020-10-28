@@ -15,6 +15,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,12 +94,21 @@ public class GitStatusPaneAddTest {
 
     @Test
     public void testAdd(FxRobot robot) throws InterruptedException, IOException {
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testStatusAdd.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
         ArrayList<String> repositories = new ArrayList<>();
         repositories.add(".");
-        work.setRepositories(repositories, "beretta");
+        work.setRepositories(repositories, workDir.toString());
 
         RepositoryData repositoryData = work.getData(0);
         List<GitStatusData> berettaStatus = new ArrayList<>();
@@ -119,19 +129,12 @@ public class GitStatusPaneAddTest {
         //assertThat(gitStatusTableView.getItems().get(0).toString()).isEqualTo("{?, ?, gyp.sh, .}");
         assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
 
-        Path berettaFile = Paths.get("beretta/.");
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile, configInfo);
-
-        MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile, configInfo));
-        app.setGitCommandFactory(mockGitCommandFactory);
-
         // git add 実行後、git status の更新内容を反映させる。
         //System.out.println("--- git add 実行後、git status の更新内容を反映させる。 ---");
         gitStatusTableView.getSelectionModel().select(0);
         JTestUtility.waitForRunLater();
         robot.clickOn("#gitStatusMenu");
+        robot.clickOn("#gitStatusAddSubMenu");
         robot.clickOn("#gitStatusAddMenuItem", Motion.DIRECT);
         JTestUtility.waitForRunLater();
         int nTimeOutCounter = 0;
@@ -144,18 +147,28 @@ public class GitStatusPaneAddTest {
     @Test
     // git add 実行後の git status で、その行がなくなった時は、その行を削除。
     public void testAdd_DeleteLine(FxRobot robot) throws InterruptedException, IOException {
-        System.out.println("testAdd_DeleteLine()");
+        XmlWriter.writeStartMethod("testAdd_DeleteLine()");
+
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testStatusAddDelete.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+
         JTestUtility.waitForRunLater();
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
         ArrayList<String> repositories = new ArrayList<>();
         repositories.add(".");
-        work.setRepositories(repositories, "beretta");
+        work.setRepositories(repositories, workDir.toString());
 
         RepositoryData repositoryData = work.getData(0);
         List<GitStatusData> berettaStatus = new ArrayList<>();
-        berettaStatus.add(new GitStatusData("?", "?", "gyp.sh", repositoryData));
+        berettaStatus.add(new GitStatusData("U", "D", "tools00.txt", repositoryData));
         work.getData(0).setGitStatusDatas(FXCollections.observableArrayList(berettaStatus));
 
         repositoriesPane.setRepositories(work);
@@ -173,46 +186,50 @@ public class GitStatusPaneAddTest {
         while (gitStatusTableView.getItems().toString().equals("") && ++nCounter < 10) {
             Thread.sleep(100);
         }
-        assertEquals("[{?, ?, gyp.sh, .}]", gitStatusTableView.getItems().toString());
-
-        Path berettaFile = Paths.get("beretta/.");
-        MockGitStatusCommand mockGitCommand = new MockGitStatusCommand(berettaFile, configInfo);
-
-        MockGitCommandFactory mockGitCommandFactory = new MockGitCommandFactory();
-        mockGitCommandFactory.setMockGitStatusCommand(berettaFile, mockGitCommand);
-        mockGitCommandFactory.setMockGitAddCommand(berettaFile, new MockGitAddCommand(berettaFile, configInfo));
-        app.setGitCommandFactory(mockGitCommandFactory);
+        assertEquals("[{U, D, tools00.txt, .}]", gitStatusTableView.getItems().toString());
 
         // git add 実行後の git status で行がなくなった場合。
-        System.out.println("--- git add 実行後の git status で行がなくなった場合。---");
+        XmlWriter.writeMessage("--- git add 実行後の git status で行がなくなった場合。---");
 
         gitStatusTableView.getSelectionModel().select(0);
         JTestUtility.waitForRunLater();
         robot.clickOn("#gitStatusMenu");
+        robot.clickOn("#gitStatusAddSubMenu");
         robot.clickOn("#gitStatusAddMenuItem", Motion.DIRECT);
         JTestUtility.waitForRunLater();
         nCounter = 0;
-        while (!gitStatusTableView.getItems().toString().equals("[]") && ++nCounter < 10) {
+        while (!gitStatusTableView.getItems().toString().equals("[]") && ++nCounter < 1000) {
             Thread.sleep(1000);
-            System.out.println("Thread.sleep(): " + nCounter);
+            XmlWriter.writeMessage("Thread.sleep(): " + nCounter);
         }
         assertEquals("[]", gitStatusTableView.getItems().toString());
 
         //while(true) {
         //    Thread.sleep(1000);
         //}
+        XmlWriter.writeEndMethod();
     }
 
     @Test
     // git add 実行後の git status で状態が変わった場合に、それに対応してメニューの選択条件も変わる。
     public void testGitAddSelectionSelector_AfterGitStatus(FxRobot robot) throws IOException, InterruptedException {
-        System.out.println("testGitAddSelectionSelector_AfterGitStatus()");
+        XmlWriter.writeStartMethod("testGitAddSelectionSelector_AfterGitStatus()");
+
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testStatusAddSelector.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
+
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);
         var work = new RepositoriesInfo(repositoryTableView);
 
         ArrayList<String> repositories = new ArrayList<>();
         repositories.add(".");
-        work.setRepositories(repositories, "beretta");
+        work.setRepositories(repositories, workDir.toString());
 
         RepositoryData repositoryData = work.getData(0);
         List<GitStatusData> berettaStatus = new ArrayList<>();
@@ -235,34 +252,36 @@ public class GitStatusPaneAddTest {
         MenuItem addMenuItem = getMenuItem(statusMenu, "gitStatusAddMenuItem");
         assertFalse(addMenuItem.isDisable());
 
-        Path workDir = repositoryData.getPath();
-        MockGitStatusCommand mockGitStatusCommand = new MockGitStatusCommand(workDir, configInfo);
-        MockGitCommandFactory factory = new MockGitCommandFactory();
-        factory.setMockGitStatusCommand(workDir, mockGitStatusCommand);
-        MockGitAddCommand mockGitAddCommand = new MockGitAddCommand(workDir, configInfo);
-        factory.setMockGitAddCommand(workDir, mockGitAddCommand);
-        app.setGitCommandFactory(factory);
-
         robot.clickOn("#gitStatusMenu");
+        robot.clickOn("#gitStatusAddSubMenu");
         robot.clickOn("#gitStatusAddMenuItem", Motion.DIRECT);
         JTestUtility.waitForRunLater();
         int nTimeoutCounter = 0;
         while (!gitStatusTableView.getItems().toString().equals("[{A, , update.rb, .}]") && ++nTimeoutCounter < 10) {
             Thread.sleep(1000);
         }
-        assertEquals("[{A, , update.rb, .}]", gitStatusTableView.getItems().toString());
+        assertEquals("[{M, , update.rb, .}]", gitStatusTableView.getItems().toString());
         // git add したことにより状態が変わったので、"Git add" MenuItem は選択不可になる。
         assertTrue(addMenuItem.isDisable());
 
         //while(true) {
         //    Thread.sleep(1000);
         //}
+        XmlWriter.writeEndMethod();
     }
 
     private MenuItem getMenuItem(Menu menu, String menuItemId) {
-        //System.out.println("GitStatusPaneAddTest.getMenuItem()");
-        //System.out.println("menu.getItems(): " + menu.getItems().toString());
-        List<MenuItem> menuItems = menu.getItems().stream().filter(item -> menuItemId.equals(item.getId())).collect(Collectors.toList());
-        return menuItems.get(0);
+        for (MenuItem item : menu.getItems()) {
+            if (item instanceof Menu) {
+                MenuItem subItem = getMenuItem((Menu) item, menuItemId);
+                if (subItem != null) {
+                    return subItem;
+                }
+            }
+            if (menuItemId.equals(item.getId())) {
+                return item;
+            }
+        }
+        return null;
     }
 }

@@ -41,7 +41,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
     public List<GitStatusData> status(RepositoryData repositoryData, List<GitStatusData> datas) throws IOException, GitCommandException, GitConfigException, InterruptedException {
         List<String> command = getStatusCommand(datas);
         List<String> displayCommand = getStatusCommand(datas);
-        List<String> lines;
+        String[] lines;
         try {
             lines = execProcessWithOutput(command, displayCommand);
         } catch (GitCommandException e) {
@@ -67,7 +67,8 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         return command;
     }
 
-    private static List<GitStatusData> getStatusDatas(List<String> lines, RepositoryData repositoryData) throws IOException {
+    private static List<GitStatusData> getStatusDatas(String[] lines, RepositoryData repositoryData) throws IOException {
+        //XmlWriter.writeObject("lines", Arrays.toString(lines));
         Pattern pattern = Pattern.compile("^(.)(.) (.+)( -> (.+))?");
         List<GitStatusData> list = new ArrayList<>();
         for (var line : lines) {

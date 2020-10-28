@@ -67,8 +67,13 @@ public class XmlWriter {
         if (line < 0) {
             writePrintf("%s<object>%s</object>\n", getTabSpace(), text);
         } else {
-            writePrintf("%s<object line='%d'>%s</object>\n", getTabSpace(), line, text);            
+            writePrintf("%s<object line='%d'>%s</object>\n", getTabSpace(), line, text);
         }
+    }
+
+    public static void writeMessage(String message) {
+        writePreStartTag();
+        writePrintf("%s<message>%s</message>\n", getTabSpace(), message);
     }
 
     public static void writeStatement(String statement) {

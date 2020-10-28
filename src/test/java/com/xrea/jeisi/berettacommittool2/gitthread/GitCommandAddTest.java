@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.DirectoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
@@ -69,6 +70,8 @@ public class GitCommandAddTest {
     @Test
     // ' D' 状態のファイルに対して git add コマンドを実行したら 'D ' になる。
     public void testAddDeletedFile() throws IOException, InterruptedException, GitCommandException, GitConfigException {
+        XmlWriter.writeStartMethod("GitCommandAddTest.testAddDeletedFile()");
+
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAddDeleted.sh");
 
@@ -79,17 +82,19 @@ public class GitCommandAddTest {
         RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         Path workDir = Paths.get(userDir, "src/test/resources/work/beretta");
         GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
-        addCommand.add(new GitStatusData("?", "?", "a.txt", repositoryData));
+        addCommand.add(new GitStatusData("?", "D", "a.txt", repositoryData));
 
         GitStatusCommand statusCommand = new GitStatusCommand(workDir, configInfo);
         List<GitStatusData> list = statusCommand.status(repositoryData, new GitStatusData("?", "?", "a.txt", repositoryData));
         assertEquals("[{D, , a.txt, .}]", list.toString());
+
+        XmlWriter.writeEndMethod();
     }
 
     @Test
     public void testAddWithProgressWindow() throws IOException, InterruptedException, GitConfigException {
         XmlWriter.writeStartMethod("GitCommandAddTest.testAddWithProgressWindow()");
-        
+
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAddUpdate.sh");
 
@@ -114,13 +119,13 @@ public class GitCommandAddTest {
         datas.add(new GitStatusData("?", "?", "test10.cpp", repositoryData));
         addCommand.add(datas);
         Thread.sleep(1000);
-        
+
         XmlWriter.writeEndMethod();
     }
-    
+
     @Test
     public void testAddUpdate() throws IOException, InterruptedException, GitConfigException {
-                String userDir = System.getProperty("user.dir");
+        String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAddUpdate.sh");
 
         ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
@@ -132,5 +137,31 @@ public class GitCommandAddTest {
         addCommand.setProgressWindow(progressWindow);
         addCommand.addUpdate();
         Thread.sleep(1000);
+    }
+
+    @Test
+    // 作業ディレクトリが存在していない場合は、DirectoryNotFoundException がスローされる。
+    public void testDirectoryNotFoundExceptin() throws IOException, InterruptedException, GitConfigException {
+        XmlWriter.writeStartMethod("GitCommandAddTest.testDirectoryNotFoundExceptin()");
+
+        String userDir = System.getProperty("user.dir");
+        Path bashCommand = Paths.get(userDir, "src/test/resources/testAddUpdate.sh");
+
+        ProcessBuilder pb = new ProcessBuilder("bash", bashCommand.toString(), userDir);
+        Process process = pb.start();
+        int ret = process.waitFor();
+
+        //Path workDir = Paths.get(userDir, "src/test/resources/work/fakeberetta");
+        Path workDir = Paths.get("beretta/.");
+        GitAddCommand addCommand = new GitAddCommand(workDir, configInfo);
+        RepositoryData repositoryData = new RepositoryData(true, ".", workDir);
+        DirectoryNotFoundException e = assertThrows(DirectoryNotFoundException.class, () -> addCommand.add(new GitStatusData("?", "?", "gyp.sh", repositoryData)));
+        String expected = "command error:\n"
+                + "[beretta/.]\n"
+                + "$ git add gyp.sh\n"
+                + "beretta/. doesn't exist.\n";
+        assertEquals(expected, e.getMessage());
+
+        XmlWriter.writeEndMethod();
     }
 }

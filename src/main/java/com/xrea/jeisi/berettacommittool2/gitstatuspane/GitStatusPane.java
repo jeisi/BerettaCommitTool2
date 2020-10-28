@@ -334,15 +334,18 @@ public class GitStatusPane implements BaseGitPane {
         // TODO: 選択できる条件はほぼ git add と同じだが、厳密にはまだブランチがない時は選択不可。
 
         MenuItem add_uMenuItem = new MenuItem("git add -u");
+        add_uMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN));
         add_uMenuItem.setId("gitStatusAddUpdateMenuItem");
         add_uMenuItem.setOnAction(eh -> gitAddUpdate());
         gitAddUpdateSituationSelector.getEnableMenuItems().add(add_uMenuItem);
 
         MenuItem addAllMenuItem = new MenuItem("git add -A");
+        addAllMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.A, KeyCombination.ALT_DOWN, KeyCombination.CONTROL_DOWN));
         addAllMenuItem.setOnAction(eh -> gitAddAll());
         gitAddAllSituationSelector.getEnableMenuItems().add(addAllMenuItem);
 
         Menu addSubMenu = new Menu("git add");
+        addSubMenu.setId("gitStatusAddSubMenu");
         addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem);
         gitAddMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem));
         gitAddMenuSituationSelector.getEnableMenuItems().add(addSubMenu);

@@ -33,7 +33,11 @@ public class GitAddCommand extends BaseMultiGitCommand {
     }
 
     public void add(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
+        XmlWriter.writeStartMethod("GitAddCommand.add()");
+        
         execEachFile(datas, (data) -> execProcess("git", "add", data.getFileName()));
+
+        XmlWriter.writeEndMethod();
     }
 
     public void add(GitStatusData data) throws IOException, GitConfigException, InterruptedException {
@@ -51,9 +55,9 @@ public class GitAddCommand extends BaseMultiGitCommand {
     }
 
     private void addFilesByOption(String option) throws GitConfigException, IOException, InterruptedException {
-        List<String> lines = execProcessWithOutput("git", "add", "--dry-run", option);
-        if (progressWindow != null && lines.size() > 1) {
-            progressModel = new ProgressModel(String.format("git %s ...", lines.get(0)), lines.size());
+        String[] lines = execProcessWithOutput("git", "add", "--dry-run", option);
+        if (progressWindow != null && lines.length > 1) {
+            progressModel = new ProgressModel(String.format("git %s ...", lines[0]), lines.length);
             Platform.runLater(() -> {
                 progressWindow.open();
                 progressWindow.addProgressModel(progressModel);
