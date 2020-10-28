@@ -5,14 +5,17 @@
  */
 package com.xrea.jeisi.berettacommittool2.shellscript;
 
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteResultHandler;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 
@@ -22,8 +25,9 @@ import org.apache.commons.exec.PumpStreamHandler;
  */
 public class ShellScript {
 
-    private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private OutputStream outputStream = new ByteArrayOutputStream();
     private final File workDir;
+    private ExecuteResultHandler resultHandler;
 
     public ShellScript(File workDir) {
         this.workDir = workDir;
@@ -32,14 +36,23 @@ public class ShellScript {
     public OutputStream getOutputStream() {
         return outputStream;
     }
+
+    public void setOutputStream(OutputStream outputStream) {
+        this.outputStream = outputStream;
+    }
     
+    public void setResultHandler(ExecuteResultHandler resultHandler) {
+        this.resultHandler = resultHandler;
+    }
+
     public int exec(String exe, String[] options/*, List<String> displayCommand*/) throws IOException {
-        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, outputStream);
-        int result = execCommon(exe, options, /*displayCommand,*/ workDir, streamHandler, outputStream, /*handleQuoting=*/ false);
+        //PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, outputStream);
+        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        int result = execCommon(exe, options, streamHandler, /*handleQuoting=*/ false);
         return result;
     }
 
-    public String[] execWithOutput(String exe, String[] options /*, List<String> displayCommand,*/ ) throws IOException {
+    public String[] execWithOutput(String exe, String[] options /*, List<String> displayCommand,*/) throws IOException {
         CommandLine commandLine = new CommandLine(exe);
         commandLine.addArguments(options);
 
@@ -59,7 +72,8 @@ public class ShellScript {
         }
     }
 
-    private static int execCommon(String exe, String[] options, /*List<String> displayCommand,*/ File workDir, PumpStreamHandler streamHandler, OutputStream out, boolean handleQuoting) throws IOException {
+    private int execCommon(String exe, String[] options, PumpStreamHandler streamHandler, boolean handleQuoting) throws IOException {
+        XmlWriter.writeStartMethod("ShellScript.execCommon(%s %s)", exe, Arrays.toString(options));
         //printCommandName(displayCommand, workDir, out);
 
         CommandLine commandLine = new CommandLine(exe);
@@ -69,8 +83,15 @@ public class ShellScript {
         executor.setWorkingDirectory(workDir);
         executor.setStreamHandler(streamHandler);
         executor.setExitValue(0);
-        int exitValue = executor.execute(commandLine);
-        return exitValue;
+        if (resultHandler == null) {
+            int ret = executor.execute(commandLine);
+            XmlWriter.writeEndMethodWithReturnValue(ret);
+            return ret;
+        } else {
+            executor.execute(commandLine, resultHandler);
+            XmlWriter.writeEndMethodWithReturnValue(0);
+            return 0;
+        }
     }
 
     /*
@@ -85,6 +106,5 @@ public class ShellScript {
         out.write(builder.toString().getBytes());
         out.flush();
     }
-    */
-
+     */
 }

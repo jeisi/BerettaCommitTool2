@@ -43,7 +43,7 @@ public class BaseSingleGitCommand {
         //XmlWriter.writeObject("repository", repository.toString());
         ShellScript shellScript = new ShellScript(repository);
         try {
-            shellScript.exec(args.get(0), args.subList(1, args.size()).toArray(new String[args.size() - 1]));
+            shellScript.exec(getCommand(args.get(0)), args.subList(1, args.size()).toArray(new String[args.size() - 1]));
         } catch (ExecuteException ex) {
             List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
             GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);
@@ -69,7 +69,7 @@ public class BaseSingleGitCommand {
     protected String[] execProcessWithOutput(List<String> command, List<String> displayCommand) throws IOException, InterruptedException, GitConfigException {
         ShellScript shellScript = new ShellScript(repository);
         try {
-            return shellScript.execWithOutput(command.get(0), command.subList(1, command.size()).toArray(new String[command.size() - 1]));
+            return shellScript.execWithOutput(getCommand(command.get(0)), command.subList(1, command.size()).toArray(new String[command.size() - 1]));
         } catch (ExecuteException ex) {
             List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
             GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);
@@ -93,14 +93,15 @@ public class BaseSingleGitCommand {
         return execProcessWithOutput(command, command);
     }
 
-    protected String[] getCommand(String... args) throws GitConfigException {
-        String command = configInfo.getProgramEx(args[0]);
+    protected String getCommand(String commandIdentifier) throws GitConfigException {
+        String command = configInfo.getProgramEx(commandIdentifier);
         if (command != null) {
-            args[0] = command;
+            return command;
         }
-        return args;
+        return commandIdentifier;
     }
 
+    /*
     protected List<String> getCommand(List<String> args) throws GitConfigException {
         String command = configInfo.getProgramEx(args.get(0));
         if (command != null) {
@@ -108,6 +109,7 @@ public class BaseSingleGitCommand {
         }
         return args;
     }
+    */
 
     protected static List<String> getErrorStream(Process p) throws IOException {
         List<String> lines = new ArrayList<>();
