@@ -35,6 +35,9 @@ public class ProgramsTabTest {
         configInfo.setProgram("git", "/usr/bin/git");
         configInfo.setProgram("WinMergeU", "c:/Programs Files/WinMerge/WinMergeU.exe");
 
+        // 存在しないキーに対して getProgram() を行うと、その値は "" になる。
+        configInfo.getProgram("git2");
+        
         TabPane tabPane = new TabPane(new ProgramsTab(stage, configInfo));
         Scene scene = new Scene(tabPane);
         stage.setScene(scene);

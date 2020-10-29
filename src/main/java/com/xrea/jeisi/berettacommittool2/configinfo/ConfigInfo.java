@@ -105,16 +105,17 @@ public class ConfigInfo {
     public String getProgram(String name) {
         var program = (String) map.get("program." + name);
         if (program == null) {
-            return null;
+            map.put("program." + name, "");
+            return "";
         }
         return program.replace('\\', '/');
     }
 
     public String getProgramEx(String name) throws GitConfigException {
         var program = getProgram(name);
-        if (program == null) {
-            throw new FaultyProgramException(name + " のパス指定が null です。");
-        }
+//        if (program == null) {
+//            throw new FaultyProgramException(name + " のパス指定が null です。");
+//        }
         if (program.equals("")) {
             throw new FaultyProgramException(name + " のパス指定がされていません。");
         }
