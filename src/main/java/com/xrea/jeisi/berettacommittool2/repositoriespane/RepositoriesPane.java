@@ -5,15 +5,14 @@
  */
 package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
+import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.ListChangeListener;
@@ -44,7 +43,8 @@ public class RepositoriesPane {
     private ConfigInfo configInfo;
     private ErrorLogWindow errorLogWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
-
+    private RefreshListener refreshListener;
+    
     public void setRepositories(RepositoriesInfo work) {
         datas = work.getDatas();
         tableView.setItems(datas);
@@ -58,6 +58,10 @@ public class RepositoriesPane {
         this.errorLogWindow = errorLogWindow;
     }
 
+    public void setRefreshListener(RefreshListener listener) {
+        refreshListener = listener;
+    }
+    
     public TableView<RepositoryData> getTableView() {
         return tableView;
     }
@@ -173,13 +177,22 @@ public class RepositoriesPane {
     }
 
     private ContextMenu buildContextMenu() {
+        MenuItem refreshAllMenuItem = new MenuItem("Refresh all");
+        refreshAllMenuItem.setOnAction(eh -> fireRefreshAll());
+        
+        MenuItem refreshCheckedMenuItem = new MenuItem("Refresh checked");
+        refreshCheckedMenuItem.setOnAction(eh -> fireRefreshChecked());
+        
+        MenuItem refreshSelectedMenuItem = new MenuItem("Refresh selected");
+        refreshSelectedMenuItem.setOnAction(eh -> fireRefreshSelected());
+        
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(copyFilePathMenuItem, openFileManagerMenuItem);
+        ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
 
@@ -224,5 +237,17 @@ public class RepositoriesPane {
         RepositoryData repositoryData = tableView.getSelectionModel().getSelectedItems().get(0);
         Path path = repositoryData.getPath();
         FileBrowser.getInstance().setErrorLogWindow(errorLogWindow).browseDirectory(path);
+    }
+    
+    private void fireRefreshAll() {
+        refreshListener.refreshAll();
+    }
+    
+    private void fireRefreshSelected() {
+        refreshListener.refreshSelected();
+    }
+    
+    private void fireRefreshChecked() {
+        refreshListener.refreshChecked();
     }
 }

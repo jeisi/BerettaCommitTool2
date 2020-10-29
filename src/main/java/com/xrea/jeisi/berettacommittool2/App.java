@@ -3,7 +3,8 @@ package com.xrea.jeisi.berettacommittool2;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.BaseGitPane;
+import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
+import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.preferencewindow.PreferenceWindow;
@@ -42,7 +43,7 @@ import javafx.stage.Stage;
 /**
  * JavaFX App
  */
-public class App extends Application {
+public class App extends Application implements RefreshListener {
 
     private ErrorLogWindow errorLogWindow;
     private StyleManager styleManager;
@@ -144,6 +145,7 @@ public class App extends Application {
         repositoriesPane = new RepositoriesPane();
         repositoriesPane.setConfig(configInfo);
         repositoriesPane.setErrorLogWindow(errorLogWindow);
+        repositoriesPane.setRefreshListener(this);
 
         gitPanes = new ArrayList<>();
         gitPanes.add(new GitStatusPane(configInfo));
@@ -342,14 +344,20 @@ public class App extends Application {
 
     }
 
-    private void refreshChecked() {
+    @Override
+    public void refreshAll() {
+        refreshAll(topDir);
+    }
+    
+    @Override
+    public void refreshChecked() {
         gitPanes.forEach(pane -> {
-            //pane.setRepositories(repositoriesInfo);
             pane.refreshChecked();
         });
     }
 
-    private void refreshSelected() {
+    @Override
+    public void refreshSelected() {
         gitPanes.forEach(pane -> pane.refreshSelected());
     }
 

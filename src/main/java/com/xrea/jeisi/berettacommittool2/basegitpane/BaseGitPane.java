@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.xrea.jeisi.berettacommittool2.gitstatuspane;
+package com.xrea.jeisi.berettacommittool2.basegitpane;
 
-import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import javafx.scene.Parent;
 import javafx.scene.control.Menu;
@@ -14,11 +13,8 @@ import javafx.scene.control.Menu;
  *
  * @author jeisi
  */
-public interface BaseGitPane {
+public interface BaseGitPane extends RefreshListener {
     public void close();
-    public void refreshAll();
-    public void refreshChecked();
-    public void refreshSelected();
     public void saveConfig();
     //public void setConfigInfo(ConfigInfo configInfo);
     public void setRepositories(RepositoriesInfo work);
