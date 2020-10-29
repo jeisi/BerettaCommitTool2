@@ -92,6 +92,7 @@
                 <version>0.0.4</version>
                 <configuration>
                     <mainClass>com.xrea.jeisi.berettacommittool2.App</mainClass>
+                    <options>-Dfile.encoding=UTF-8</options>
                 </configuration>
             </plugin>
             <plugin>
