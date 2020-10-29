@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.JUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommitNoMessageException;
@@ -82,7 +83,8 @@ public class GitCommitCommand extends BaseSingleGitCommand {
 
     public String readCommitEditMsg() throws GitConfigException, IOException, InterruptedException {
         String[] lines = execProcessWithOutput("git", "rev-parse", "--git-dir");
-        Path messagePath = Paths.get(repository.toString(), lines[0], "COMMIT_EDITMSG");
+        //Path messagePath = Paths.get(repository.toString(), lines[0], "COMMIT_EDITMSG");
+        Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "COMMIT_EDITMSG");
         if(!Files.exists(messagePath)) {
             return "";
         }
