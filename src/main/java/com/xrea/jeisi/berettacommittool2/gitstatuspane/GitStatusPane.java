@@ -62,6 +62,8 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -184,8 +186,10 @@ public class GitStatusPane implements BaseGitPane {
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         //tableView.setItems(aggregated.getAggregatedList());
-        var filteredList = aggregated.getAggregatedList().filtered(null);
-        tableView.setItems(filteredList);
+        var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
+        var sortableData = new SortedList<GitStatusData>(filteredList);
+        tableView.setItems(sortableData);
+        sortableData.comparatorProperty().bind(tableView.comparatorProperty());
         filterPane.setFilteredList(filteredList);
         updateSituationSelectors();
     }
