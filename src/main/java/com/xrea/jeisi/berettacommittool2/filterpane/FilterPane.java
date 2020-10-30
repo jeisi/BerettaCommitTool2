@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.filterpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
+import java.util.function.Predicate;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -30,6 +31,7 @@ public class FilterPane {
     private FilteredList<GitStatusData> filteredList;
     private final ConfigInfo configInfo;
     private final String identifier;
+    private Predicate<GitStatusData> predicate;
 
     public FilterPane(ConfigInfo configInfo, String identifier) {
         this.configInfo = configInfo;
@@ -80,6 +82,7 @@ public class FilterPane {
 
     public void setFilteredList(FilteredList<GitStatusData> filteredList) {
         this.filteredList = filteredList;
+        this.filteredList.setPredicate(predicate);
     }
 
     public void saveConfig() {
@@ -90,21 +93,24 @@ public class FilterPane {
     
     private void filterTextFieldOnChange() {
         if (!enabled) {
+            predicate = null;
             filteredList.setPredicate(null);
             return;
         }
 
         String text = textField.getText();
         if (text.isEmpty()) {
+            predicate = null;
             filteredList.setPredicate(null);
             return;
         }
 
         boolean isCaseInsensitive = this.caseInsensitive.isSelected();
         if (regexpCheckBox.isSelected()) {
-            filteredList.setPredicate(new RegexpPredicate(text, isCaseInsensitive));
+            predicate = new RegexpPredicate(text, isCaseInsensitive);
         } else {
-            filteredList.setPredicate(new FixedPredicate(text, isCaseInsensitive));
+            predicate = new FixedPredicate(text, isCaseInsensitive);
         }
+        filteredList.setPredicate(predicate);
     }
 }
