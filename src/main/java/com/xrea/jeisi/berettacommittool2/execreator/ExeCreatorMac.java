@@ -23,6 +23,7 @@ public class ExeCreatorMac extends ExeCreator {
     public void exec() {
         List<ProgramInfo> programInfos = new ArrayList<>();
         programInfos.add(new ProgramInfo("git", "git", new String[]{"/usr/local/bin/git"}));
+        programInfos.add(new ProgramInfo("gitk", "gitk", new String[]{"/usr/local/bin/gitk"}));
         SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
         if (wizard.getNullPrograms().size() > 0) {
             wizard.exec();

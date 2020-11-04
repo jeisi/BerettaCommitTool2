@@ -41,4 +41,19 @@ public class ProgramInfo {
     public List<String> getCandidates() {
         return candidates;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        builder.append(identifier);
+        builder.append(",");
+        builder.append(exe);
+        builder.append(",");
+        builder.append("{");
+        builder.append(String.join(",", candidates));
+        builder.append("}");
+        builder.append("}");
+        return builder.toString();
+    }
 }

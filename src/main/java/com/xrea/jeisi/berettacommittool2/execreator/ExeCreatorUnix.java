@@ -24,6 +24,7 @@ public class ExeCreatorUnix extends ExeCreator {
     public void exec() {
         List<ProgramInfo> programInfos = new ArrayList<>();
         programInfos.add(new ProgramInfo("git", "git", new String[]{"/usr/bin/git"}));
+        programInfos.add(new ProgramInfo("gitk", "gitk", new String[]{"/usr/bin/gitk"}));
         SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
         if (wizard.getNullPrograms().size() > 0) {
             wizard.exec();

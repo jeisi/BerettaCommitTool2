@@ -68,7 +68,7 @@ public abstract class ExeCreator {
                 String line = lists.get(index);
                 Matcher m = p.matcher(line);
                 if (m.find()) {
-                    String program = configInfo.getProgram(m.group(1));
+                    String program = configInfo.getProgram(m.group(1), null);
                     if(program == null) {
                         throw new FileNotFoundException(m.group(1) + "に対応するプログラムが指定されていません。");
                     }

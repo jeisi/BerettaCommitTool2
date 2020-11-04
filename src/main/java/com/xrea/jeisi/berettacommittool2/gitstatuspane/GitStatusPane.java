@@ -26,6 +26,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitRmCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitUnstageCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
@@ -40,6 +41,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckIgnoreSelecti
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutHeadSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutOursTheirsSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitLogSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRemoveSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
@@ -118,8 +120,9 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitCheckoutOursTheirsSituationSelector = new SituationSelector();
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
-    private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final SituationSelector gitCheckIgnoreSituationSelector = new SituationSelector();
+    private final SituationSelector gitLogSituationSelector = new SituationSelector();
+    private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -330,6 +333,7 @@ public class GitStatusPane implements BaseGitPane {
         gitRmSituationSelector.setSituation(new GitRemoveSelectionSituation(selectionModel));
         deleteSituationSelector.setSituation(new DeleteSelectionSituation(selectionModel));
         gitCheckIgnoreSituationSelector.setSituation(new GitCheckIgnoreSelectionSituation(selectionModel));
+        gitLogSituationSelector.setSituation(new GitLogSelectionSituation(selectionModel));
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
             @Override
@@ -421,6 +425,26 @@ public class GitStatusPane implements BaseGitPane {
         gitDiffToolSituationSelector.setSituation(new HierarchyMenuSelectionSituation(diffMenuItem, diffCachedMenuItem));
         gitDiffToolSituationSelector.getEnableMenuItems().add(diffSubMenu);
 
+        MenuItem gitkMenuItem = new MenuItem("gitk <file>");
+        gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
+
+        MenuItem gitkAllMenuItem = new MenuItem("gitk --all <file>");
+        gitkAllMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ false));
+
+        MenuItem gitkSimplifyMergesMenuItem = new MenuItem("gitk --simplify-merges <file>");
+        gitkSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ true));
+
+        MenuItem gitkAllSimpifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges <file>");
+        gitkAllSimpifyMergesMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCombination.ALT_DOWN));
+        gitkAllSimpifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
+
+        MenuItem gitkWithOptionsMenuItem = new MenuItem("gitk...");
+
+        Menu gitkSubMenu = new Menu("gitk");
+        gitkSubMenu.getItems().addAll(gitkMenuItem, gitkAllMenuItem, gitkSimplifyMergesMenuItem, gitkAllSimpifyMergesMenuItem, gitkWithOptionsMenuItem);
+        gitLogSituationSelector.getEnableMenuItems().addAll(gitkSubMenu.getItems());
+        gitLogSituationSelector.getEnableMenuItems().add(gitkSubMenu);
+
         MenuItem commitMenuItem = new MenuItem("git commit");
         commitMenuItem.setId("gitStatusCommitMenuItem");
         commitMenuItem.setDisable(true);
@@ -458,7 +482,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -494,15 +518,20 @@ public class GitStatusPane implements BaseGitPane {
         checkoutOursButton.setOnAction(eh -> gitCheckoutOurs());
         gitCheckoutOursTheirsSituationSelector.getVisibleButotns().add(checkoutOursButton);
 
-        Button diffButton = new Button("Diff");
+        Button diffButton = new Button("diff");
         diffButton.setTooltip(new Tooltip("git difftool <file>"));
         diffButton.setOnAction(eh -> gitDiff());
         gitAddPatchSituationSelector.getVisibleButotns().add(diffButton);
 
-        Button diffCachedButton = new Button("Diff");
+        Button diffCachedButton = new Button("diff");
         diffCachedButton.setTooltip(new Tooltip("git difftool --cached <file>"));
         diffCachedButton.setOnAction(eh -> gitDiffCached());
         gitUnstageSingleSituationSelector.getVisibleButotns().add(diffCachedButton);
+
+        Button gitLogButton = new Button("log");
+        gitLogButton.setTooltip(new Tooltip("gitk --all --simplify-merges <files>"));
+        gitLogButton.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
+        gitLogSituationSelector.getVisibleButotns().add(gitLogButton);
 
         Button deleteButton = new Button("delete");
         deleteButton.setTooltip(new Tooltip("rm <file>..."));
@@ -510,13 +539,17 @@ public class GitStatusPane implements BaseGitPane {
         deleteSituationSelector.getVisibleButotns().add(deleteButton);
 
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton, deleteButton);
+        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, gitLogButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton, deleteButton);
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;
     }
 
     private ContextMenu buildContextMenu() {
+        MenuItem gitkAllSimpifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges <file>");
+        gitkAllSimpifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
+        gitLogSituationSelector.getVisibleMenuItems().add(gitkAllSimpifyMergesMenuItem);
+
         MenuItem gitAddMenuItem = new MenuItem("git add <file>...");
         gitAddMenuItem.setOnAction(eh -> gitAdd());
         gitAddSituationSelector.getVisibleMenuItems().add(gitAddMenuItem);
@@ -543,7 +576,8 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(gitAddMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem, deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
+        ContextMenu contextMenu = new ContextMenu(gitkAllSimpifyMergesMenuItem, gitAddMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem, 
+                deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
 
@@ -682,6 +716,20 @@ public class GitStatusPane implements BaseGitPane {
         new Thread(() -> {
             try {
                 diffCommand.diffCached(selectedItem.getFileName());
+            } catch (IOException | InterruptedException | GitConfigException ex) {
+                showError(ex);
+            }
+        }).start();
+    }
+
+    private void gitk(boolean isAll, boolean isSimlifyMerges) {
+        var selectedItem = getSelectedFile();
+        new Thread(() -> {
+            try {
+                GitkCommand gitkCommand = new GitkCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+                gitkCommand.setAllFlag(isAll);
+                gitkCommand.setSimplifyMergesFlag(isSimlifyMerges);
+                gitkCommand.log(selectedItem.getFileName());
             } catch (IOException | InterruptedException | GitConfigException ex) {
                 showError(ex);
             }
@@ -838,10 +886,10 @@ public class GitStatusPane implements BaseGitPane {
         gitCheckoutHeadSituationSelector.update();
         //gitCheckoutHeadSituationVisible.update();
         gitCheckoutOursTheirsSituationSelector.update();
-        //gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
         gitRmSituationSelector.update();
         gitCheckIgnoreSituationSelector.update();
+        gitLogSituationSelector.update();
         deleteSituationSelector.update();
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。

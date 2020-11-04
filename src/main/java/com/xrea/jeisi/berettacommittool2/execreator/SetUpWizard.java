@@ -37,16 +37,21 @@ public class SetUpWizard extends Stage {
     private static boolean isDebug = false;
     
     public SetUpWizard(ConfigInfo configInfo, List<ProgramInfo> programs) {
+        //XmlWriter.writeStartMethod("SetUpWizard.SetUpWizard()");
+        //XmlWriter.writeObject("programs", programs.toString());
+        
         this.configInfo = configInfo;
         this.styleManager = new StyleManager(configInfo);
 
         this.programs = new ArrayList<>();
-        programs.stream().filter(p -> configInfo.getProgram(p.getIdentifier()) == null).forEach(p -> {
-            boolean isRegisted = configInfo.setupDefaultProgram(p);
+        programs.stream().filter(p -> configInfo.getProgram(p.getIdentifier(), null) == null).forEach(p -> {
+            boolean isRegisted = configInfo.setupDefaultProgram(p);            XmlWriter.writeObject("isRegisted", isRegisted);
             if(!isRegisted) {
                 this.programs.add(p);
             }
         });
+        
+        //XmlWriter.writeEndMethod();
     }
     
     public static void setDebug(boolean isDebug) {

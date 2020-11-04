@@ -117,6 +117,6 @@ public class SetUpWizardTest {
         });
 
         // 終了後 ConfigInfo にプログラムのパスが追加されている。
-        assertEquals("", configInfo.getProgram("WinMergeU"));
+        assertEquals("", configInfo.getProgram("WinMergeU", null));
     }
 }
