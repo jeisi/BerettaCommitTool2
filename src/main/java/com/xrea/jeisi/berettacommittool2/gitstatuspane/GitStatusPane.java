@@ -253,15 +253,20 @@ public class GitStatusPane implements BaseGitPane {
             }
             Platform.runLater(() -> {
                 repository.getGitStatusDatas().setAll(gitStatusDatas);
-                if (gitStatusDatas.isEmpty()) {
-                    repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
-                } else {
-                    repository.displayNameProperty().set(String.format("%s (%d)", repository.nameProperty().get(), gitStatusDatas.size()));
-                }
+                setRepositoryDisplayName(repository);
                 updateSituationSelectors();
                 refreshThreadCounter.decrementAndGet();
             });
         });
+    }
+
+    private void setRepositoryDisplayName(RepositoryData repository) {
+        ObservableList<GitStatusData> gitStatusDatas = repository.getGitStatusDatas();
+        if (gitStatusDatas.isEmpty()) {
+            repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
+        } else {
+            repository.displayNameProperty().set(String.format("%s (%d)", repository.nameProperty().get(), gitStatusDatas.size()));
+        }
     }
 
     @Override
@@ -430,7 +435,7 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem checkIgnoreMenuItem = new MenuItem("git check-ignore <file>");
         checkIgnoreMenuItem.setOnAction(eh -> gitCheckIgnore());
         gitCheckIgnoreSituationSelector.getEnableMenuItems().add(checkIgnoreMenuItem);
-        
+
         MenuItem deleteMenuItem = new MenuItem("rm <file>...");
         deleteMenuItem.setOnAction(eh -> deleteFile());
         deleteSituationSelector.getEnableMenuItems().add(deleteMenuItem);
@@ -503,7 +508,7 @@ public class GitStatusPane implements BaseGitPane {
         deleteButton.setTooltip(new Tooltip("rm <file>..."));
         deleteButton.setOnAction(eh -> deleteFile());
         deleteSituationSelector.getVisibleButotns().add(deleteButton);
-        
+
         HBox hbox = new HBox();
         hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton, deleteButton);
         //hbox.getChildren().addAll(addButton, commitButton);
@@ -515,7 +520,7 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem gitAddMenuItem = new MenuItem("git add <file>...");
         gitAddMenuItem.setOnAction(eh -> gitAdd());
         gitAddSituationSelector.getVisibleMenuItems().add(gitAddMenuItem);
-        
+
         MenuItem checkoutOursMenuItem = new MenuItem("git checkout --ours <file>...");
         checkoutOursMenuItem.setOnAction(eh -> gitCheckoutOurs());
         gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutOursMenuItem);
@@ -527,7 +532,7 @@ public class GitStatusPane implements BaseGitPane {
         MenuItem checkIgnoreMenuItem = new MenuItem("git check-ignore <file>");
         checkIgnoreMenuItem.setOnAction(eh -> gitCheckIgnore());
         gitCheckIgnoreSituationSelector.getVisibleMenuItems().add(checkIgnoreMenuItem);
-        
+
         MenuItem deleteMenuItem = new MenuItem("rm <file>...");
         deleteMenuItem.setOnAction(eh -> deleteFile());
         deleteSituationSelector.getVisibleMenuItems().add(deleteMenuItem);
@@ -657,7 +662,7 @@ public class GitStatusPane implements BaseGitPane {
             }
         }).start();
     }
-    
+
     private void gitCheckIgnore() {
         var selectedItem = getSelectedFile();
         GitCheckIgnoreCommand command = new GitCheckIgnoreCommand(selectedItem.getRepositoryData().getPath(), configInfo);
@@ -731,6 +736,7 @@ public class GitStatusPane implements BaseGitPane {
                         List<GitStatusData> newStatus = statusDatas.stream().filter(e -> e.getFileName().equals(item.getFileName())).collect(Collectors.toList());
                         if (newStatus.isEmpty()) {
                             item.getRepositoryData().getGitStatusDatas().remove(item);
+                            setRepositoryDisplayName(item.getRepositoryData());
                         } else if (newStatus.size() == 1) {
                             item.indexStatusProperty().set(newStatus.get(0).indexStatusProperty().get());
                             item.workTreeStatusProperty().set(newStatus.get(0).workTreeStatusProperty().get());
