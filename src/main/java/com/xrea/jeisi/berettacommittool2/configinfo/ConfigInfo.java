@@ -9,7 +9,6 @@ import com.xrea.jeisi.berettacommittool2.App;
 import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -20,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.util.Pair;
@@ -197,6 +198,15 @@ public class ConfigInfo {
             return "";
         }
         return s;
+    }
+    
+    public BooleanProperty booleanProperty(String key, boolean defaultValue) {
+        BooleanProperty b = (BooleanProperty) map.get(key);
+        if (b == null) {
+            b = new SimpleBooleanProperty(defaultValue);
+            map.put(key, b);
+        }
+        return b;
     }
 
     public void save() throws IOException {

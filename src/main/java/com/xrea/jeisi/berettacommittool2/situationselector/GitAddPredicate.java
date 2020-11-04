@@ -23,6 +23,7 @@ public class GitAddPredicate implements Predicate<GitStatusData> {
             case "M":
             case "D":
             case "?":
+            case "!":
                 return true;
             default:
                 return false;

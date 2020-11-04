@@ -9,12 +9,14 @@ import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.errorlogwindow.InformationLogWindow;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckIgnoreCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
@@ -34,6 +36,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPredicate;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdatePredicate;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdateSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckIgnoreSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutHeadSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutOursTheirsSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
@@ -45,7 +48,6 @@ import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituati
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 //import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,6 +101,7 @@ public class GitStatusPane implements BaseGitPane {
     private final FilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ErrorLogWindow errorLogWindow;
+    private final InformationLogWindow informationLogWindow;
     private final ProgressWindow progressWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private final SituationSelector multiSelectionSituationSelector = new SituationSelector();
@@ -116,12 +119,14 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitDiffToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
+    private final SituationSelector gitCheckIgnoreSituationSelector = new SituationSelector();
     private final TargetRepository targetRepository = TargetRepository.SELECTED;
 
     public GitStatusPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.progressWindow = new ProgressWindow(configInfo);
         this.errorLogWindow = new ErrorLogWindow(configInfo);
+        this.informationLogWindow = new InformationLogWindow(configInfo);
         this.filterPane = new FilterPane(configInfo, "gitstatuspane");
     }
 
@@ -141,6 +146,7 @@ public class GitStatusPane implements BaseGitPane {
     @Override
     public void close() {
         errorLogWindow.close();
+        informationLogWindow.close();
     }
 
     @Override
@@ -209,13 +215,23 @@ public class GitStatusPane implements BaseGitPane {
         refreshCommon(repositories.getSelected());
     }
 
-    private void refreshCommon(ObservableList<RepositoryData> datas) {
-        datas.forEach((var repository) -> {
-            refreshRepository(repository);
+    private void refreshIgnoredSelected() {
+        ObservableList<RepositoryData> datas = repositories.getSelected();
+        datas.forEach((var repositoryData) -> {
+            refreshRepository(repositoryData, (command, repository) -> {
+                command.setIgnored(true);
+                return command.status(repository);
+            });
         });
     }
 
-    private void refreshRepository(RepositoryData repository) {
+    private void refreshCommon(ObservableList<RepositoryData> datas) {
+        datas.forEach((var repositoryData) -> {
+            refreshRepository(repositoryData, (command, repository) -> command.status(repository));
+        });
+    }
+
+    private void refreshRepository(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
         refreshThreadCounter.incrementAndGet();
         repository.displayNameProperty().set(String.format("%s [updating...]", repository.nameProperty().get()));
         repository.getGitStatusDatas().clear();
@@ -224,7 +240,8 @@ public class GitStatusPane implements BaseGitPane {
             GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
             List<GitStatusData> gitStatusDatas;
             try {
-                gitStatusDatas = command.status(repository);
+                //gitStatusDatas = command.status(repository);
+                gitStatusDatas = gitStatusExecutor.exec(command, repository);
             } catch (RepositoryNotFoundException ex) {
                 Platform.runLater(() -> showError(ex));
                 repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getShortMessage()));
@@ -307,6 +324,7 @@ public class GitStatusPane implements BaseGitPane {
         //gitCommitSituationVisible.setSituation(gitCommitSelectionSituation);
         gitRmSituationSelector.setSituation(new GitRemoveSelectionSituation(selectionModel));
         deleteSituationSelector.setSituation(new DeleteSelectionSituation(selectionModel));
+        gitCheckIgnoreSituationSelector.setSituation(new GitCheckIgnoreSelectionSituation(selectionModel));
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
             @Override
@@ -405,6 +423,14 @@ public class GitStatusPane implements BaseGitPane {
         commitMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.ALT_DOWN));
         gitCommitSituationSelector.getEnableMenuItems().add(commitMenuItem);
 
+        MenuItem statusIgnoredMenuItem = new MenuItem("git status --ignored");
+        statusIgnoredMenuItem.setOnAction(eh -> refreshIgnoredSelected());
+        gitCommitSituationSelector.getEnableMenuItems().add(statusIgnoredMenuItem);
+
+        MenuItem checkIgnoreMenuItem = new MenuItem("git check-ignore <file>");
+        checkIgnoreMenuItem.setOnAction(eh -> gitCheckIgnore());
+        gitCheckIgnoreSituationSelector.getEnableMenuItems().add(checkIgnoreMenuItem);
+        
         MenuItem deleteMenuItem = new MenuItem("rm <file>...");
         deleteMenuItem.setOnAction(eh -> deleteFile());
         deleteSituationSelector.getEnableMenuItems().add(deleteMenuItem);
@@ -427,7 +453,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, commitMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -481,6 +507,10 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private ContextMenu buildContextMenu() {
+        MenuItem gitAddMenuItem = new MenuItem("git add <file>...");
+        gitAddMenuItem.setOnAction(eh -> gitAdd());
+        gitAddSituationSelector.getVisibleMenuItems().add(gitAddMenuItem);
+        
         MenuItem checkoutOursMenuItem = new MenuItem("git checkout --ours <file>...");
         checkoutOursMenuItem.setOnAction(eh -> gitCheckoutOurs());
         gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutOursMenuItem);
@@ -489,6 +519,10 @@ public class GitStatusPane implements BaseGitPane {
         checkoutTheirsMenuItem.setOnAction(eh -> gitCheckoutTheirs());
         gitCheckoutOursTheirsSituationSelector.getVisibleMenuItems().add(checkoutTheirsMenuItem);
 
+        MenuItem checkIgnoreMenuItem = new MenuItem("git check-ignore <file>");
+        checkIgnoreMenuItem.setOnAction(eh -> gitCheckIgnore());
+        gitCheckIgnoreSituationSelector.getVisibleMenuItems().add(checkIgnoreMenuItem);
+        
         MenuItem deleteMenuItem = new MenuItem("rm <file>...");
         deleteMenuItem.setOnAction(eh -> deleteFile());
         deleteSituationSelector.getVisibleMenuItems().add(deleteMenuItem);
@@ -499,7 +533,7 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(checkoutOursMenuItem, checkoutTheirsMenuItem, deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
+        ContextMenu contextMenu = new ContextMenu(gitAddMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem, deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
 
@@ -618,6 +652,19 @@ public class GitStatusPane implements BaseGitPane {
             }
         }).start();
     }
+    
+    private void gitCheckIgnore() {
+        var selectedItem = getSelectedFile();
+        GitCheckIgnoreCommand command = new GitCheckIgnoreCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+        String result;
+        try {
+            result = command.checkIgnore(selectedItem.getFileName());
+        } catch (IOException | GitConfigException | InterruptedException ex) {
+            errorLogWindow.appendException(ex);
+            return;
+        }
+        informationLogWindow.appendText(result);
+    }
 
     private void gitDiffCached() {
         var selectedItem = getSelectedFile();
@@ -692,7 +739,7 @@ public class GitStatusPane implements BaseGitPane {
         });
     }
 
-    private void execCommandForRepository(Set<RepositoryData> repos, CommandExecutor command) {
+    private void execCommandForRepository(Set<RepositoryData> repos, CommandExecutor2 command) {
         repos.forEach(repo -> {
             GitThread thread = GitThreadMan.get(repo.getPath().toString());
             thread.addCommand(() -> {
@@ -705,7 +752,7 @@ public class GitStatusPane implements BaseGitPane {
                     showError(ex);
                     return;
                 }
-                Platform.runLater(() -> refreshRepository(repo));
+                Platform.runLater(() -> refreshRepository(repo, (gitStatusCommand, repository) -> gitStatusCommand.status(repository)));
             });
         });
     }
@@ -782,8 +829,8 @@ public class GitStatusPane implements BaseGitPane {
         gitCheckoutOursTheirsSituationSelector.update();
         //gitUnstageSingleSituationVisible.update();
         gitCommitSituationSelector.update();
-        //gitCommitSituationVisible.update();
         gitRmSituationSelector.update();
+        gitCheckIgnoreSituationSelector.update();
         deleteSituationSelector.update();
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。

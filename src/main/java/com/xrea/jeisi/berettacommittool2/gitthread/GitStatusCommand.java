@@ -11,10 +11,7 @@ import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,11 +26,16 @@ import java.util.regex.Pattern;
 public class GitStatusCommand extends BaseSingleGitCommand {
 
     private final static List<GitStatusData> emptyData = new ArrayList<>();
+    private boolean ignored = false;
 
     public GitStatusCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
     }
 
+    public void setIgnored(boolean ignored) {
+        this.ignored = ignored;
+    }
+    
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
         return status(repositoryData, emptyData);
     }
@@ -63,6 +65,9 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         command.add("status");
         command.add("-s");
         command.add("--untracked-files=all");
+        if(ignored) {
+            command.add("--ignored");
+        }
         datas.forEach(d -> command.add(d.getFileName()));
         return command;
     }

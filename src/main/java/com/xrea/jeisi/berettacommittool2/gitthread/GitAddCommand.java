@@ -13,11 +13,7 @@ import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressModel;
 import com.xrea.jeisi.berettacommittool2.shellscript.ShellScript;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -28,7 +24,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.application.Platform;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
-import org.apache.commons.exec.ExecuteResultHandler;
 
 /**
  *
@@ -41,11 +36,11 @@ public class GitAddCommand extends BaseMultiGitCommand {
     }
 
     public void add(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
-        XmlWriter.writeStartMethod("GitAddCommand.add()");
-
-        execEachFile(datas, (data) -> execProcess("git", "add", data.getFileName()));
-
-        XmlWriter.writeEndMethod();
+        execEachFile(datas, (data) -> {
+            List<String> command = Arrays.asList("git", "add", "-f", data.getFileName());
+            List<String> displayCommand = Arrays.asList("git", "add", data.getFileName());
+            execProcess(command, displayCommand);
+        });
     }
 
     public void add(GitStatusData data) throws IOException, GitConfigException, InterruptedException {
@@ -86,9 +81,7 @@ public class GitAddCommand extends BaseMultiGitCommand {
             Pattern p = Pattern.compile("add '.*'");
             String line;
             int currentValue = 0;
-            XmlWriter.writeMessage("-------------");
             while ((line = reader.readLine()) != null) {
-                XmlWriter.writeObject("line", line);
                 Matcher m = p.matcher(line);
                 if (m.matches()) {
                     ++currentValue;

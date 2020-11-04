@@ -5,16 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.situationselector;
 
-import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.AggregatedObservableArrayList;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import java.util.List;
-import java.util.function.Predicate;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TableView;
 
 /**
  *
@@ -22,8 +16,8 @@ import javafx.scene.control.TableView;
  */
 public class GitCommitSelectionSituation implements Situation {
 
-    private RepositoriesInfo repositories;
-    private TargetRepository targetRepository;
+    private final RepositoriesInfo repositories;
+    private final TargetRepository targetRepository;
 
     public GitCommitSelectionSituation(RepositoriesInfo repositories, TargetRepository targetRepository) {
         this.repositories = repositories;
@@ -33,10 +27,7 @@ public class GitCommitSelectionSituation implements Situation {
     @Override
     public boolean isValid() {
         ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
-        if(targetRepositories.isEmpty()) {
-            return false;
-        }
-        return true;
+        return !targetRepositories.isEmpty();
     }
 
 }
