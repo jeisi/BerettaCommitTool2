@@ -115,14 +115,14 @@ public class SelectWorkPane2 {
         alphabeticalOrderRadioButton.setId("SelectWorkPane2AlphabeticalOrderRadioButton");
         alphabeticalOrderRadioButton.setOnAction(eh -> {
             sortedDirectoriesList.setComparator(Comparator.naturalOrder());
-            //sortType = ((RadioButton) eh.getSource()).getText();
+            listView.scrollTo(listView.getSelectionModel().getSelectedIndex());
         });
 
         sortByNewestRadioButton = new RadioButton("sort by newest");
         sortByNewestRadioButton.setId("SelectWorkPane2SortByNewestRadioButton");
         sortByNewestRadioButton.setOnAction(eh -> {
             sortedDirectoriesList.setComparator(null);
-            //sortType = ((RadioButton) eh.getSource()).getText();
+            listView.scrollTo(listView.getSelectionModel().getSelectedIndex());
         });
 
         ToggleGroup group = new ToggleGroup();
