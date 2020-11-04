@@ -459,7 +459,7 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     public Parent buildToolBar() {
-        Button commitButton = new Button("Commit");
+        Button commitButton = new Button("commit");
         commitButton.setTooltip(new Tooltip("git commit"));
         commitButton.setOnAction(eh -> gitCommit());
         gitCommitSituationSelector.getVisibleButotns().add(commitButton);
@@ -499,8 +499,13 @@ public class GitStatusPane implements BaseGitPane {
         diffCachedButton.setOnAction(eh -> gitDiffCached());
         gitUnstageSingleSituationSelector.getVisibleButotns().add(diffCachedButton);
 
+        Button deleteButton = new Button("delete");
+        deleteButton.setTooltip(new Tooltip("rm <file>..."));
+        deleteButton.setOnAction(eh -> deleteFile());
+        deleteSituationSelector.getVisibleButotns().add(deleteButton);
+        
         HBox hbox = new HBox();
-        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton);
+        hbox.getChildren().addAll(commitButton, addButton, unstageButton, diffButton, diffCachedButton, checkoutHeadButton, checkoutTheirsButton, checkoutOursButton, deleteButton);
         //hbox.getChildren().addAll(addButton, commitButton);
         hbox.setSpacing(5);
         return hbox;

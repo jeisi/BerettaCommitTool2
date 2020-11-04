@@ -5,14 +5,10 @@
  */
 package com.xrea.jeisi.berettacommittool2.shellscript;
 
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteResultHandler;
@@ -73,8 +69,7 @@ public class ShellScript {
     }
 
     private int execCommon(String exe, String[] options, PumpStreamHandler streamHandler, boolean handleQuoting) throws IOException {
-        XmlWriter.writeStartMethod("ShellScript.execCommon(%s %s)", exe, Arrays.toString(options));
-        //printCommandName(displayCommand, workDir, out);
+        //XmlWriter.writeStartMethod("ShellScript.execCommon(%s %s)", exe, Arrays.toString(options));
 
         CommandLine commandLine = new CommandLine(exe);
         commandLine.addArguments(options);
@@ -85,26 +80,13 @@ public class ShellScript {
         executor.setExitValue(0);
         if (resultHandler == null) {
             int ret = executor.execute(commandLine);
-            XmlWriter.writeEndMethodWithReturnValue(ret);
+            //XmlWriter.writeEndMethodWithReturnValue(ret);
             return ret;
         } else {
             executor.execute(commandLine, resultHandler);
-            XmlWriter.writeEndMethodWithReturnValue(0);
+            //XmlWriter.writeEndMethodWithReturnValue(0);
             return 0;
         }
     }
 
-    /*
-    private static void printCommandName(List<String> args, File workDir, OutputStream out) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        builder.append(workDir.toString());
-        builder.append("]\n");
-        builder.append("$ ");
-        builder.append(String.join(" ", args));
-        builder.append("\n");
-        out.write(builder.toString().getBytes());
-        out.flush();
-    }
-     */
 }
