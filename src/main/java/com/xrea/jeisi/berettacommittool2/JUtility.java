@@ -24,7 +24,7 @@ public class JUtility {
     }
 
     public static Path expandPath(String currentDir, String dir, String... more) {
-        final Pattern p = Pattern.compile("^[A-Za-z]:/.*");
+        final Pattern p = Pattern.compile("^([A-Za-z]:|~)?/.*");
         Matcher m = p.matcher(dir);
         if (m.matches()) {
             return Paths.get(dir, more);
