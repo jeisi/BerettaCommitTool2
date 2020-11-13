@@ -8,10 +8,13 @@ package com.xrea.jeisi.berettacommittool2.repositoriespane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +26,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
@@ -44,10 +48,11 @@ public class RepositoriesPane {
     private ErrorLogWindow errorLogWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private RefreshListener refreshListener;
-    
+
     public void setRepositories(RepositoriesInfo work) {
         datas = work.getDatas();
         tableView.setItems(datas);
+        updateSituationSelectors();
     }
 
     public void setConfig(ConfigInfo configInfo) {
@@ -61,7 +66,7 @@ public class RepositoriesPane {
     public void setRefreshListener(RefreshListener listener) {
         refreshListener = listener;
     }
-    
+
     public TableView<RepositoryData> getTableView() {
         return tableView;
     }
@@ -169,22 +174,53 @@ public class RepositoriesPane {
             }
         });
 
+        MenuItem gitkMenuItem = new MenuItem("gitk");
+        gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkMenuItem);
+
+        MenuItem gitkAllMenuItem = new MenuItem("gitk --all");
+        gitkAllMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ false));
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllMenuItem);
+
+        MenuItem gitkSimplifyMergesMenuItem = new MenuItem("gitk --simplify-merges");
+        gitkSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ true));
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkSimplifyMergesMenuItem);
+
+        MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
+        gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);
+
+        Menu gitkSubMenu = new Menu("gitk");
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkSubMenu);
+        gitkSubMenu.getItems().addAll(gitkMenuItem, gitkAllMenuItem, gitkSimplifyMergesMenuItem, gitkAllSimplifyMergesMenuItem);
+
+        MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
+        copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
+        singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
+
+        MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
+
         var menu = new Menu("Repositories");
         menu.setId("repositoriesMenu");
         menu.getItems().addAll(checkAllMenuItem, uncheckAllMenuItem, checkSelectionMenuItem, invertCheckedMenuItem,
-                selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem);
+                selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem, new SeparatorMenuItem(), 
+                gitkSubMenu, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
 
     private ContextMenu buildContextMenu() {
         MenuItem refreshAllMenuItem = new MenuItem("Refresh all");
         refreshAllMenuItem.setOnAction(eh -> fireRefreshAll());
-        
+
         MenuItem refreshCheckedMenuItem = new MenuItem("Refresh checked");
         refreshCheckedMenuItem.setOnAction(eh -> fireRefreshChecked());
-        
+
         MenuItem refreshSelectedMenuItem = new MenuItem("Refresh selected");
         refreshSelectedMenuItem.setOnAction(eh -> fireRefreshSelected());
+
+        MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
+        gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);        
         
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
@@ -192,8 +228,23 @@ public class RepositoriesPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
+        ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, 
+                gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
+    }
+
+    private void gitk(boolean isAll, boolean isSimlifyMerges) {
+        RepositoryData selectedItem = tableView.getSelectionModel().getSelectedItem();
+        new Thread(() -> {
+            try {
+                GitkCommand gitkCommand = new GitkCommand(selectedItem.getPath(), configInfo);
+                gitkCommand.setAllFlag(isAll);
+                gitkCommand.setSimplifyMergesFlag(isSimlifyMerges);
+                gitkCommand.log();
+            } catch (IOException | InterruptedException | GitConfigException ex) {
+                errorLogWindow.appendException(ex);
+            }
+        }).start();
     }
 
     private void copyFilePathToClipBoard() {
@@ -238,15 +289,15 @@ public class RepositoriesPane {
         Path path = repositoryData.getPath();
         FileBrowser.getInstance().setErrorLogWindow(errorLogWindow).browseDirectory(path);
     }
-    
+
     private void fireRefreshAll() {
         refreshListener.refreshAll();
     }
-    
+
     private void fireRefreshSelected() {
         refreshListener.refreshSelected();
     }
-    
+
     private void fireRefreshChecked() {
         refreshListener.refreshChecked();
     }

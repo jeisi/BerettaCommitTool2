@@ -20,11 +20,11 @@ public class GitkCommand extends BaseSingleGitCommand {
 
     private boolean isAll = false;
     private boolean isSimplifyMerges = false;
-    
+
     public GitkCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
     }
-    
+
     public void setAllFlag(boolean isAll) {
         this.isAll = isAll;
     }
@@ -32,18 +32,31 @@ public class GitkCommand extends BaseSingleGitCommand {
     public void setSimplifyMergesFlag(boolean isSimplifyMerges) {
         this.isSimplifyMerges = isSimplifyMerges;
     }
-    
+
     public void log(String fileName) throws GitConfigException, IOException, InterruptedException {
         List<String> command = new ArrayList<>();
         command.add("gitk");
-        if(isAll) {
+        if (isAll) {
             command.add("--all");
         }
-        if(isSimplifyMerges) {
+        if (isSimplifyMerges) {
             command.add("--simplify-merges");
         }
         command.add(fileName);
-        
-        execProcess("gitk", fileName);
+
+        execProcess(command, command);
+    }
+
+    public void log() throws GitConfigException, IOException, InterruptedException {
+        List<String> command = new ArrayList<>();
+        command.add("gitk");
+        if (isAll) {
+            command.add("--all");
+        }
+        if (isSimplifyMerges) {
+            command.add("--simplify-merges");
+        }
+
+        execProcess(command, command);
     }
 }
