@@ -59,7 +59,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         return status(repositoryData, Arrays.asList(data));
     }
 
-    private List<String> getStatusCommand(List<GitStatusData> datas) throws GitCommandException, GitConfigException {
+    private List<String> getStatusCommand(List<GitStatusData> datas) /*throws GitCommandException, GitConfigException*/ {
         ArrayList<String> command = new ArrayList<>();
         command.add("git");
         command.add("status");
