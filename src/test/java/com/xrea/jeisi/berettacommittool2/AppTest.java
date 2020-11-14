@@ -65,7 +65,8 @@ public class AppTest {
         int ret = process.waitFor();
 
         String topDir = Paths.get(userDir, "src/test/resources/work/beretta").toString();
-        app.setRootDirectory(topDir);
+        Platform.runLater(() -> app.setRootDirectory(topDir));
+        JTestUtility.waitForRunLater();
 
         TableView<RepositoryData> tableView = robot.lookup("#tableView").queryAs(TableView.class);
         while (tableView.getItems().get(0).displayNameProperty().get().equals(". [updating...]")) {
@@ -74,7 +75,6 @@ public class AppTest {
 
         tableView.getSelectionModel().selectAll();
         JTestUtility.waitForRunLater();
-        System.out.println("tableView.getSelectionModel().getSelectedItems(): " + tableView.getSelectionModel().getSelectedItems().toString());
 
         app.refreshAll(topDir);
         JTestUtility.waitForRunLater();
@@ -134,7 +134,7 @@ public class AppTest {
 
         JTestUtility.waitForRunLater();
         // 閉じた時点の divider の値が ConfigInfo に反映されている。
-        assertEquals(0.8, app.configInfo.getDouble("main.splitpane.divider"));
+        assertTrue(Math.abs(0.8 - app.configInfo.getDouble("main.splitpane.divider")) < 0.001);
         // 閉じた時点の divider の値が SplitPane に反映されている
         assertTrue(Math.abs(0.8 - app.splitPane.getDividerPositions()[0]) < 0.001);
         tableView = robot.lookup("#tableView").queryAs(TableView.class);
