@@ -14,12 +14,11 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,9 +33,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 
 /**
@@ -71,12 +67,17 @@ public class GitCommitPane {
     }
 
     public void setRepositoryDatas(List<RepositoryData> repositoryDatas) {
+        XmlWriter.writeStartMethod("GitCommitPane.setRepositoryDatas()");
+        
         this.repositoryDatas = repositoryDatas;
 
         amendMessage = getAmendMessage();
+        XmlWriter.writeObject("amendMessage", amendMessage);
         if (amendMessage != null) {
             amendCheckBox.setDisable(false);
         }
+        
+        XmlWriter.writeEndMethod();
     }
 
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
@@ -211,12 +212,14 @@ public class GitCommitPane {
     }
 
     private String getAmendMessage() {
+        XmlWriter.writeStartMethod("GitCommitPane.getAmendMessage()");
         List<String> amendMessages = new ArrayList<>();
         for (var repositoryData : repositoryDatas) {
             GitCommitCommand commitCommand = new GitCommitCommand(repositoryData.getPath(), configInfo);
             try {
                 String amendMessage = commitCommand.readCommitEditMsg();
                 if (amendMessage == null) {
+                    XmlWriter.writeEndMethodWithReturnValue(null);
                     return null;
                 }
                 amendMessages.add(amendMessage);
@@ -225,6 +228,7 @@ public class GitCommitPane {
             }
         }
 
+        XmlWriter.writeEndMethod();
         return String.join("---\n", amendMessages);
         //return amendMessages.stream().collect(Collectors.joining("\n---\n"));
     }
@@ -233,16 +237,16 @@ public class GitCommitPane {
         if (configInfo == null) {
             return FXCollections.observableArrayList();
         }
-        //List<String> lists = configInfo.getCommitMessageHistory().stream().map(message -> getSummary(message)).collect(Collectors.toList());
         List<String> lists = commitMessageHistory.stream().map(message -> getSummary(message)).collect(Collectors.toList());
         return FXCollections.observableArrayList(lists);
     }
 
     private String getSummary(String text) {
-        if (text.length() < SUMMARY_LENGTH) {
-            return text;
+        String line = text.split("\n", 0)[0];
+        if (line.length() < SUMMARY_LENGTH) {
+            return line;
         } else {
-            return text.substring(0, SUMMARY_LENGTH);
+            return line.substring(0, SUMMARY_LENGTH);
         }
     }
 }
