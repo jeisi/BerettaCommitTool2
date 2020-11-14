@@ -9,6 +9,7 @@ import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,6 +43,7 @@ public class GitCommitWindowTestAmend {
     @Start
     public void start(Stage stage) {
         ConfigInfo configInfo = new ConfigInfo();
+        configInfo.setProgram("git", "/usr/bin/git");
         app = new GitCommitWindow(configInfo);
         app.open();
     }
@@ -131,6 +133,8 @@ public class GitCommitWindowTestAmend {
     @Test
     // 複数のリポジトリのうち少なくとも１つがまだコミットがないときは amend CheckBox は選択不可。
     public void testAmendRepositoriesWithNoCommit(FxRobot robot) throws IOException, InterruptedException {
+        XmlWriter.writeStartMethod("GitCommitWindowTestAmend.testAmendRepositoriesWithNoCommit()");
+        
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testAmend2.sh");
 
@@ -151,11 +155,15 @@ public class GitCommitWindowTestAmend {
         // setRepositoryDatas() を実行したけど、amend すべきコミットがないリポジトリが含まれているので amend CheckBox は disabled のまま。
         CheckBox amendCheckBox = robot.lookup("#GitCommitPaneAmendCheckBox").queryAs(CheckBox.class);
         assertTrue(amendCheckBox.isDisable());
+        
+        XmlWriter.writeEndMethod();
     }
 
     @Test
     // amend チェックボックスをチェックしたあと、amend チェックボックスのチェックを外した場合はテキストエリアは空になる。
     public void testAmendCancel(FxRobot robot) throws IOException, InterruptedException {
+        XmlWriter.writeStartMethod("GitCommitWindowTestAmend.testAmendCancel()");
+        
         String userDir = System.getProperty("user.dir");
         Path bashCommand = Paths.get(userDir, "src/test/resources/testUnstage2.sh");
 
@@ -184,6 +192,8 @@ public class GitCommitWindowTestAmend {
         robot.clickOn("#GitCommitPaneAmendCheckBox");
         JTestUtility.waitForRunLater();
         assertEquals("", textArea.getText());
+        
+        XmlWriter.writeEndMethod();
     }
 
     private void waitShowing() throws InterruptedException {

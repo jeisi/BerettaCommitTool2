@@ -1,1 +1,10 @@
-{key: 50.0}
+gitstatuspane.filter.caseinsensitive: false
+program.git: /usr/bin/git
+main.splitpane.divider: 0.7995951417004049
+gitstatuspane.filter.enabled: false
+main.rectangle: [676.0, 258.0, 1000.0, 480.0]
+gitStatusTableView.columnWidths: [30.0, 30.0, 300.0, 300.0]
+program.gitk: /usr/bin/gitk
+difftool: meld
+gitstatuspane.filter.regexp: false
+tableView.columnWidths: [40.0, 100.0]
