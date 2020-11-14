@@ -68,8 +68,9 @@ public class BaseSingleGitCommand {
 
     protected String[] execProcessWithOutput(List<String> command, List<String> displayCommand) throws IOException, InterruptedException, GitConfigException {
         ShellScript shellScript = new ShellScript(repository);
-        try {
-            return shellScript.execWithOutput(getCommand(command.get(0)), command.subList(1, command.size()).toArray(new String[command.size() - 1]));
+        try { 
+           shellScript.exec(getCommand(command.get(0)), command.subList(1, command.size()).toArray(new String[command.size() - 1]));
+           return shellScript.getOutput();
         } catch (ExecuteException ex) {
             List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
             GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);

@@ -36,7 +36,7 @@ public class ShellScript {
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
-    
+
     public void setResultHandler(ExecuteResultHandler resultHandler) {
         this.resultHandler = resultHandler;
     }
@@ -48,7 +48,10 @@ public class ShellScript {
         return result;
     }
 
-    public String[] execWithOutput(String exe, String[] options /*, List<String> displayCommand,*/) throws IOException {
+    /*
+    public String[] execWithOutput(String exe, String[] options) throws IOException
+
+    {
         CommandLine commandLine = new CommandLine(exe);
         commandLine.addArguments(options);
 
@@ -60,6 +63,17 @@ public class ShellScript {
         executor.setStreamHandler(streamHandler);
         executor.setExitValue(0);
         executor.execute(commandLine);
+        String outputString = outputStream.toString();
+        if (outputString.isEmpty()) {
+            return new String[0];
+        } else {
+            return outputString.split("\\n");
+        }
+    }
+
+    */
+    
+    public String[] getOutput() {
         String outputString = outputStream.toString();
         if (outputString.isEmpty()) {
             return new String[0];
