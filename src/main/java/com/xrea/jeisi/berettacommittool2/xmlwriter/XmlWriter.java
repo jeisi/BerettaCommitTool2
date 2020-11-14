@@ -53,7 +53,8 @@ public class XmlWriter {
 
     public static void writeReturnValueWithLine(Object object, int line) {
         writePreStartTag();
-        writePrintf("%s<return line='%d'>%s</return>\n", getTabSpace(), line, object.toString());
+        String text = object != null ? object.toString() : "null";
+        writePrintf("%s<return line='%d'>%s</return>\n", getTabSpace(), line, text);
     }
 
     public static void writeObject(String name, Object object) {
