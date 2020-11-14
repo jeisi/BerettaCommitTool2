@@ -70,6 +70,7 @@ public class FilterPane {
         this.enabled = enabled;
         hbox.setVisible(enabled);
         hbox.setManaged(enabled);
+        filterTextFieldOnChange();
         
         if(enabled) {
             textField.requestFocus();
