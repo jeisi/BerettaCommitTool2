@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -95,5 +96,5 @@ public abstract class ExeCreator {
         }
     }
     
-    public abstract void exec() throws IOException;
+    public abstract void exec() throws IOException, InterruptedException, GitConfigException;
 }

@@ -24,7 +24,7 @@ import javafx.stage.Stage;
  *
  * @author jeisi
  */
-public class SetUpWizard extends Stage {
+public class SetUpWizard /*extends Stage*/ {
 
     private final ConfigInfo configInfo;
     private final List<SetUpNode> nodes = new ArrayList<>();
@@ -34,6 +34,7 @@ public class SetUpWizard extends Stage {
     private SwitchPane switchPane;
     private Button nextButton;
     private Button backButton;
+    private Stage stage;
     private static boolean isDebug = false;
     
     public SetUpWizard(ConfigInfo configInfo, List<ProgramInfo> programs) {
@@ -69,7 +70,7 @@ public class SetUpWizard extends Stage {
         }
 
         Scene scene = new Scene(build());
-        Stage stage = this;
+        stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("Set up programs wizard");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -110,7 +111,7 @@ public class SetUpWizard extends Stage {
     }
 
     private SetUpNode buildNode(ProgramInfo program) {
-        return new SetUpNode(program, this);
+        return new SetUpNode(program, stage);
     }
 
     private void onClosed() {
@@ -131,7 +132,7 @@ public class SetUpWizard extends Stage {
             switchPane.setConstraints(nodes.get(currentPage));
             enableButtons();
         } else {
-            close();
+            stage.close();
         }
     }
 
