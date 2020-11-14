@@ -83,12 +83,13 @@ public class GitCommitCommand extends BaseSingleGitCommand {
 
     public String readCommitEditMsg() throws GitConfigException, IOException, InterruptedException {
         String[] lines = execProcessWithOutput("git", "rev-parse", "--git-dir");
-        //Path messagePath = Paths.get(repository.toString(), lines[0], "COMMIT_EDITMSG");
         Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "COMMIT_EDITMSG");
         if(!Files.exists(messagePath)) {
-            return "";
+            //return "";
+            return null;
         }
-        List<String> commitMessage = Files.readAllLines(messagePath, Charset.forName("UTF-8"));
-        return String.join("\n", commitMessage);
+        //List<String> commitMessage = Files.readAllLines(messagePath, Charset.forName("UTF-8"));
+        //return String.join("\n", commitMessage);
+        return Files.readString(messagePath, Charset.forName("UTF-8"));
     }
 }
