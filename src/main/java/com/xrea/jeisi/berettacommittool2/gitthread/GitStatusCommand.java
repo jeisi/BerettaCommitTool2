@@ -73,7 +73,6 @@ public class GitStatusCommand extends BaseSingleGitCommand {
     }
 
     private static List<GitStatusData> getStatusDatas(String[] lines, RepositoryData repositoryData) throws IOException {
-        //XmlWriter.writeObject("lines", Arrays.toString(lines));
         Pattern pattern = Pattern.compile("^(.)(.) (.+)( -> (.+))?");
         List<GitStatusData> list = new ArrayList<>();
         for (var line : lines) {

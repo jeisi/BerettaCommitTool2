@@ -5,7 +5,10 @@ import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
+import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
+import com.xrea.jeisi.berettacommittool2.gitsyncbranch.GitSyncPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
 import com.xrea.jeisi.berettacommittool2.preferencewindow.PreferenceWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
@@ -20,6 +23,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -140,8 +145,6 @@ public class App extends Application implements RefreshListener {
     }
 
     Scene buildScene(Stage stage) {
-        XmlWriter.writeStartMethod("App.buildScene()");
-
         repositoriesPane = new RepositoriesPane();
         repositoriesPane.setConfig(configInfo);
         repositoriesPane.setErrorLogWindow(errorLogWindow);
@@ -149,6 +152,8 @@ public class App extends Application implements RefreshListener {
 
         gitPanes = new ArrayList<>();
         gitPanes.add(new GitStatusPane(configInfo));
+        gitPanes.add(new GitSyncPane(configInfo));
+        gitPanes.add(new GitBranchPane(configInfo));
         var tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
             var tab = new Tab(pane.getTitle(), pane.build());
@@ -207,7 +212,6 @@ public class App extends Application implements RefreshListener {
             height = 480;
         }
 
-        XmlWriter.writeEndMethod();
         return new Scene(borderPane, width, height);
     }
 
@@ -246,25 +250,13 @@ public class App extends Application implements RefreshListener {
     }
 
     public void openPreference(String defaultTab) {
+        if(preferenceWindow == null) {
+            return;
+        }
+        
         preferenceWindow.open(defaultTab);
     }
 
-    /*
-    private void onChangeDirectory() {
-        SelectWorkDialog dialog = new SelectWorkDialog(configInfo);
-        SelectWorkPane selectWorkPane = dialog.getSelectWorkPane();
-        var directoryHistory = configInfo.getDirectoryHistory();
-        if (directoryHistory != null && directoryHistory.size() > 0) {
-            selectWorkPane.setDirectoryHistory(directoryHistory);
-        }
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            String selectedDirectory = selectWorkPane.getCurrentDirectory();
-            setRootDirectory(selectedDirectory);
-            configInfo.setDirectoryHistory(selectWorkPane.getDirectoryHistory());
-        }
-    }
-     */
     private void onChangeDirectory() {
         SelectWorkDialog2 dialog = new SelectWorkDialog2(configInfo);
         Optional<ButtonType> result = dialog.showAndWait();

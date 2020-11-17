@@ -96,10 +96,10 @@ import javafx.scene.layout.HBox;
  */
 public class GitStatusPane implements BaseGitPane {
 
-    private final ConfigInfo configInfo;
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
+    private final ConfigInfo configInfo;
     private final FilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ErrorLogWindow errorLogWindow;
@@ -165,9 +165,7 @@ public class GitStatusPane implements BaseGitPane {
 
         this.repositories = work;
 
-        ListChangeListener<RepositoryData> selectedListener = (change) -> {
-            changeTargetRepositories(TargetRepository.SELECTED);
-        };
+        ListChangeListener<RepositoryData> selectedListener = (change) -> changeTargetRepositories(TargetRepository.SELECTED);
         work.getSelected().addListener(selectedListener);
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
         work.getChecked().addListener(changedListener);
@@ -263,7 +261,7 @@ public class GitStatusPane implements BaseGitPane {
         });
     }
 
-    private void setRepositoryDisplayName(RepositoryData repository) {
+    public static void setRepositoryDisplayName(RepositoryData repository) {
         ObservableList<GitStatusData> gitStatusDatas = repository.getGitStatusDatas();
         if (gitStatusDatas.isEmpty()) {
             repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
