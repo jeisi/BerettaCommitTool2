@@ -91,7 +91,7 @@ public class App extends Application implements RefreshListener {
 
         try {
             ExeCreator.create(configInfo).exec();
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException | GitConfigException ex) {
             errorLogWindow.appendException(ex);
         }
     }
