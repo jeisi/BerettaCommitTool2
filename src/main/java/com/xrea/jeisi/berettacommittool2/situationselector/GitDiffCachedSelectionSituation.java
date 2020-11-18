@@ -13,29 +13,24 @@ import javafx.scene.control.MultipleSelectionModel;
  *
  * @author jeisi
  */
-public class GitAddPatchSelectionSituation implements Situation {
+public class GitDiffCachedSelectionSituation implements Situation {
 
-    private final MultipleSelectionModel<GitStatusData> selectionModel;
-    private final static Predicate<GitStatusData> predicate = (t) -> {
-        if (t == null) {
+    protected final MultipleSelectionModel<GitStatusData> selectionModel;
+    private final Predicate<GitStatusData> predicate = (t) -> {
+        if(t.indexStatusProperty().get().equals("A") && t.workTreeStatusProperty().get().equals("A")) {
             return false;
         }
+
         switch (t.indexStatusProperty().get()) {
-            case "U":
-                return false;
-            default:
-                break;
-        }
-        switch (t.workTreeStatusProperty().get()) {
             case "M":
-            case "D":
+            case "A":
                 return true;
             default:
                 return false;
         }
     };
-
-    public GitAddPatchSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
+    
+    public GitDiffCachedSelectionSituation(MultipleSelectionModel<GitStatusData> selectionModel) {
         this.selectionModel = selectionModel;
     }
 
@@ -44,6 +39,7 @@ public class GitAddPatchSelectionSituation implements Situation {
         if (selectionModel.getSelectedIndices().size() != 1) {
             return false;
         }
-        return predicate.test(selectionModel.getSelectedItems().get(0));
+        return predicate.test(selectionModel.getSelectedItem());
     }
+
 }
