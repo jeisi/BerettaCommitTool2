@@ -55,8 +55,9 @@ public class PreferencePane {
         TabPane tabPane = new TabPane();
         ProgramsTab programTab = new ProgramsTab(parent, configInfo);
         DiffToolTab diffToolTab = new DiffToolTab(parent, configInfo);
+        MergeToolTab mergeToolTab = new MergeToolTab(parent, configInfo);
         FontTab fontTab = new FontTab(parent, configInfo);
-        tabPane.getTabs().addAll(fontTab, programTab, diffToolTab);
+        tabPane.getTabs().addAll(fontTab, programTab, diffToolTab, mergeToolTab);
         
         if (defaultTab != null) {
             Optional<Tab> tab = tabPane.getTabs().stream().filter(e -> e.getText().equals(defaultTab)).findFirst();
@@ -68,6 +69,7 @@ public class PreferencePane {
         tabs.add(programTab);
         tabs.add(fontTab);
         tabs.add(diffToolTab);
+        tabs.add(mergeToolTab);
         
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tabPane);
