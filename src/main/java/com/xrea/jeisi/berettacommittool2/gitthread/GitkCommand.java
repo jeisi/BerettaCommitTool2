@@ -34,8 +34,7 @@ public class GitkCommand extends BaseSingleGitCommand {
     }
 
     public void log(String fileName) throws GitConfigException, IOException, InterruptedException {
-        List<String> command = new ArrayList<>();
-        command.add("gitk");
+        List<String> command = getGitkCommand();
         if (isAll) {
             command.add("--all");
         }
@@ -48,8 +47,7 @@ public class GitkCommand extends BaseSingleGitCommand {
     }
 
     public void log() throws GitConfigException, IOException, InterruptedException {
-        List<String> command = new ArrayList<>();
-        command.add("gitk");
+        List<String> command = getGitkCommand();
         if (isAll) {
             command.add("--all");
         }
@@ -58,5 +56,15 @@ public class GitkCommand extends BaseSingleGitCommand {
         }
 
         execProcess(command, command);
+    }
+
+    private List<String> getGitkCommand() {
+        List<String> command = new ArrayList<>();
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("win")) {
+            command.add("bash");
+        }
+        command.add("gitk");
+        return command;
     }
 }

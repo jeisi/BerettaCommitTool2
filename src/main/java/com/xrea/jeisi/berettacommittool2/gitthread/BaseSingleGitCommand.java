@@ -68,25 +68,25 @@ public class BaseSingleGitCommand {
 
     protected String[] execProcessWithOutput(List<String> command, List<String> displayCommand) throws IOException, InterruptedException, GitConfigException {
         ShellScript shellScript = new ShellScript(repository);
-        try { 
-           shellScript.exec(getCommand(command.get(0)), command.subList(1, command.size()).toArray(new String[command.size() - 1]));
-           return shellScript.getOutput();
+        try {
+            String cmd;
+            List<String> args;
+            if(command.get(0).equals("bash")) {
+                cmd = getCommand(command.get(0));
+                args = new ArrayList<>();
+                args.add(getCommand(command.get(1)));
+                args.addAll(command.subList(2, command.size()));
+            } else {
+                cmd = getCommand(command.get(0));
+                args = command.subList(1, command.size());
+            }
+            shellScript.exec(cmd, args.toArray(new String[args.size()]));
+            return shellScript.getOutput();
         } catch (ExecuteException ex) {
             List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
             GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);
             throw e;
         }
-        /*
-        ProcessBuilder pb = new ProcessBuilder(getCommand(command));
-        pb.directory(repository);
-        Process process = pb.start();
-        int ret = process.waitFor();
-        if (ret != 0) {
-            GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), getInputStream(process), getErrorStream(process));
-            throw e;
-        }
-        return getInputStream(process);
-         */
     }
 
     protected String[] execProcessWithOutput(String... args) throws IOException, InterruptedException, GitConfigException {
@@ -101,16 +101,6 @@ public class BaseSingleGitCommand {
         }
         return commandIdentifier;
     }
-
-    /*
-    protected List<String> getCommand(List<String> args) throws GitConfigException {
-        String command = configInfo.getProgramEx(args.get(0));
-        if (command != null) {
-            args.set(0, command);
-        }
-        return args;
-    }
-    */
 
     protected static List<String> getErrorStream(Process p) throws IOException {
         List<String> lines = new ArrayList<>();

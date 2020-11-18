@@ -47,31 +47,6 @@ public class ShellScript {
         int result = execCommon(exe, options, streamHandler, /*handleQuoting=*/ false);
         return result;
     }
-
-    /*
-    public String[] execWithOutput(String exe, String[] options) throws IOException
-
-    {
-        CommandLine commandLine = new CommandLine(exe);
-        commandLine.addArguments(options);
-
-        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
-        //printCommandName(displayCommand, workDir, outputStream);
-
-        Executor executor = new DefaultExecutor();
-        executor.setWorkingDirectory(workDir);
-        executor.setStreamHandler(streamHandler);
-        executor.setExitValue(0);
-        executor.execute(commandLine);
-        String outputString = outputStream.toString();
-        if (outputString.isEmpty()) {
-            return new String[0];
-        } else {
-            return outputString.split("\\n");
-        }
-    }
-
-    */
     
     public String[] getOutput() {
         String outputString = outputStream.toString();

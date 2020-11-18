@@ -25,7 +25,8 @@ public class ExeCreatorWin extends ExeCreator {
     public void exec() throws IOException {
         List<ProgramInfo> programInfos = new ArrayList<>();
         programInfos.add(new ProgramInfo("git", "git.exe", new String[]{"c:/Program Files/Git/bin/git.exe"}));
-        programInfos.add(new ProgramInfo("gitk", "gitk.exe", new String[]{"c:/Program Files/Git/cmd/gitk.exe"}));
+        programInfos.add(new ProgramInfo("bash", "bash.exe", new String[]{"c:/Program Files/Git/bin/bash.exe"}));
+        programInfos.add(new ProgramInfo("gitk", "gitk", new String[]{"c:/Program Files/mingw64/bin/gitk"}));
         programInfos.add(new ProgramInfo("WinMergeU", "WinMergeU.exe", new String[]{"c:/Program Files/WinMerge/WinMergeU.exe"}));
         SetUpWizard wizard = new SetUpWizard(configInfo, programInfos);
         if (wizard.getNullPrograms().size() > 0) {
