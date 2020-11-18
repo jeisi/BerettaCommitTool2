@@ -158,4 +158,8 @@ public class SetUpWizard /*extends Stage*/ {
         }
         XmlWriter.writeEndMethod();
     }
+    
+    Stage getStage() {
+        return stage;
+    }
 }

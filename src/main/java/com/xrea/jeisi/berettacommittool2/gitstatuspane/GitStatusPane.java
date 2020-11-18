@@ -22,6 +22,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitDiffCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitMergeToolCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRmCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
@@ -423,6 +424,9 @@ public class GitStatusPane implements BaseGitPane {
         gitDiffToolSituationSelector.setSituation(new HierarchyMenuSelectionSituation(diffMenuItem, diffCachedMenuItem));
         gitDiffToolSituationSelector.getEnableMenuItems().add(diffSubMenu);
 
+        MenuItem mergeToolMenuItem = new MenuItem("git mergetool <file>");
+        mergeToolMenuItem.setOnAction(eh -> gitMergeTool());
+
         MenuItem gitkMenuItem = new MenuItem("gitk <file>");
         gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
 
@@ -480,7 +484,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -574,7 +578,7 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(gitkAllSimpifyMergesMenuItem, gitAddMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem, 
+        ContextMenu contextMenu = new ContextMenu(gitkAllSimpifyMergesMenuItem, gitAddMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem,
                 deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
@@ -695,6 +699,34 @@ public class GitStatusPane implements BaseGitPane {
         }).start();
     }
 
+    private void gitDiffCached() {
+        var selectedItem = getSelectedFile();
+        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+        new Thread(() -> {
+            try {
+                diffCommand.diffCached(selectedItem.getFileName());
+            } catch (IOException | InterruptedException | GitConfigException ex) {
+                showError(ex);
+            }
+        }).start();
+    }
+
+    private void gitMergeTool() {
+        var selectedItem = getSelectedFile();
+        GitMergeToolCommand mergeToolCommand = new GitMergeToolCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+        new Thread(() -> {
+            try {
+                mergeToolCommand.exec(selectedItem.getFileName());
+
+                GitStatusCommand statusCommand = new GitStatusCommand(selectedItem.getRepositoryData().getPath(), configInfo);
+                List<GitStatusData> statusDatas = statusCommand.status(selectedItem.getRepositoryData(), selectedItem);
+                Platform.runLater(() -> refreshFile(selectedItem, statusDatas));
+            } catch (IOException | InterruptedException | GitConfigException ex) {
+                showError(ex);
+            }
+        }).start();
+    }
+
     private void gitCheckIgnore() {
         var selectedItem = getSelectedFile();
         GitCheckIgnoreCommand command = new GitCheckIgnoreCommand(selectedItem.getRepositoryData().getPath(), configInfo);
@@ -706,18 +738,6 @@ public class GitStatusPane implements BaseGitPane {
             return;
         }
         informationLogWindow.appendText(result);
-    }
-
-    private void gitDiffCached() {
-        var selectedItem = getSelectedFile();
-        GitDiffCommand diffCommand = gitCommandFactory.createGitDiffCommand(selectedItem.getRepositoryData().getPath(), configInfo);
-        new Thread(() -> {
-            try {
-                diffCommand.diffCached(selectedItem.getFileName());
-            } catch (IOException | InterruptedException | GitConfigException ex) {
-                showError(ex);
-            }
-        }).start();
     }
 
     private void gitk(boolean isAll, boolean isSimlifyMerges) {
@@ -777,23 +797,47 @@ public class GitStatusPane implements BaseGitPane {
                     showError(ex);
                     return;
                 }
-                Platform.runLater(() -> {
-                    items.forEach(item -> {
-                        List<GitStatusData> newStatus = statusDatas.stream().filter(e -> e.getFileName().equals(item.getFileName())).collect(Collectors.toList());
-                        if (newStatus.isEmpty()) {
-                            item.getRepositoryData().getGitStatusDatas().remove(item);
-                            setRepositoryDisplayName(item.getRepositoryData());
-                        } else if (newStatus.size() == 1) {
-                            item.indexStatusProperty().set(newStatus.get(0).indexStatusProperty().get());
-                            item.workTreeStatusProperty().set(newStatus.get(0).workTreeStatusProperty().get());
-                        } else {
-                            throw new AssertionError(item.getFileName() + " が複数存在しています。");
-                        }
-                    });
-                    updateSituationSelectors();
-                });
+                Platform.runLater(() -> refreshFiles(items, statusDatas));
+//                Platform.runLater(() -> {
+//                    items.forEach(item -> {
+//                        List<GitStatusData> newStatus = statusDatas.stream().filter(e -> e.getFileName().equals(item.getFileName())).collect(Collectors.toList());
+//                        if (newStatus.isEmpty()) {
+//                            item.getRepositoryData().getGitStatusDatas().remove(item);
+//                            setRepositoryDisplayName(item.getRepositoryData());
+//                        } else if (newStatus.size() == 1) {
+//                            item.indexStatusProperty().set(newStatus.get(0).indexStatusProperty().get());
+//                            item.workTreeStatusProperty().set(newStatus.get(0).workTreeStatusProperty().get());
+//                        } else {
+//                            throw new AssertionError(item.getFileName() + " が複数存在しています。");
+//                        }
+//                    });
+//                    updateSituationSelectors();
+//                });
             });
         });
+    }
+
+    private void refreshFiles(List<GitStatusData> items, List<GitStatusData> statusDatas) {
+        items.forEach(item -> refreshFileCommon(item, statusDatas));
+        updateSituationSelectors();
+    }
+
+    private void refreshFile(GitStatusData item, List<GitStatusData> statusDatas) {
+        refreshFileCommon(item, statusDatas);
+        updateSituationSelectors();
+    }
+
+    private void refreshFileCommon(GitStatusData item, List<GitStatusData> statusDatas) {
+        List<GitStatusData> newStatus = statusDatas.stream().filter(e -> e.getFileName().equals(item.getFileName())).collect(Collectors.toList());
+        if (newStatus.isEmpty()) {
+            item.getRepositoryData().getGitStatusDatas().remove(item);
+            setRepositoryDisplayName(item.getRepositoryData());
+        } else if (newStatus.size() == 1) {
+            item.indexStatusProperty().set(newStatus.get(0).indexStatusProperty().get());
+            item.workTreeStatusProperty().set(newStatus.get(0).workTreeStatusProperty().get());
+        } else {
+            throw new AssertionError(item.getFileName() + " が複数存在しています。");
+        }
     }
 
     private void execCommandForRepository(Set<RepositoryData> repos, CommandExecutor2 command) {
@@ -835,29 +879,6 @@ public class GitStatusPane implements BaseGitPane {
         return tableView.getSelectionModel().getSelectedItem();
     }
 
-    /*
-    private HashMap<Path, List<GitStatusData>> getModifiedFiles() {
-        HashMap<Path, List<GitStatusData>> filesPerRepo = new HashMap<>();
-        tableView.getEnableMenuItems().forEach(item -> {
-            switch (item.getWorkTreeStatus()) {
-                case "M":
-                case "A":
-                case "D":
-                    break;
-                default:
-                    return;
-            }
-            Path key = item.getRepositoryData().getPath();
-            List<GitStatusData> files = filesPerRepo.get(key);
-            if (files == null) {
-                files = new ArrayList<>();
-                filesPerRepo.put(key, files);
-            }
-            files.add(item);
-        });
-        return filesPerRepo;
-    }
-     */
     // predicator で true になるファイルが存在する RepositoryData を返す。
     private HashSet<RepositoryData> getSpecifiedRepositories(Predicate<GitStatusData> predicator) {
         HashSet<RepositoryData> set = new HashSet<>();

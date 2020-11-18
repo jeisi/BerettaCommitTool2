@@ -111,7 +111,7 @@ public class SetUpWizardTest {
 
         // Finish ボタンをクリックしたらダイアログを閉じる
         assertTimeoutPreemptively(Duration.ofSeconds(2), () -> {
-            while (app.isShowing()) {
+            while (app.getStage().isShowing()) {
                 Thread.sleep(1000);
             }
         });

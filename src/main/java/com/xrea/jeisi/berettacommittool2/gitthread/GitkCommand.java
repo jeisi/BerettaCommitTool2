@@ -35,27 +35,34 @@ public class GitkCommand extends BaseSingleGitCommand {
 
     public void log(String fileName) throws GitConfigException, IOException, InterruptedException {
         List<String> command = getGitkCommand();
+        List<String> displayCommand = getGitkDisplayCommand();
         if (isAll) {
             command.add("--all");
+            displayCommand.add("--all");
         }
         if (isSimplifyMerges) {
             command.add("--simplify-merges");
+            displayCommand.add("--simplify-merges");
         }
         command.add(fileName);
+        displayCommand.add(fileName);
 
-        execProcess(command, command);
+        execProcess(command, displayCommand);
     }
 
     public void log() throws GitConfigException, IOException, InterruptedException {
         List<String> command = getGitkCommand();
+        List<String> displayCommand = getGitkDisplayCommand();
         if (isAll) {
             command.add("--all");
+            displayCommand.add("--all");
         }
         if (isSimplifyMerges) {
             command.add("--simplify-merges");
+            displayCommand.add("--simplify-merges");
         }
 
-        execProcess(command, command);
+        execProcess(command, displayCommand);
     }
 
     private List<String> getGitkCommand() {
@@ -64,6 +71,12 @@ public class GitkCommand extends BaseSingleGitCommand {
         if (os.contains("win")) {
             command.add("bash");
         }
+        command.add("gitk");
+        return command;
+    }
+
+    private List<String> getGitkDisplayCommand() {
+        List<String> command = new ArrayList<>();
         command.add("gitk");
         return command;
     }

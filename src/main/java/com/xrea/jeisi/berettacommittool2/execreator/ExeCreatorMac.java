@@ -39,6 +39,10 @@ public class ExeCreatorMac extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("p4merge");
         }
+        String mergetool = configInfo.getMergeTool();
+        if (mergetool == null) {
+            configInfo.setMergeTool("p4merge");
+        }
 
         Path homeDir = Paths.get(System.getProperty("user.home"));
         GitConfigCommand configCommand = new GitConfigCommand(homeDir, configInfo);

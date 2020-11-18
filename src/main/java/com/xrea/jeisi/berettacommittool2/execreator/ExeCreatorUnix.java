@@ -34,5 +34,9 @@ public class ExeCreatorUnix extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("meld");
         }
+        String mergetool = configInfo.getMergeTool();
+        if (mergetool == null) {
+            configInfo.setMergeTool("meld");
+        }
     }
 }

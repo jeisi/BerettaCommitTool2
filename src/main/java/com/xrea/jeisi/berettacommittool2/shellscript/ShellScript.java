@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.shellscript;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -22,6 +23,7 @@ import org.apache.commons.exec.PumpStreamHandler;
 public class ShellScript {
 
     private OutputStream outputStream = new ByteArrayOutputStream();
+    private InputStream inputStream;
     private final File workDir;
     private ExecuteResultHandler resultHandler;
 
@@ -36,14 +38,23 @@ public class ShellScript {
     public void setOutputStream(OutputStream outputStream) {
         this.outputStream = outputStream;
     }
+    
+    public void setInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
+    }
 
     public void setResultHandler(ExecuteResultHandler resultHandler) {
         this.resultHandler = resultHandler;
     }
 
     public int exec(String exe, String[] options/*, List<String> displayCommand*/) throws IOException {
-        //PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, outputStream);
-        PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        //PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
+        PumpStreamHandler streamHandler;
+        if(inputStream != null) {
+            streamHandler = new PumpStreamHandler(outputStream, outputStream, inputStream);
+        } else {
+            streamHandler = new PumpStreamHandler(outputStream);
+        }
         int result = execCommon(exe, options, streamHandler, /*handleQuoting=*/ false);
         return result;
     }

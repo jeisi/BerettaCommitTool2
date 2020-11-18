@@ -139,6 +139,15 @@ public class ConfigInfo {
         return difftool;
     }
 
+    public void setMergeTool(String mergetool) {
+        map.put("mergetool", mergetool);
+    }    
+    
+    public String getMergeTool() {
+        String mergetool = (String) map.get("mergetool");
+        return mergetool;        
+    }
+    
     public void setFontSize(String size) {
         map.put("fontsize", size);
         fontSizeProperty.set(size);

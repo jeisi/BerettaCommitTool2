@@ -40,5 +40,9 @@ public class ExeCreatorWin extends ExeCreator {
         if (difftool == null) {
             configInfo.setDiffTool("winmerge");
         }
+        String mergetool = configInfo.getMergeTool();
+        if (mergetool == null) {
+            configInfo.setMergeTool("winmerge");
+        }
     }
 }

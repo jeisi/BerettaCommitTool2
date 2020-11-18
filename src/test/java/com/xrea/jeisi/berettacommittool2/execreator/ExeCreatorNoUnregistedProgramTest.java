@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import java.io.IOException;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ public class ExeCreatorNoUnregistedProgramTest {
     }
 
     @Start
-    public void start(Stage stage) throws IOException, InterruptedException {
+    public void start(Stage stage) throws IOException, InterruptedException, GitConfigException {
         ConfigInfo configInfo = new ConfigInfo();
         configInfo.setProgram("git", "/bin/git");
         configInfo.setProgram("WinMergeU", "/c/Program Files/WinMerge/WinMergeU.exe");
