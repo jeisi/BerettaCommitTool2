@@ -41,9 +41,6 @@ import javafx.scene.layout.BorderPane;
  */
 public class GitCommitPane {
 
-    private final ConfigInfo configInfo;
-    private final ErrorLogWindow errorLogWindow;
-    private final StyleManager styleManager;
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
     private List<String> commitMessageHistory = new ArrayList<>();
@@ -51,7 +48,10 @@ public class GitCommitPane {
     private CheckBox amendCheckBox;
     private String amendMessage;
     private GitCommandFactory gitCommandFactory;
+    private final ConfigInfo configInfo;
+    private final ErrorLogWindow errorLogWindow;
     private final List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
+    private final StyleManager styleManager;
     private static int SUMMARY_LENGTH = 40;
 
     public GitCommitPane(ConfigInfo configInfo, StyleManager styleManager) {
@@ -67,17 +67,19 @@ public class GitCommitPane {
     }
 
     public void setRepositoryDatas(List<RepositoryData> repositoryDatas) {
-        XmlWriter.writeStartMethod("GitCommitPane.setRepositoryDatas()");
-        
+        //XmlWriter.writeStartMethod("GitCommitPane.setRepositoryDatas()");
+
         this.repositoryDatas = repositoryDatas;
 
         amendMessage = getAmendMessage();
-        XmlWriter.writeObject("amendMessage", amendMessage);
         if (amendMessage != null) {
             amendCheckBox.setDisable(false);
         }
-        
-        XmlWriter.writeEndMethod();
+
+        String mergeMessage = getMergeMessage();
+        if (mergeMessage != null) {
+            messageTextArea.setText(mergeMessage);
+        }
     }
 
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
@@ -96,7 +98,7 @@ public class GitCommitPane {
         saveConfig();
         errorLogWindow.close();
     }
-    
+
     public void requestDefaultFocus() {
         messageTextArea.requestFocus();
     }
@@ -212,14 +214,14 @@ public class GitCommitPane {
     }
 
     private String getAmendMessage() {
-        XmlWriter.writeStartMethod("GitCommitPane.getAmendMessage()");
+        //XmlWriter.writeStartMethod("GitCommitPane.getAmendMessage()");
         List<String> amendMessages = new ArrayList<>();
         for (var repositoryData : repositoryDatas) {
             GitCommitCommand commitCommand = new GitCommitCommand(repositoryData.getPath(), configInfo);
             try {
                 String amendMessage = commitCommand.readCommitEditMsg();
                 if (amendMessage == null) {
-                    XmlWriter.writeEndMethodWithReturnValue(null);
+                    //XmlWriter.writeEndMethodWithReturnValue(null);
                     return null;
                 }
                 amendMessages.add(amendMessage);
@@ -228,9 +230,26 @@ public class GitCommitPane {
             }
         }
 
-        XmlWriter.writeEndMethod();
+        //XmlWriter.writeEndMethod();
         return String.join("---\n", amendMessages);
-        //return amendMessages.stream().collect(Collectors.joining("\n---\n"));
+    }
+
+    private String getMergeMessage() {
+        List<String> mergeMessages = new ArrayList<>();
+        for (var repositoryData : repositoryDatas) {
+            GitCommitCommand commitCommand = new GitCommitCommand(repositoryData.getPath(), configInfo);
+            try {
+                String amendMessage = commitCommand.readMergeEditMsg();
+                if (amendMessage == null) {
+                    return null;
+                }
+                mergeMessages.add(amendMessage);
+            } catch (IOException | GitConfigException | InterruptedException ex) {
+                errorLogWindow.appendException(ex);
+            }
+        }
+
+        return String.join("---\n", mergeMessages);
     }
 
     private ObservableList<String> getCommitMessages() {

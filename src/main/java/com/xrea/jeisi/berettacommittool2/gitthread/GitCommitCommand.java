@@ -36,7 +36,6 @@ public class GitCommitCommand extends BaseSingleGitCommand {
     //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     //    }
     //};
-
     public GitCommitCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
     }
@@ -68,10 +67,10 @@ public class GitCommitCommand extends BaseSingleGitCommand {
             }
             execProcess(command, displayCommand);
         } catch (GitCommandException ex) {
-            if(ex.getStdOut().contains("nothing added to commit but untracked files present")) {
+            if (ex.getStdOut().contains("nothing added to commit but untracked files present")) {
                 throw new GitCommitNothingAddedException(ex);
             }
-            if(ex.getStdErr().contains("error: Committing is not possible because you have unmerged files.")) {
+            if (ex.getStdErr().contains("error: Committing is not possible because you have unmerged files.")) {
                 throw new GitCommitUnmergedFilesException(ex);
             }
             throw ex;
@@ -83,12 +82,18 @@ public class GitCommitCommand extends BaseSingleGitCommand {
     public String readCommitEditMsg() throws GitConfigException, IOException, InterruptedException {
         String[] lines = execProcess("git", "rev-parse", "--git-dir");
         Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "COMMIT_EDITMSG");
-        if(!Files.exists(messagePath)) {
-            //return "";
+        if (!Files.exists(messagePath)) {
             return null;
         }
-        //List<String> commitMessage = Files.readAllLines(messagePath, Charset.forName("UTF-8"));
-        //return String.join("\n", commitMessage);
+        return Files.readString(messagePath, Charset.forName("UTF-8"));
+    }
+
+    public String readMergeEditMsg() throws GitConfigException, IOException, InterruptedException {
+        String[] lines = execProcess("git", "rev-parse", "--git-dir");
+        Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "MERGE_MSG");
+        if (!Files.exists(messagePath)) {
+            return null;
+        }
         return Files.readString(messagePath, Charset.forName("UTF-8"));
     }
 }
