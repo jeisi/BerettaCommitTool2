@@ -240,6 +240,7 @@ public class SelectWorkPane2 {
         File selectedDirectory = chooser.showDialog(parent);
         if (selectedDirectory != null) {
             addDirectory(selectedDirectory);
+            ok();
         }
     }
 
