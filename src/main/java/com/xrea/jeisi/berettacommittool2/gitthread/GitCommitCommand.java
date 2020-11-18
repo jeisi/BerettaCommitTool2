@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -30,13 +29,13 @@ import java.util.function.Predicate;
  */
 public class GitCommitCommand extends BaseSingleGitCommand {
 
-    private RepositoryData repositoryData;
-    private Predicate<GitStatusData> predicate = new Predicate<GitStatusData>() {
-        @Override
-        public boolean test(GitStatusData t) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-    };
+    //private RepositoryData repositoryData;
+    //private Predicate<GitStatusData> predicate = new Predicate<GitStatusData>() {
+    //    @Override
+    //    public boolean test(GitStatusData t) {
+    //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    //    }
+    //};
 
     public GitCommitCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
@@ -82,7 +81,7 @@ public class GitCommitCommand extends BaseSingleGitCommand {
     }
 
     public String readCommitEditMsg() throws GitConfigException, IOException, InterruptedException {
-        String[] lines = execProcessWithOutput("git", "rev-parse", "--git-dir");
+        String[] lines = execProcess("git", "rev-parse", "--git-dir");
         Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "COMMIT_EDITMSG");
         if(!Files.exists(messagePath)) {
             //return "";

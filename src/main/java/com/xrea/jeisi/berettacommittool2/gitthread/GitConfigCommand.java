@@ -6,10 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
-import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,7 +34,7 @@ public class GitConfigCommand extends BaseSingleGitCommand {
         XmlWriter.writeStartMethod("GitConfigCommand.list()");
         List<String> command = getListCommand();
         List<String> displayCommand = getListCommand();
-        String[] lines = execProcessWithOutput(command, displayCommand);
+        String[] lines = execProcess(command, displayCommand);
         
         map = new HashMap<>();
         Pattern p = Pattern.compile("(.*)=(.*)");

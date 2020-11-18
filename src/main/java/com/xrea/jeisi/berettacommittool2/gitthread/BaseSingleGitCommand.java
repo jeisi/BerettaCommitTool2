@@ -38,18 +38,27 @@ public class BaseSingleGitCommand {
         this.configInfo = configInfo;
     }
 
-    protected void execProcess(List<String> args, List<String> displayCommand) throws GitConfigException, IOException, InterruptedException, GitCommandException {
-        //XmlWriter.writeObject("args", args);
-        //XmlWriter.writeObject("repository", repository.toString());
+    protected String[] execProcess(List<String> command, List<String> displayCommand) throws GitConfigException, IOException, InterruptedException, GitCommandException {
         ShellScript shellScript = new ShellScript(repository);
         try {
-            shellScript.exec(getCommand(args.get(0)), args.subList(1, args.size()).toArray(new String[args.size() - 1]));
+            String cmd;
+            List<String> args;
+            if (command.get(0).equals("bash")) {
+                cmd = getCommand(command.get(0));
+                args = new ArrayList<>();
+                args.add(getCommand(command.get(1)));
+                args.addAll(command.subList(2, command.size()));
+            } else {
+                cmd = getCommand(command.get(0));
+                args = command.subList(1, command.size());
+            }
+            shellScript.exec(cmd, args.toArray(new String[args.size()]));
+            return shellScript.getOutput();
         } catch (ExecuteException ex) {
             List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
             GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);
             throw e;
         } catch (IOException ex) {
-            //XmlWriter.writeObject("ex.getMessage()", ex.getMessage());
             Pattern p = Pattern.compile("(.+) doesn't exist.");
             Matcher m = p.matcher(ex.getMessage());
             if (m.matches()) {
@@ -61,17 +70,18 @@ public class BaseSingleGitCommand {
         }
     }
 
-    protected void execProcess(String... args) throws GitConfigException, IOException, InterruptedException, GitCommandException {
+    protected String[] execProcess(String... args) throws GitConfigException, IOException, InterruptedException, GitCommandException {
         List<String> command = Arrays.asList(args);
-        execProcess(command, command);
+        return execProcess(command, command);
     }
 
+    /*
     protected String[] execProcessWithOutput(List<String> command, List<String> displayCommand) throws IOException, InterruptedException, GitConfigException {
         ShellScript shellScript = new ShellScript(repository);
         try {
             String cmd;
             List<String> args;
-            if(command.get(0).equals("bash")) {
+            if (command.get(0).equals("bash")) {
                 cmd = getCommand(command.get(0));
                 args = new ArrayList<>();
                 args.add(getCommand(command.get(1)));
@@ -93,6 +103,7 @@ public class BaseSingleGitCommand {
         List<String> command = Arrays.asList(args);
         return execProcessWithOutput(command, command);
     }
+    */
 
     protected String getCommand(String commandIdentifier) throws GitConfigException {
         String command = configInfo.getProgramEx(commandIdentifier);
@@ -101,7 +112,8 @@ public class BaseSingleGitCommand {
         }
         return commandIdentifier;
     }
-
+    
+    /*
     protected static List<String> getErrorStream(Process p) throws IOException {
         List<String> lines = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(
@@ -123,7 +135,8 @@ public class BaseSingleGitCommand {
         }
         return lines;
     }
-
+    */
+    
     protected String getErrorMessageHeader(List<String> command) {
         StringBuilder builder = new StringBuilder();
         builder.append("command error:\n");

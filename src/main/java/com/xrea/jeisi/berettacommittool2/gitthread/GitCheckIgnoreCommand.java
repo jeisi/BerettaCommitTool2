@@ -22,7 +22,7 @@ public class GitCheckIgnoreCommand extends BaseSingleGitCommand {
 
     public String checkIgnore(String fileName) throws IOException, GitConfigException, InterruptedException {
         StringBuilder builder = new StringBuilder();
-        String[] result = execProcessWithOutput("git", "check-ignore", "-v", fileName);
+        String[] result = execProcess("git", "check-ignore", "-v", fileName);
         builder.append("[");
         builder.append(repository.toString());
         builder.append("]\n");

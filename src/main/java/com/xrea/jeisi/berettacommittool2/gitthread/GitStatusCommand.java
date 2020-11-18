@@ -45,7 +45,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         List<String> displayCommand = getStatusCommand(datas);
         String[] lines;
         try {
-            lines = execProcessWithOutput(command, displayCommand);
+            lines = execProcess(command, displayCommand);
         } catch (GitCommandException e) {
             if(e.getStdErr().stream().anyMatch(l -> l.contains("not a git repository"))) {
                 throw new RepositoryNotFoundException(repositoryData.getPath(), e);

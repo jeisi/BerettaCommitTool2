@@ -31,8 +31,7 @@ public class GitBranchCommand extends BaseSingleGitCommand {
         //XmlWriter.writeStartMethod("GitBranchCommand.exec()");
         List<String> command = getBranchCommand();
         List<String> displayCommand = getBranchCommand();
-        String[] lines;
-        lines = execProcessWithOutput(command, displayCommand);
+        String[] lines = execProcess(command, displayCommand);
         
         GitBranchData data = new GitBranchData(repositoryData);
         for(String line : lines) {

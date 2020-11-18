@@ -59,7 +59,7 @@ public class GitAddCommand extends BaseMultiGitCommand {
 
     private void addFilesByOption(String option) throws GitConfigException, IOException, InterruptedException {
         XmlWriter.writeStartMethod("GitAddCommand.addFilesByOption()");
-        String[] lines = execProcessWithOutput("git", "add", "--dry-run", option);
+        String[] lines = execProcess("git", "add", "--dry-run", option);
         if (progressWindow != null && lines.length > 1) {
             progressModel = new ProgressModel(String.format("git %s ...", lines[0]), lines.length);
             Platform.runLater(() -> {
