@@ -71,8 +71,4 @@ public class DiffToolTab extends Tab implements BaseTab {
         vbox.setPadding(new Insets(5));
         return vbox;
     }
-
-    private void checkTool() {
-        
-    }
 }

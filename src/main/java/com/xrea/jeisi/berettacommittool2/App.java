@@ -16,6 +16,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog2;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
+import com.xrea.jeisi.berettacommittool2.targetrepositorypane.TargetRepositoryPane;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -56,6 +57,7 @@ public class App extends Application implements RefreshListener {
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
     private List<BaseGitPane> gitPanes;
+    private TargetRepositoryPane targetRepositoryPane;
     ConfigInfo configInfo = new ConfigInfo();
     private String topDir;
     Stage mainStage;
@@ -157,17 +159,26 @@ public class App extends Application implements RefreshListener {
         var tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
             var tab = new Tab(pane.getTitle(), pane.build());
+            tab.setUserData(pane);
             tabPane.getTabs().add(tab);
         });
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            BaseGitPane pane = (BaseGitPane) newValue.getUserData();
+            targetRepositoryPane.bind(pane.targetRepositoryProperty());
+        });
+
+        targetRepositoryPane = new TargetRepositoryPane();
+        BorderPane leftPane = new BorderPane();
+        leftPane.setCenter(repositoriesPane.build());
+        leftPane.setBottom(targetRepositoryPane.build());
 
         splitPane = new SplitPane();
-        var repositoriesPaneNode = repositoriesPane.build();
-        splitPane.getItems().addAll(repositoriesPaneNode, tabPane);
+        splitPane.getItems().addAll(leftPane, tabPane);
         var divider = configInfo.getDouble("main.splitpane.divider");
         if (divider != null) {
             splitPane.setDividerPosition(0, divider);
         }
-        SplitPane.setResizableWithParent(repositoriesPaneNode, Boolean.FALSE);
+        SplitPane.setResizableWithParent(leftPane, Boolean.FALSE);
 
         MenuBar menuBar = new MenuBar();
         menuBar.setUseSystemMenuBar(true);

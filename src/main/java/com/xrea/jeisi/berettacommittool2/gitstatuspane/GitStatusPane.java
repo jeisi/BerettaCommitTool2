@@ -67,6 +67,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -128,7 +130,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitMergeToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
-    private final TargetRepository targetRepository = TargetRepository.SELECTED;
+    private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
     public GitStatusPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -147,6 +149,11 @@ public class GitStatusPane implements BaseGitPane {
         return "Status";
     }
 
+    @Override
+    public ObjectProperty<TargetRepository> targetRepositoryProperty() {
+        return targetRepository;
+    }
+    
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
         this.gitCommandFactory = gitCommandFactory;
     }
@@ -175,10 +182,10 @@ public class GitStatusPane implements BaseGitPane {
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
         work.getChecked().addListener(changedListener);
 
-        var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository);
+        var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository.get());
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
 
-        changeTargetRepositories(targetRepository);
+        changeTargetRepositories(targetRepository.get());
     }
 
     @Override
@@ -190,11 +197,11 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
-        if (target != targetRepository) {
+        if (target != targetRepository.get()) {
             return;
         }
 
-        ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
+        ObservableList<RepositoryData> targetRepositories = (target == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         //tableView.setItems(aggregated.getAggregatedList());

@@ -7,7 +7,10 @@ package com.xrea.jeisi.berettacommittool2.gitsyncbranch;
 
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Parent;
 import javafx.scene.control.Menu;
 import javafx.scene.control.SelectionMode;
@@ -24,6 +27,7 @@ public class GitSyncPane implements BaseGitPane {
     private ConfigInfo configInfo;
     private RepositoriesInfo repositories;
     private TableView tableView;
+    private ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.CHECKED);
 
     public GitSyncPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -32,6 +36,11 @@ public class GitSyncPane implements BaseGitPane {
     @Override
     public String getTitle() {
         return "Sync";
+    }
+
+    @Override
+    public ObjectProperty<TargetRepository> targetRepositoryProperty() {
+        return targetRepository;
     }
 
     @Override

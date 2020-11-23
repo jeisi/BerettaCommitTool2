@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -42,13 +43,14 @@ import javafx.scene.layout.HBox;
  */
 public class GitBranchPane implements BaseGitPane {
 
-    private TableView<ObjectProperty<GitBranchData>> tableView;
+    private boolean active = false;
+    private ObservableList<ObjectProperty<GitBranchData>> branchDatas;
     private RepositoriesInfo repositoriesInfo;
+    private TableView<ObjectProperty<GitBranchData>> tableView;
     private final ConfigInfo configInfo;
     private final ErrorLogWindow errorLogWindow;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
-    private final TargetRepository targetRepository = TargetRepository.CHECKED;
-    private ObservableList<ObjectProperty<GitBranchData>> branchDatas;
+    private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.CHECKED);
 
     public GitBranchPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -61,22 +63,31 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     @Override
+    public ObjectProperty<TargetRepository> targetRepositoryProperty() {
+        return targetRepository;
+    }
+
+    @Override
     public void setRepositories(RepositoriesInfo repositoriesInfo) {
         this.repositoriesInfo = repositoriesInfo;
 
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
         this.repositoriesInfo.getChecked().addListener(changedListener);
 
-        changeTargetRepositories(targetRepository);
+        ListChangeListener<RepositoryData> listener = ll -> changeTargetRepositories(TargetRepository.SELECTED);
+        repositoriesInfo.getSelected().addListener(listener);
+
+        changeTargetRepositories(targetRepository.get());
     }
 
     private void changeTargetRepositories(TargetRepository target) {
-        XmlWriter.writeStartMethod("GitBranchPane.changeTargetRepositories()");
-//        if (target != targetRepository) {
-//            return;
-//        }
+        XmlWriter.writeStartMethod("GitBranchPane.changeTargetRepositories(%s)", target.toString());
+        if (target != targetRepository.get()) {
+            XmlWriter.writeEndMethodWithReturn();
+            return;
+        }
 
-        ObservableList<RepositoryData> targetRepositories = (targetRepository == TargetRepository.SELECTED) ? repositoriesInfo.getSelected() : repositoriesInfo.getChecked();
+        ObservableList<RepositoryData> targetRepositories = (target == TargetRepository.SELECTED) ? repositoriesInfo.getSelected() : repositoriesInfo.getChecked();
         branchDatas = FXCollections.observableArrayList();
         targetRepositories.forEach(r -> {
             branchDatas.add(r.gitBranchDataProperty());
@@ -88,8 +99,24 @@ public class GitBranchPane implements BaseGitPane {
         XmlWriter.writeEndMethod();
     }
 
+    /*
+    @Override
+    public void setActive(boolean active) {
+        this.active = active;
+        if(!active) {
+            return;
+        }
+        
+        if(requested)
+    }
+    */
+    
     @Override
     public Parent build() {
+        targetRepository.addListener((observable, oldValue, newValue) -> {
+            changeTargetRepositories(newValue);
+        });
+
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(buildCenter());
         return borderPane;
@@ -152,9 +179,9 @@ public class GitBranchPane implements BaseGitPane {
 
     @Override
     public void refreshAll() {
-        //XmlWriter.writeStartMethod("GtiBranchPane.refreshAll()");
+        XmlWriter.writeStartMethod("GtiBranchPane.refreshAll()");
         refreshCommon(repositoriesInfo.getDatas());
-        //XmlWriter.writeEndMethod();
+        XmlWriter.writeEndMethod();
     }
 
     @Override

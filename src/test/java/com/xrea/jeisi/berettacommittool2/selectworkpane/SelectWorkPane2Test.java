@@ -7,8 +7,6 @@ package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
