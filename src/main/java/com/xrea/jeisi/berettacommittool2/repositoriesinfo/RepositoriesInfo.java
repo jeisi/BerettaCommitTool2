@@ -69,4 +69,27 @@ public class RepositoriesInfo {
                 = datas.stream().filter(e -> e.checkProperty().get()).collect(Collectors.toList());
         checkedRepositories.setAll(newCheckedRepositories);
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        if(datas == null) {
+            builder.append("null");
+        } else {
+            builder.append(datas);                        
+        }
+        builder.append(",");
+        if(selectedRepositories == null) {
+            builder.append("null");
+        } else {
+            builder.append(selectedRepositories);            
+        }
+        builder.append(",");
+        if(checkedRepositories == null) {
+            builder.append("null");
+        } else {
+            builder.append(checkedRepositories);        
+        }
+        return builder.toString();
+    }
 }
