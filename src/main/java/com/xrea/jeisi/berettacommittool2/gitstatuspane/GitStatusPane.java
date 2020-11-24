@@ -602,6 +602,10 @@ public class GitStatusPane implements BaseGitPane {
         gitAddMenuItem.setOnAction(eh -> gitAdd());
         gitAddSituationSelector.getVisibleMenuItems().add(gitAddMenuItem);
 
+        MenuItem rmMenuItem = new MenuItem("git rm -f <file>...");
+        rmMenuItem.setOnAction(e -> gitRm());
+        gitRmSituationSelector.getVisibleMenuItems().add(rmMenuItem);
+
         MenuItem mergeToolMenuItem = new MenuItem("git mergetool <file>");
         mergeToolMenuItem.setOnAction(eh -> gitMergeTool());
         gitMergeToolSituationSelector.getVisibleMenuItems().add(mergeToolMenuItem);
@@ -628,7 +632,7 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(gitkAllSimpifyMergesMenuItem, gitAddMenuItem, mergeToolMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem,
+        ContextMenu contextMenu = new ContextMenu(gitkAllSimpifyMergesMenuItem, gitAddMenuItem, rmMenuItem, mergeToolMenuItem, checkoutOursMenuItem, checkoutTheirsMenuItem, checkIgnoreMenuItem,
                 deleteMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
