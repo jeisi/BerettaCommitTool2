@@ -7,7 +7,9 @@ package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchData;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.nio.file.Path;
+import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -25,13 +27,13 @@ public class RepositoryData {
     private final BooleanProperty check = new SimpleBooleanProperty();
     private final StringProperty name = new SimpleStringProperty();
     private final StringProperty displayName = new SimpleStringProperty();
-    private ObservableList<GitStatusData> gitStatusDatas;
-    private ObjectProperty<GitBranchData> gitBranchData = new SimpleObjectProperty<>();
+    private ObservableList<GitStatusData> gitStatusDatas = null;
+    private ObjectProperty<GitBranchData> gitBranchData; // = new SimpleObjectProperty<>();
     private final Path path; 
 
     public RepositoryData(boolean bCheck, String name, Path path) {
-        this.gitStatusDatas = FXCollections.observableArrayList();
-        this.gitBranchData.set(new GitBranchData(this));
+        //this.gitStatusDatas = FXCollections.observableArrayList();
+        //this.gitBranchData.set(new GitBranchData(this));
         this.check.set(bCheck);
         this.name.set(name);
         this.path = path;
@@ -54,20 +56,32 @@ public class RepositoryData {
         return gitStatusDatas;
     }
         
-    public void setGitStatusDatas(ObservableList<GitStatusData> gitStatusDatas) {
-        this.gitStatusDatas = gitStatusDatas;
+//    public void setGitStatusDatas(ObservableList<GitStatusData> gitStatusDatas) {
+//        this.gitStatusDatas = gitStatusDatas;
+//    }
+
+    public void setGitStatusDatas(List<GitStatusData> gitStatusDatas) {
+        XmlWriter.writeStartMethod("RepositoryData.setGitStatusDatas()");
+        if(this.gitStatusDatas == null) {
+            this.gitStatusDatas = FXCollections.observableArrayList();
+        }
+        this.gitStatusDatas.setAll(gitStatusDatas);
+        XmlWriter.writeEndMethod();
     }
     
     public ObjectProperty<GitBranchData> gitBranchDataProperty() {
         return gitBranchData;
     }
-    
-//    public GitBranchData getGitBranchData() {
-//        return gitBranchData;
-//    }
-    
+        
     public void setGitBranchData(GitBranchData gitBranchData) {
+        XmlWriter.writeStartMethod("RepositoryData.setGitBranchData()");
+        if(this.gitBranchData == null) {
+            this.gitBranchData = new SimpleObjectProperty<>();
+        }
         this.gitBranchData.set(gitBranchData);
+        XmlWriter.writeObject("gitBranchData", gitBranchData.toString());
+        XmlWriter.writeObject("this.gitBranchData", this.gitBranchData.get().toString());
+        XmlWriter.writeEndMethod();
     }
     
     public Path getPath() {
@@ -81,7 +95,11 @@ public class RepositoryData {
         builder.append(", ");
         builder.append(check.get());
         builder.append(",");
-        builder.append(gitBranchData.toString());
+        if(gitBranchData == null) {
+            builder.append("null");
+        } else {
+            builder.append(gitBranchData.toString());            
+        }
         builder.append("}");
         return builder.toString();
     }

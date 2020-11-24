@@ -82,12 +82,18 @@ public class GitBranchPane implements BaseGitPane {
 
     private void changeTargetRepositories(TargetRepository target) {
         XmlWriter.writeStartMethod("GitBranchPane.changeTargetRepositories(%s)", target.toString());
+        if (!active) {
+            XmlWriter.writeEndMethodWithReturn();
+            return;
+        }
+
         if (target != targetRepository.get()) {
             XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
         ObservableList<RepositoryData> targetRepositories = (target == TargetRepository.SELECTED) ? repositoriesInfo.getSelected() : repositoriesInfo.getChecked();
+        XmlWriter.writeObject("repositoriesInfo", repositoriesInfo);
         branchDatas = FXCollections.observableArrayList();
         targetRepositories.forEach(r -> {
             branchDatas.add(r.gitBranchDataProperty());
@@ -99,18 +105,24 @@ public class GitBranchPane implements BaseGitPane {
         XmlWriter.writeEndMethod();
     }
 
-    /*
     @Override
     public void setActive(boolean active) {
+        XmlWriter.writeStartMethod("GitBranchPane.setActive(%s)", Boolean.toString(active));
+
         this.active = active;
-        if(!active) {
+        if (!active) {
+            XmlWriter.writeEndMethodWithReturn();
             return;
         }
-        
-        if(requested)
+
+        if (repositoriesInfo.getDatas().stream().filter(p -> p.gitBranchDataProperty() == null).count() > 0) {
+            refreshAll();
+        }
+        //changeTargetRepositories(targetRepository.get());
+
+        XmlWriter.writeEndMethod();
     }
-    */
-    
+
     @Override
     public Parent build() {
         targetRepository.addListener((observable, oldValue, newValue) -> {
@@ -195,10 +207,13 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void refreshCommon(ObservableList<RepositoryData> datas) {
+        XmlWriter.writeStartMethod("GitBranchPane.refreshCommon()");
+        XmlWriter.writeObject("datas", datas);
         refreshThreadCounter.addAndGet(datas.size());
         datas.forEach((var repositoryData) -> {
             refreshRepository(repositoryData);
         });
+        XmlWriter.writeEndMethod();
     }
 
     private void refreshRepository(RepositoryData repository) {
@@ -211,6 +226,7 @@ public class GitBranchPane implements BaseGitPane {
             GitBranchData gitBranchData;
             try {
                 gitBranchData = command.exec(repository);
+                XmlWriter.writeObject("gitBranchData", gitBranchData);
                 repository.setGitBranchData(gitBranchData);
                 setRepositoryDisplayName(repository);
             } catch (RepositoryNotFoundException ex) {
@@ -224,24 +240,30 @@ public class GitBranchPane implements BaseGitPane {
             } finally {
                 int remain = refreshThreadCounter.decrementAndGet();
                 if (remain == 0) {
-                    combineBranch();
+                    changeTargetRepositories(targetRepository.get());
+                    //combineBranch();
                 }
             }
         });
     }
 
     private void combineBranch() {
+        XmlWriter.writeStartMethod("GitBranchPane.combineBranch()");
         Set<String> otherBranches = new TreeSet<>();
         Set<String> remoteBranches = new TreeSet<>();
+        XmlWriter.writeObject("tableView.getItems()", tableView.getItems().toString());
         tableView.getItems().forEach(item -> {
+            XmlWriter.writeObject("item.get()", item.get().toString());
             item.get().getOtherBranches().forEach(branch -> otherBranches.add(branch.get()));
             item.get().getRemoteBranches().forEach(branch -> remoteBranches.add(branch.get()));
         });
+        XmlWriter.writeObject("otherBranches", otherBranches);
 
         Platform.runLater(() -> {
             otherBranches.forEach(branch -> addBranchColumn(branch));
             remoteBranches.forEach(branch -> addBranchColumn(branch));
         });
+        XmlWriter.writeEndMethod();
     }
 
     private void addBranchColumn(String branch) {

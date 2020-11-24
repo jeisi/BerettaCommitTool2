@@ -52,6 +52,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.HierarchyMenuSelectio
 import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 //import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -69,6 +70,7 @@ import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -101,6 +103,7 @@ import javafx.scene.layout.HBox;
  */
 public class GitStatusPane implements BaseGitPane {
 
+    private boolean active = false;
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
@@ -153,7 +156,7 @@ public class GitStatusPane implements BaseGitPane {
     public ObjectProperty<TargetRepository> targetRepositoryProperty() {
         return targetRepository;
     }
-    
+
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
         this.gitCommandFactory = gitCommandFactory;
     }
@@ -214,6 +217,25 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     @Override
+    public void setActive(boolean active) {
+        XmlWriter.writeStartMethod("GitStatusPane.setActive(%s)", Boolean.toString(active));
+        this.active = active;
+        if (!active) {
+            XmlWriter.writeEndMethodWithReturn();
+            return;
+        }
+
+        XmlWriter.writeObject("repositories.getDatas()", repositories.getDatas().toString());
+        XmlWriter.writeObject("repositories.getDatas().size()", repositories.getDatas().size());
+        long numNullRepository = repositories.getDatas().stream().filter(p -> p.getGitStatusDatas() == null).count();
+        XmlWriter.writeObject("numNullRepository", numNullRepository);
+        if (repositories.getDatas().size() == 0 || numNullRepository > 0) {
+            refreshAll();
+        }
+        XmlWriter.writeEndMethod();
+    }
+
+    @Override
     public void refreshAll() {
         refreshCommon(repositories.getDatas());
     }
@@ -247,7 +269,11 @@ public class GitStatusPane implements BaseGitPane {
     private void refreshRepository(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
         refreshThreadCounter.incrementAndGet();
         repository.displayNameProperty().set(String.format("%s [updating...]", repository.nameProperty().get()));
-        repository.getGitStatusDatas().clear();
+        if (repository.getGitStatusDatas() == null) {
+            repository.setGitStatusDatas(FXCollections.observableArrayList());
+        } else {
+            repository.getGitStatusDatas().clear();
+        }
         GitThread thread = GitThreadMan.get(repository.getPath().toString());
         thread.addCommand(() -> {
             GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
@@ -266,6 +292,7 @@ public class GitStatusPane implements BaseGitPane {
             }
             Platform.runLater(() -> {
                 repository.getGitStatusDatas().setAll(gitStatusDatas);
+//                repository.setGitStatusDatas(gitStatusDatas);
                 setRepositoryDisplayName(repository);
                 updateSituationSelectors();
                 refreshThreadCounter.decrementAndGet();

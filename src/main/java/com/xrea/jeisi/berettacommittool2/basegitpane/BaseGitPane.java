@@ -18,7 +18,7 @@ import javafx.scene.control.Menu;
 public interface BaseGitPane extends RefreshListener {
     public void close();
     public void saveConfig();
-    //public void setActive(boolean active);
+    public void setActive(boolean active);
     public void setRepositories(RepositoriesInfo work);
     public void setUp();
     public Menu buildMenu();

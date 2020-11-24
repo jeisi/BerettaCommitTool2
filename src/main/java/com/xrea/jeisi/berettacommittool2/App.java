@@ -52,11 +52,12 @@ import javafx.stage.Stage;
 public class App extends Application implements RefreshListener {
 
     private ErrorLogWindow errorLogWindow;
+    private List<BaseGitPane> gitPanes;
     private StyleManager styleManager;
     private PreferenceWindow preferenceWindow;
     private RepositoriesInfo repositoriesInfo;
     private RepositoriesPane repositoriesPane;
-    private List<BaseGitPane> gitPanes;
+    private TabPane tabPane;
     private TargetRepositoryPane targetRepositoryPane;
     ConfigInfo configInfo = new ConfigInfo();
     private String topDir;
@@ -156,15 +157,17 @@ public class App extends Application implements RefreshListener {
         gitPanes.add(new GitStatusPane(configInfo));
         gitPanes.add(new GitSyncPane(configInfo));
         gitPanes.add(new GitBranchPane(configInfo));
-        var tabPane = new TabPane();
+        tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
             var tab = new Tab(pane.getTitle(), pane.build());
             tab.setUserData(pane);
             tabPane.getTabs().add(tab);
         });
         tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            ((BaseGitPane) oldValue.getUserData()).setActive(false);
             BaseGitPane pane = (BaseGitPane) newValue.getUserData();
             targetRepositoryPane.bind(pane.targetRepositoryProperty());
+            pane.setActive(true);
         });
 
         targetRepositoryPane = new TargetRepositoryPane();
@@ -278,11 +281,12 @@ public class App extends Application implements RefreshListener {
     }
 
     void setRootDirectory(String topDir) {
+        XmlWriter.writeStartMethod("App.setRootDirectory()");
         this.topDir = topDir;
         refreshAll(topDir);
-        //Platform.runLater(() -> {
+        //((BaseGitPane)tabPane.getSelectionModel().getSelectedItem().getUserData()).setActive(true);
         mainStage.setTitle(String.format("%s - %s", topDir, getBaseTitle()));
-        //});
+        XmlWriter.writeEndMethod();
     }
 
     void refreshAll(String topDir) {
@@ -290,9 +294,7 @@ public class App extends Application implements RefreshListener {
             return;
         }
 
-        //System.out.println("getDatas(): " + repositoriesPane.getTableView().getItems().toString());
         var loader = new RepositoriesLoader(Paths.get(topDir, ".git_repositories.lst"));
-        //var loader = repositoriesLoaderFactory.create(Paths.get(topDir, ".git_repositories.lst"));
         List<String> repositories;
 
         try {
@@ -311,10 +313,11 @@ public class App extends Application implements RefreshListener {
         //List<Path> checkedItems = repositoriesInfo.getChecked().stream().map(e -> e.getPath()).collect(Collectors.toList());
         List<Path> uncheckedItems = repositoriesInfo.getDatas().stream().filter(e -> !e.checkProperty().get()).map(e -> e.getPath()).collect(Collectors.toList());
         repositoriesInfo.setRepositories(repositories, topDir);
-        gitPanes.forEach(pane -> {
-            //pane.setRepositories(repositoriesInfo);
-            pane.refreshAll();
-        });
+//        gitPanes.forEach(pane -> {
+//            pane.refreshAll();
+//        });
+        BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
+        pane.refreshAll();
 
         // 元々選択されていた行を選択し直す。
         int select = -1;
@@ -354,14 +357,18 @@ public class App extends Application implements RefreshListener {
     
     @Override
     public void refreshChecked() {
-        gitPanes.forEach(pane -> {
-            pane.refreshChecked();
-        });
+//        gitPanes.forEach(pane -> {
+//            pane.refreshChecked();
+//        });
+        BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
+        pane.refreshChecked();;
     }
 
     @Override
     public void refreshSelected() {
-        gitPanes.forEach(pane -> pane.refreshSelected());
+//        gitPanes.forEach(pane -> pane.refreshSelected());
+        BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
+        pane.refreshSelected();;
     }
 
     public static void main(String[] args) {

@@ -88,6 +88,11 @@ public class GitSyncPane implements BaseGitPane {
     }
 
     @Override
+    public void setActive(boolean active) {
+        
+    }
+    
+    @Override
     public void refreshAll() {
     }
 
