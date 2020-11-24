@@ -19,6 +19,9 @@ public class GitAddPredicate implements Predicate<GitStatusData> {
         if(t == null) {
             return false;
         }
+        if(t.indexStatusProperty().get().equals("U") && t.workTreeStatusProperty().get().equals("U")) {
+            return true;
+        }
         switch (t.workTreeStatusProperty().get()) {
             case "M":
             case "D":
