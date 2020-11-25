@@ -23,6 +23,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitDiffCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitMergeToolCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitRevertCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRmCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
@@ -66,6 +67,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -204,7 +207,7 @@ public class GitStatusPane implements BaseGitPane {
             return;
         }
 
-        ObservableList<RepositoryData> targetRepositories = (target == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
+        ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         //tableView.setItems(aggregated.getAggregatedList());
@@ -214,6 +217,10 @@ public class GitStatusPane implements BaseGitPane {
         sortableData.comparatorProperty().bind(tableView.comparatorProperty());
         filterPane.setFilteredList(filteredList);
         updateSituationSelectors();
+    }
+
+    private ObservableList<RepositoryData> getTargetRepositories() {
+        return (targetRepository.get() == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
     }
 
     @Override
@@ -250,6 +257,20 @@ public class GitStatusPane implements BaseGitPane {
         refreshCommon(repositories.getSelected());
     }
 
+    private void refreshTarget() {
+        switch (targetRepository.get()) {
+            case CHECKED:
+                refreshChecked();
+                break;
+            case SELECTED:
+                refreshSelected();
+                break;
+            default:
+                assert (false);
+                break;
+        }
+    }
+
     private void refreshIgnoredSelected() {
         ObservableList<RepositoryData> datas = repositories.getSelected();
         datas.forEach((var repositoryData) -> {
@@ -276,36 +297,38 @@ public class GitStatusPane implements BaseGitPane {
         }
         GitThread thread = GitThreadMan.get(repository.getPath().toString());
         thread.addCommand(() -> {
-            GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
-            List<GitStatusData> gitStatusDatas;
-            try {
-                //gitStatusDatas = command.status(repository);
-                gitStatusDatas = gitStatusExecutor.exec(command, repository);
-            } catch (RepositoryNotFoundException ex) {
-                Platform.runLater(() -> showError(ex));
-                repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getShortMessage()));
-                return;
-            } catch (IOException | GitConfigException | InterruptedException ex) {
-                Platform.runLater(() -> showError(ex));
-                repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
-                return;
-            }
-            Platform.runLater(() -> {
-                repository.getGitStatusDatas().setAll(gitStatusDatas);
-//                repository.setGitStatusDatas(gitStatusDatas);
-                setRepositoryDisplayName(repository);
-                updateSituationSelectors();
-                refreshThreadCounter.decrementAndGet();
-            });
+            refreshRepositoryCore(repository, gitStatusExecutor);
+        });
+    }
+
+    private void refreshRepositoryCore(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
+        GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
+        List<GitStatusData> gitStatusDatas;
+        try {
+            gitStatusDatas = gitStatusExecutor.exec(command, repository);
+        } catch (RepositoryNotFoundException ex) {
+            Platform.runLater(() -> showError(ex));
+            repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getShortMessage()));
+            return;
+        } catch (IOException | GitConfigException | InterruptedException ex) {
+            Platform.runLater(() -> showError(ex));
+            repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
+            return;
+        }
+        Platform.runLater(() -> {
+            repository.getGitStatusDatas().setAll(gitStatusDatas);
+            setRepositoryDisplayName(repository);
+            updateSituationSelectors();
+            refreshThreadCounter.decrementAndGet();
         });
     }
 
     public static void setRepositoryDisplayName(RepositoryData repository) {
         ObservableList<GitStatusData> gitStatusDatas = repository.getGitStatusDatas();
         String name;
-        if(repository.isReverting()) {
+        if (repository.isReverting()) {
             name = String.format("[Revert中] %s", repository.nameProperty().get());
-        } else if(repository.isMerging()) {
+        } else if (repository.isMerging()) {
             name = String.format("[マージ中] %s", repository.nameProperty().get());
         } else {
             name = repository.nameProperty().get();
@@ -476,6 +499,9 @@ public class GitStatusPane implements BaseGitPane {
         mergeToolMenuItem.setOnAction(eh -> gitMergeTool());
         gitMergeToolSituationSelector.getEnableMenuItems().add(mergeToolMenuItem);
 
+        MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
+        revertContinueMenuItem.setOnAction(eh -> gitRevertContinue());
+
         MenuItem gitkMenuItem = new MenuItem("gitk <file>");
         gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
 
@@ -533,7 +559,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertContinueMenuItem, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -550,7 +576,7 @@ public class GitStatusPane implements BaseGitPane {
         gitAddSituationSelector.getVisibleButotns().add(addButton);
 
         Button unstageButton = new Button("-");
-        unstageButton.setTooltip(new Tooltip("git reset HEAD <file>..."));
+        unstageButton.setTooltip(new Tooltip("git restore --staged <file>..."));
         unstageButton.setOnAction(eh -> gitUnstage());
         gitUnstageSituationSelector.getVisibleButotns().add(unstageButton);
 
@@ -559,8 +585,8 @@ public class GitStatusPane implements BaseGitPane {
         mergeToolButton.setOnAction(eh -> gitMergeTool());
         gitMergeToolSituationSelector.getVisibleButotns().add(mergeToolButton);
 
-        Button checkoutHeadButton = new Button("checkout --");
-        checkoutHeadButton.setTooltip(new Tooltip("git checkout -- <file>... (ローカルの編集の破棄)"));
+        Button checkoutHeadButton = new Button("restore");
+        checkoutHeadButton.setTooltip(new Tooltip("git restore <file>... (ローカルの編集の破棄)"));
         checkoutHeadButton.setOnAction(eh -> gitCheckoutHyphen());
         gitCheckoutHeadSituationSelector.getVisibleButotns().add(checkoutHeadButton);
 
@@ -661,10 +687,14 @@ public class GitStatusPane implements BaseGitPane {
         GitCommitWindow commitWindow = new GitCommitWindow(configInfo);
         commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
         commitWindow.open();
-        commitWindow.getGitCommitPane().setRepositoryDatas(repositories.getSelected());
-        commitWindow.getGitCommitPane().addEventHandler((e) -> refreshSelected());
+        commitWindow.getGitCommitPane().setRepositoryDatas(getTargetRepositories());
+        commitWindow.getGitCommitPane().addEventHandler((e) -> refreshTarget());
     }
 
+    private void gitRevertContinue() {
+        gitCommit();
+    }
+    
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, datas) -> {
@@ -851,8 +881,6 @@ public class GitStatusPane implements BaseGitPane {
                 GitStatusCommand statusCommand = gitCommandFactory.createStatusCommand(workDir, configInfo);
                 List<GitStatusData> statusDatas;
                 try {
-                    //List<String> filesList = items.stream().map(e -> e.fileNameProperty().get()).collect(Collectors.toList());
-                    //String[] files = filesList.toArray(new String[filesList.size()]);
                     command.exec(workDir, items);
                     statusDatas = statusCommand.status(items.get(0).getRepositoryData(), items);
                 } catch (IOException | GitConfigException | InterruptedException ex) {

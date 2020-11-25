@@ -60,12 +60,10 @@ public class RepositoryData {
     }
 
     public void setGitStatusDatas(List<GitStatusData> gitStatusDatas) {
-        XmlWriter.writeStartMethod("RepositoryData.setGitStatusDatas()");
         if (this.gitStatusDatas == null) {
             this.gitStatusDatas = FXCollections.observableArrayList();
         }
         this.gitStatusDatas.setAll(gitStatusDatas);
-        XmlWriter.writeEndMethod();
     }
 
     public ObjectProperty<GitBranchData> gitBranchDataProperty() {

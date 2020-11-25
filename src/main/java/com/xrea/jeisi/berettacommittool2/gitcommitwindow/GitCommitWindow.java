@@ -34,21 +34,7 @@ public class GitCommitWindow extends Stage {
 
     public void open() {
         Stage stage = this;
-        /*
-        var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
-        double width, height;
-        if (windowRectangle != null) {
-            stage.setX(windowRectangle.getX());
-            stage.setY(windowRectangle.getY());
-            width = windowRectangle.getWidth();
-            height = windowRectangle.getHeight();
-        } else {
-            width = 640;
-            height = 480;
-        }
-        */
 
-        //Scene scene = new Scene(build(), width, height);
         Scene scene = StageSizeManager.build(stage, configInfo, build(), getWindowIdentifier(), 640, 480);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);

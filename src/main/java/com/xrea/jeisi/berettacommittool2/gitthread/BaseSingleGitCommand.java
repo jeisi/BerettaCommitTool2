@@ -75,36 +75,6 @@ public class BaseSingleGitCommand {
         return execProcess(command, command);
     }
 
-    /*
-    protected String[] execProcessWithOutput(List<String> command, List<String> displayCommand) throws IOException, InterruptedException, GitConfigException {
-        ShellScript shellScript = new ShellScript(repository);
-        try {
-            String cmd;
-            List<String> args;
-            if (command.get(0).equals("bash")) {
-                cmd = getCommand(command.get(0));
-                args = new ArrayList<>();
-                args.add(getCommand(command.get(1)));
-                args.addAll(command.subList(2, command.size()));
-            } else {
-                cmd = getCommand(command.get(0));
-                args = command.subList(1, command.size());
-            }
-            shellScript.exec(cmd, args.toArray(new String[args.size()]));
-            return shellScript.getOutput();
-        } catch (ExecuteException ex) {
-            List<String> list = Arrays.asList(shellScript.getOutputStream().toString().split("\\n"));
-            GitCommandException e = new GitCommandException(getErrorMessageHeader(displayCommand), list, list);
-            throw e;
-        }
-    }
-
-    protected String[] execProcessWithOutput(String... args) throws IOException, InterruptedException, GitConfigException {
-        List<String> command = Arrays.asList(args);
-        return execProcessWithOutput(command, command);
-    }
-    */
-
     protected String getCommand(String commandIdentifier) throws GitConfigException {
         String command = configInfo.getProgramEx(commandIdentifier);
         if (command != null) {
@@ -112,30 +82,6 @@ public class BaseSingleGitCommand {
         }
         return commandIdentifier;
     }
-    
-    /*
-    protected static List<String> getErrorStream(Process p) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getErrorStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                lines.add(line);
-            }
-        }
-        return lines;
-    }
-
-    protected static List<String> getInputStream(Process p) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getInputStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                lines.add(line);
-            }
-        }
-        return lines;
-    }
-    */
     
     protected String getErrorMessageHeader(List<String> command) {
         StringBuilder builder = new StringBuilder();
