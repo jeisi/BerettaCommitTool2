@@ -107,6 +107,9 @@ public class GitStatusCommand extends BaseSingleGitCommand {
 
     private void checkMerging(RepositoryData repositoryData) throws GitConfigException, IOException, InterruptedException {
         String[] lines = execProcess("git", "rev-parse", "--git-dir");
+        Path revertHeadPath = JUtility.expandPath(repository.toString(), lines[0], "REVERT_HEAD");
+        repositoryData.setReverting(Files.exists(revertHeadPath));
+        
         Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "MERGE_MSG");
         boolean merging = Files.exists(messagePath);
         repositoryData.setMerging(merging);

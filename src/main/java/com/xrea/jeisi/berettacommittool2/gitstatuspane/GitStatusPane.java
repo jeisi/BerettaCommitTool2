@@ -303,7 +303,9 @@ public class GitStatusPane implements BaseGitPane {
     public static void setRepositoryDisplayName(RepositoryData repository) {
         ObservableList<GitStatusData> gitStatusDatas = repository.getGitStatusDatas();
         String name;
-        if(repository.isMerging()) {
+        if(repository.isReverting()) {
+            name = String.format("[Revert中] %s", repository.nameProperty().get());
+        } else if(repository.isMerging()) {
             name = String.format("[マージ中] %s", repository.nameProperty().get());
         } else {
             name = repository.nameProperty().get();

@@ -32,6 +32,7 @@ public class RepositoryData {
     private final StringProperty displayName = new SimpleStringProperty();
     private final Path path;
     private boolean merging = false;
+    private boolean reverting = false;
 
     public RepositoryData(boolean bCheck, String name, Path path) {
         //this.gitStatusDatas = FXCollections.observableArrayList();
@@ -85,7 +86,15 @@ public class RepositoryData {
     public void setMerging(boolean merging) {
         this.merging = merging;
     }
+    
+    public boolean isReverting() {
+        return reverting;
+    }
 
+    public void setReverting(boolean reverting) {
+        this.reverting = reverting;
+    }
+    
     public Path getPath() {
         return path;
     }
