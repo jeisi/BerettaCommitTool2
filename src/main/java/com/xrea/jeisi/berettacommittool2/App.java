@@ -149,11 +149,6 @@ public class App extends Application implements RefreshListener {
     }
 
     Scene buildScene(Stage stage) {
-        repositoriesPane = new RepositoriesPane();
-        repositoriesPane.setConfig(configInfo);
-        repositoriesPane.setErrorLogWindow(errorLogWindow);
-        repositoriesPane.setRefreshListener(this);
-
         gitPanes = new ArrayList<>();
         gitPanes.add(new GitStatusPane(configInfo));
         gitPanes.add(new GitSyncPane(configInfo));
@@ -171,8 +166,21 @@ public class App extends Application implements RefreshListener {
             pane.setActive(true);
         });
 
+        repositoriesPane = new RepositoriesPane();
+        repositoriesPane.setConfig(configInfo);
+        repositoriesPane.setErrorLogWindow(errorLogWindow);
+        repositoriesPane.setRefreshListener(this);
+
+        MenuBar menuBar = new MenuBar();
+        menuBar.setUseSystemMenuBar(true);
+        menuBar.getMenus().add(buildMenu());
+        menuBar.getMenus().add(repositoriesPane.buildMenu());
+        gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
+        menuBar.getMenus().add(buildToolsMenu());
+
         targetRepositoryPane = new TargetRepositoryPane();
         BorderPane leftPane = new BorderPane();
+        repositoriesPane.setMenuBar(menuBar);
         leftPane.setCenter(repositoriesPane.build());
         leftPane.setBottom(targetRepositoryPane.build());
 
@@ -184,16 +192,7 @@ public class App extends Application implements RefreshListener {
         }
         SplitPane.setResizableWithParent(leftPane, Boolean.FALSE);
 
-        MenuBar menuBar = new MenuBar();
-        menuBar.setUseSystemMenuBar(true);
-        menuBar.getMenus().add(buildMenu());
-        menuBar.getMenus().add(repositoriesPane.buildMenu());
-        gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
-        menuBar.getMenus().add(buildToolsMenu());
-
-        //var shortCutButtons = new HBox();
         var toolBar = new ToolBar();
-        //toolBar.setSpacing(5);
         Button changeDirectoryButton = new Button("Change directory");
         changeDirectoryButton.setOnAction(eh -> onChangeDirectory());
         Button refreshAllButton = new Button("Refresh all");
@@ -225,7 +224,7 @@ public class App extends Application implements RefreshListener {
             width = 640;
             height = 480;
         }
-        */
+         */
         return StageSizeManager.build(mainStage, configInfo, borderPane, "main", 640, 480);
     }
 
@@ -264,10 +263,10 @@ public class App extends Application implements RefreshListener {
     }
 
     public void openPreference(String defaultTab) {
-        if(preferenceWindow == null) {
+        if (preferenceWindow == null) {
             return;
         }
-        
+
         preferenceWindow.open(defaultTab);
     }
 
@@ -354,7 +353,7 @@ public class App extends Application implements RefreshListener {
     public void refreshAll() {
         refreshAll(topDir);
     }
-    
+
     @Override
     public void refreshChecked() {
 //        gitPanes.forEach(pane -> {

@@ -5,10 +5,15 @@
  */
 package com.xrea.jeisi.berettacommittool2;
 
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 
 /**
  *
@@ -37,5 +42,32 @@ public class JUtility {
             System.arraycopy(more, 0, concatenatedArray, 1, more.length);
             return Paths.get(currentDir, concatenatedArray);
         }
+    }
+
+    public static Menu lookupMenu(MenuBar menuBar, String menuId) {
+        System.out.println(menuBar.getMenus().toString());
+        Optional<Menu> menu = menuBar.getMenus().stream().filter(m -> menuId.equals(m.getId())).findFirst();
+        System.out.println(menu.toString());
+        if(menu.isPresent()) {
+            return menu.get();
+        } else {
+            return null;
+        }
+    }
+    
+    public static MenuItem lookupMenuItem(Menu menu, String menuItemId) {
+        for (MenuItem item : menu.getItems()) {
+            XmlWriter.writeObject("item", item.toString());
+            if (item instanceof Menu) {
+                MenuItem subItem = lookupMenuItem((Menu) item, menuItemId);
+                if (subItem != null) {
+                    return subItem;
+                }
+            }
+            if (menuItemId.equals(item.getId())) {
+                return item;
+            }
+        }
+        return null;
     }
 }

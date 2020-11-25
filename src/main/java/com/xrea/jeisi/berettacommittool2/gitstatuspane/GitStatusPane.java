@@ -47,6 +47,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitDiffCachedSelectio
 import com.xrea.jeisi.berettacommittool2.situationselector.GitLogSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitMergeToolSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRemoveSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitRevertAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.HierarchyMenuSelectionSituation;
@@ -135,6 +136,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitLogSituationSelector = new SituationSelector();
     private final SituationSelector gitMergeToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
+    private final SituationSelector gitRevertAbortSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
@@ -188,8 +190,9 @@ public class GitStatusPane implements BaseGitPane {
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
         work.getChecked().addListener(changedListener);
 
-        var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository.get());
+        var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository);
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
+        gitRevertAbortSituationSelector.setSituation(new GitRevertAbortSelectionSituation(repositories, targetRepository));
 
         changeTargetRepositories(targetRepository.get());
     }
@@ -220,26 +223,20 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private ObservableList<RepositoryData> getTargetRepositories() {
-        return (targetRepository.get() == TargetRepository.SELECTED) ? repositories.getSelected() : repositories.getChecked();
+        return repositories.getTarget(targetRepository.get());
     }
 
     @Override
     public void setActive(boolean active) {
-        XmlWriter.writeStartMethod("GitStatusPane.setActive(%s)", Boolean.toString(active));
         this.active = active;
         if (!active) {
-            XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
-        XmlWriter.writeObject("repositories.getDatas()", repositories.getDatas().toString());
-        XmlWriter.writeObject("repositories.getDatas().size()", repositories.getDatas().size());
         long numNullRepository = repositories.getDatas().stream().filter(p -> p.getGitStatusDatas() == null).count();
-        XmlWriter.writeObject("numNullRepository", numNullRepository);
         if (repositories.getDatas().size() == 0 || numNullRepository > 0) {
             refreshAll();
         }
-        XmlWriter.writeEndMethod();
     }
 
     @Override
@@ -500,8 +497,19 @@ public class GitStatusPane implements BaseGitPane {
         gitMergeToolSituationSelector.getEnableMenuItems().add(mergeToolMenuItem);
 
         MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
+        revertContinueMenuItem.setId("GitStatusPaneRevertContinueMenuItem");
         revertContinueMenuItem.setOnAction(eh -> gitRevertContinue());
+        gitRevertAbortSituationSelector.getEnableMenuItems().add(revertContinueMenuItem);
 
+        MenuItem revertAbortMenuItem = new MenuItem("git revert --abort");
+        revertAbortMenuItem.setId("GitStatusPaneRevertAbortMenuItem");
+        revertAbortMenuItem.setOnAction(eh -> gitRevertAbort());
+        gitRevertAbortSituationSelector.getEnableMenuItems().add(revertAbortMenuItem);
+        
+        Menu revertMenu = new Menu("git revert");
+        revertMenu.getItems().addAll(revertContinueMenuItem, revertAbortMenuItem);
+        gitRevertAbortSituationSelector.getEnableMenuItems().add(revertMenu);
+        
         MenuItem gitkMenuItem = new MenuItem("gitk <file>");
         gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
 
@@ -559,7 +567,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertContinueMenuItem, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertMenu, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -694,7 +702,26 @@ public class GitStatusPane implements BaseGitPane {
     private void gitRevertContinue() {
         gitCommit();
     }
-    
+
+    private void gitRevertAbort() {
+        getTargetRepositories().forEach(repositoryData -> {
+            GitThread thread = GitThreadMan.get(repositoryData.getPath().toString());
+            thread.addCommand(() -> {
+                Path workDir = repositoryData.getPath();
+                List<GitStatusData> statusDatas;
+                try {
+                    GitRevertCommand revertCommand = new GitRevertCommand(workDir, configInfo);
+                    revertCommand.revert("--abort");
+
+                    refreshRepositoryCore(repositoryData, (command, repository) -> command.status(repository));
+                } catch (IOException | GitConfigException | InterruptedException ex) {
+                    showError(ex);
+                    return;
+                }
+            });
+        });
+    }
+
     private void gitAdd() {
         HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
         execCommand(filesPerRepo, (workDir, datas) -> {
@@ -981,6 +1008,7 @@ public class GitStatusPane implements BaseGitPane {
         //gitCheckoutHeadSituationVisible.update();
         gitCheckoutOursTheirsSituationSelector.update();
         gitCommitSituationSelector.update();
+        gitRevertAbortSituationSelector.update();
         gitRmSituationSelector.update();
         gitCheckIgnoreSituationSelector.update();
         gitLogSituationSelector.update();

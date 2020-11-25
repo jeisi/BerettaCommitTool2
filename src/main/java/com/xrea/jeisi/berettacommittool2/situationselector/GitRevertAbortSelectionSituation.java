@@ -15,12 +15,12 @@ import javafx.collections.ObservableList;
  *
  * @author jeisi
  */
-public class GitCommitSelectionSituation implements Situation {
+public class GitRevertAbortSelectionSituation implements Situation {
 
     private final RepositoriesInfo repositories;
     private final ObjectProperty<TargetRepository> targetRepository;
 
-    public GitCommitSelectionSituation(RepositoriesInfo repositories, ObjectProperty<TargetRepository> targetRepository) {
+    public GitRevertAbortSelectionSituation(RepositoriesInfo repositories, ObjectProperty<TargetRepository> targetRepository) {
         this.repositories = repositories;
         this.targetRepository = targetRepository;
     }
@@ -28,7 +28,10 @@ public class GitCommitSelectionSituation implements Situation {
     @Override
     public boolean isValid() {
         ObservableList<RepositoryData> targetRepositories = repositories.getTarget(targetRepository.get());
-        return !targetRepositories.isEmpty();
+        if(targetRepositories.isEmpty()) {
+            return false;
+        }
+        return targetRepositories.stream().allMatch(p -> p.isReverting());
     }
 
 }

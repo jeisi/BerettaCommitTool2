@@ -5,15 +5,18 @@
  */
 package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
+import com.xrea.jeisi.berettacommittool2.JUtility;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -21,9 +24,11 @@ import java.util.stream.Collectors;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
@@ -48,6 +53,7 @@ public class RepositoriesPane {
     private ErrorLogWindow errorLogWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
     private RefreshListener refreshListener;
+    private MenuBar menuBar;
 
     public void setRepositories(RepositoriesInfo work) {
         datas = work.getDatas();
@@ -67,6 +73,10 @@ public class RepositoriesPane {
         refreshListener = listener;
     }
 
+    public void setMenuBar(MenuBar menuBar) {
+        this.menuBar = menuBar;
+    }
+    
     public TableView<RepositoryData> getTableView() {
         return tableView;
     }
@@ -203,7 +213,7 @@ public class RepositoriesPane {
         var menu = new Menu("Repositories");
         menu.setId("repositoriesMenu");
         menu.getItems().addAll(checkAllMenuItem, uncheckAllMenuItem, checkSelectionMenuItem, invertCheckedMenuItem,
-                selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem, new SeparatorMenuItem(), 
+                selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem, new SeparatorMenuItem(),
                 gitkSubMenu, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -218,17 +228,29 @@ public class RepositoriesPane {
         MenuItem refreshSelectedMenuItem = new MenuItem("Refresh selected");
         refreshSelectedMenuItem.setOnAction(eh -> fireRefreshSelected());
 
+        Menu menu = JUtility.lookupMenu(menuBar, "gitStatusMenu");
+        MenuItem originalRevertContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertContinueMenuItem");
+        MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
+        revertContinueMenuItem.setOnAction(originalRevertContinueMenuItem.getOnAction());
+        revertContinueMenuItem.visibleProperty().bind(originalRevertContinueMenuItem.disableProperty().not());
+
+        MenuItem originalRevertAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertAbortMenuItem");
+        MenuItem revertAbortMenuItem = new MenuItem("git revert --abort");
+        revertAbortMenuItem.setOnAction(originalRevertAbortMenuItem.getOnAction());
+        revertAbortMenuItem.visibleProperty().bind(originalRevertAbortMenuItem.disableProperty().not());
+
         MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
         gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
-        singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);        
-        
+        singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);
+
         MenuItem copyFilePathMenuItem = new MenuItem("ファイルのフルパスをコピー");
         copyFilePathMenuItem.setOnAction(eh -> copyFilePathToClipBoard());
         singleSelectionSituationSelector.getEnableMenuItems().add(copyFilePathMenuItem);
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, 
+        ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem,
+                revertContinueMenuItem, revertAbortMenuItem,
                 gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }

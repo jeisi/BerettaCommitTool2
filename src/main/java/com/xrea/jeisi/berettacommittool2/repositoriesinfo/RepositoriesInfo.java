@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.repositoriesinfo;
 
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -50,6 +51,10 @@ public class RepositoriesInfo {
         return checkedRepositories;
     }
 
+    public ObservableList<RepositoryData> getTarget(TargetRepository targetRepository) {
+        return (targetRepository == TargetRepository.SELECTED) ? getSelected() : getChecked();
+    }
+
     public void setRepositories(List<String> repositories, String topDir) {
         List<RepositoryData> rowDatas = new ArrayList<>();
         repositories.forEach((repository) -> {
@@ -69,26 +74,26 @@ public class RepositoriesInfo {
                 = datas.stream().filter(e -> e.checkProperty().get()).collect(Collectors.toList());
         checkedRepositories.setAll(newCheckedRepositories);
     }
-    
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        if(datas == null) {
+        if (datas == null) {
             builder.append("null");
         } else {
-            builder.append(datas);                        
+            builder.append(datas);
         }
         builder.append(",");
-        if(selectedRepositories == null) {
+        if (selectedRepositories == null) {
             builder.append("null");
         } else {
-            builder.append(selectedRepositories);            
+            builder.append(selectedRepositories);
         }
         builder.append(",");
-        if(checkedRepositories == null) {
+        if (checkedRepositories == null) {
             builder.append("null");
         } else {
-            builder.append(checkedRepositories);        
+            builder.append(checkedRepositories);
         }
         return builder.toString();
     }
