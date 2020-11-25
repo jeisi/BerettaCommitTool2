@@ -12,8 +12,6 @@ import com.xrea.jeisi.berettacommittool2.exception.GitCommitNoMessageException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommitNothingAddedException;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommitUnmergedFilesException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
-import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -21,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  *
@@ -29,13 +26,6 @@ import java.util.function.Predicate;
  */
 public class GitCommitCommand extends BaseSingleGitCommand {
 
-    //private RepositoryData repositoryData;
-    //private Predicate<GitStatusData> predicate = new Predicate<GitStatusData>() {
-    //    @Override
-    //    public boolean test(GitStatusData t) {
-    //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    //    }
-    //};
     public GitCommitCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
     }

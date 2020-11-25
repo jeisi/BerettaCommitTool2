@@ -24,12 +24,14 @@ import javafx.collections.ObservableList;
  * @author jeisi
  */
 public class RepositoryData {
+
+    private ObservableList<GitStatusData> gitStatusDatas = null;
+    private ObjectProperty<GitBranchData> gitBranchData; // = new SimpleObjectProperty<>();
     private final BooleanProperty check = new SimpleBooleanProperty();
     private final StringProperty name = new SimpleStringProperty();
     private final StringProperty displayName = new SimpleStringProperty();
-    private ObservableList<GitStatusData> gitStatusDatas = null;
-    private ObjectProperty<GitBranchData> gitBranchData; // = new SimpleObjectProperty<>();
-    private final Path path; 
+    private final Path path;
+    private boolean merging = false;
 
     public RepositoryData(boolean bCheck, String name, Path path) {
         //this.gitStatusDatas = FXCollections.observableArrayList();
@@ -43,51 +45,51 @@ public class RepositoryData {
     public BooleanProperty checkProperty() {
         return check;
     }
-    
+
     public StringProperty nameProperty() {
         return name;
     }
-    
+
     public StringProperty displayNameProperty() {
         return displayName;
     }
-    
+
     public ObservableList<GitStatusData> getGitStatusDatas() {
         return gitStatusDatas;
     }
-        
-//    public void setGitStatusDatas(ObservableList<GitStatusData> gitStatusDatas) {
-//        this.gitStatusDatas = gitStatusDatas;
-//    }
 
     public void setGitStatusDatas(List<GitStatusData> gitStatusDatas) {
         XmlWriter.writeStartMethod("RepositoryData.setGitStatusDatas()");
-        if(this.gitStatusDatas == null) {
+        if (this.gitStatusDatas == null) {
             this.gitStatusDatas = FXCollections.observableArrayList();
         }
         this.gitStatusDatas.setAll(gitStatusDatas);
         XmlWriter.writeEndMethod();
     }
-    
+
     public ObjectProperty<GitBranchData> gitBranchDataProperty() {
         return gitBranchData;
     }
-        
+
     public void setGitBranchData(GitBranchData gitBranchData) {
-        XmlWriter.writeStartMethod("RepositoryData.setGitBranchData()");
-        if(this.gitBranchData == null) {
+        if (this.gitBranchData == null) {
             this.gitBranchData = new SimpleObjectProperty<>();
         }
         this.gitBranchData.set(gitBranchData);
-        XmlWriter.writeObject("gitBranchData", gitBranchData.toString());
-        XmlWriter.writeObject("this.gitBranchData", this.gitBranchData.get().toString());
-        XmlWriter.writeEndMethod();
     }
     
+    public boolean isMerging() {
+        return merging;
+    }
+
+    public void setMerging(boolean merging) {
+        this.merging = merging;
+    }
+
     public Path getPath() {
         return path;
     }
-    
+
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
@@ -95,10 +97,10 @@ public class RepositoryData {
         builder.append(", ");
         builder.append(check.get());
         builder.append(",");
-        if(gitBranchData == null) {
+        if (gitBranchData == null) {
             builder.append("null");
         } else {
-            builder.append(gitBranchData.toString());            
+            builder.append(gitBranchData.toString());
         }
         builder.append("}");
         return builder.toString();

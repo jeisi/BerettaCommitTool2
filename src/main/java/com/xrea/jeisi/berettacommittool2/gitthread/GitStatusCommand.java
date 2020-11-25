@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
+import com.xrea.jeisi.berettacommittool2.JUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.exception.GitCommandException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
@@ -12,6 +13,7 @@ import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +37,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
     public void setIgnored(boolean ignored) {
         this.ignored = ignored;
     }
-    
+
     public List<GitStatusData> status(RepositoryData repositoryData) throws GitCommandException, GitConfigException, IOException, InterruptedException {
         return status(repositoryData, emptyData);
     }
@@ -46,8 +48,9 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         String[] lines;
         try {
             lines = execProcess(command, displayCommand);
+            checkMerging(repositoryData);
         } catch (GitCommandException e) {
-            if(e.getStdErr().stream().anyMatch(l -> l.contains("not a git repository"))) {
+            if (e.getStdErr().stream().anyMatch(l -> l.contains("not a git repository"))) {
                 throw new RepositoryNotFoundException(repositoryData.getPath(), e);
             }
             throw e;
@@ -65,7 +68,7 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         command.add("status");
         command.add("-s");
         command.add("--untracked-files=all");
-        if(ignored) {
+        if (ignored) {
             command.add("--ignored");
         }
         datas.forEach(d -> command.add(d.getFileName()));
@@ -102,22 +105,10 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         return list;
     }
 
-    /*
-    private static String getErrorMessage(List<String> command, Process p) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        sb.append("command error.");
-        sb.append("\n");
-        sb.append("$ ");
-        sb.append(String.join(" ", command));
-        sb.append("\n");
-        try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(p.getErrorStream()))) {
-            for (String line = br.readLine(); line != null; line = br.readLine()) {
-                sb.append(line);
-                sb.append("\n");
-            }
-        }
-        return sb.toString();
+    private void checkMerging(RepositoryData repositoryData) throws GitConfigException, IOException, InterruptedException {
+        String[] lines = execProcess("git", "rev-parse", "--git-dir");
+        Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "MERGE_MSG");
+        boolean merging = Files.exists(messagePath);
+        repositoryData.setMerging(merging);
     }
-     */
 }

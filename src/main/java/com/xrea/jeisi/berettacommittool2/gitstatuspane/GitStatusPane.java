@@ -302,10 +302,16 @@ public class GitStatusPane implements BaseGitPane {
 
     public static void setRepositoryDisplayName(RepositoryData repository) {
         ObservableList<GitStatusData> gitStatusDatas = repository.getGitStatusDatas();
-        if (gitStatusDatas.isEmpty()) {
-            repository.displayNameProperty().set(String.format("%s", repository.nameProperty().get()));
+        String name;
+        if(repository.isMerging()) {
+            name = String.format("[マージ中] %s", repository.nameProperty().get());
         } else {
-            repository.displayNameProperty().set(String.format("%s (%d)", repository.nameProperty().get(), gitStatusDatas.size()));
+            name = repository.nameProperty().get();
+        }
+        if (gitStatusDatas.isEmpty()) {
+            repository.displayNameProperty().set(String.format("%s", name));
+        } else {
+            repository.displayNameProperty().set(String.format("%s (%d)", name, gitStatusDatas.size()));
         }
     }
 
@@ -852,21 +858,6 @@ public class GitStatusPane implements BaseGitPane {
                     return;
                 }
                 Platform.runLater(() -> refreshFiles(items, statusDatas));
-//                Platform.runLater(() -> {
-//                    items.forEach(item -> {
-//                        List<GitStatusData> newStatus = statusDatas.stream().filter(e -> e.getFileName().equals(item.getFileName())).collect(Collectors.toList());
-//                        if (newStatus.isEmpty()) {
-//                            item.getRepositoryData().getGitStatusDatas().remove(item);
-//                            setRepositoryDisplayName(item.getRepositoryData());
-//                        } else if (newStatus.size() == 1) {
-//                            item.indexStatusProperty().set(newStatus.get(0).indexStatusProperty().get());
-//                            item.workTreeStatusProperty().set(newStatus.get(0).workTreeStatusProperty().get());
-//                        } else {
-//                            throw new AssertionError(item.getFileName() + " が複数存在しています。");
-//                        }
-//                    });
-//                    updateSituationSelectors();
-//                });
             });
         });
     }
