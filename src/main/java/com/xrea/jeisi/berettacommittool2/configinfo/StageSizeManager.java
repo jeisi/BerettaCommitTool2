@@ -19,10 +19,9 @@ import javafx.stage.Stage;
  */
 public class StageSizeManager {
 
-    //private static Rectangle screenRectangle = new Rectangle();
     private static double x0, x1, y0, y1;
 
-    public static void setUp() {
+    private static void setUp() {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice[] gs = ge.getScreenDevices();
         //double x0 = 0, x1 = 0, y0 = 0, y1 = 0;
@@ -45,6 +44,8 @@ public class StageSizeManager {
     }
 
     public static Scene build(Stage stage, ConfigInfo configInfo, Parent parent, String identifier, double defaultWidth, double defaultHeight) {
+        setUp();
+        
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(identifier) : null;
         double width, height;
         Scene scene;

@@ -77,8 +77,6 @@ public class App extends Application implements RefreshListener {
         preferenceWindow = new PreferenceWindow(configInfo);
         configInfo.setMainApp(this);
 
-        StageSizeManager.setUp();
-        
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
