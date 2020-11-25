@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.scene.Parent;
@@ -33,6 +34,7 @@ public class GitCommitWindow extends Stage {
 
     public void open() {
         Stage stage = this;
+        /*
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
         if (windowRectangle != null) {
@@ -44,8 +46,10 @@ public class GitCommitWindow extends Stage {
             width = 640;
             height = 480;
         }
+        */
 
-        Scene scene = new Scene(build(), width, height);
+        //Scene scene = new Scene(build(), width, height);
+        Scene scene = StageSizeManager.build(stage, configInfo, build(), getWindowIdentifier(), 640, 480);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);
         stage.setTitle("Commit");
@@ -68,8 +72,8 @@ public class GitCommitWindow extends Stage {
             return;
         }
 
-        var scene = getScene();
-        configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
+        //var scene = getScene();
+        //configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
     }
 
     public GitCommitPane getGitCommitPane() {

@@ -6,6 +6,7 @@
 package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -39,6 +40,7 @@ public class PreferenceWindow {
         stage = new Stage();
         pane = new PreferencePane(stage, configInfo, defaultTab);
 
+        /*
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
         double width, height;
         if (windowRectangle != null) {
@@ -50,8 +52,10 @@ public class PreferenceWindow {
             width = 640;
             height = 480;
         }
+        */
 
-        Scene scene = new Scene(pane.build(), width, height);
+        //Scene scene = new Scene(pane.build(), width, height);
+        Scene scene = StageSizeManager.build(stage, configInfo, pane.build(), getWindowIdentifier(), 640, 480);
         stage.setScene(scene);
         stage.setTitle("Preference");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -113,8 +117,8 @@ public class PreferenceWindow {
             return;
         }
 
-        var scene = getScene();
-        configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
+        //var scene = getScene();
+        //configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
     }
 
     static String getWindowIdentifier() {

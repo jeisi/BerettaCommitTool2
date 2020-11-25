@@ -5,6 +5,7 @@ import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
@@ -76,6 +77,8 @@ public class App extends Application implements RefreshListener {
         preferenceWindow = new PreferenceWindow(configInfo);
         configInfo.setMainApp(this);
 
+        StageSizeManager.setUp();
+        
         mainStage = stage;
         loadConfig();
         var scene = buildScene(stage);
@@ -127,7 +130,7 @@ public class App extends Application implements RefreshListener {
     private void saveConfig() {
         try {
             var scene = mainStage.getScene();
-            configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), scene.getWidth(), scene.getHeight());
+            //configInfo.setWindowRectangle("main", mainStage.getX(), mainStage.getY(), scene.getWidth(), scene.getHeight());
             configInfo.setDouble("main.splitpane.divider", splitPane.getDividerPositions()[0]);
             repositoriesPane.saveConfig();
             gitPanes.forEach((var pane) -> {
@@ -199,8 +202,6 @@ public class App extends Application implements RefreshListener {
         refreshAllButton.setOnAction(eh -> refreshAll(topDir));
         toolBar.getItems().addAll(changeDirectoryButton, refreshAllButton);
         gitPanes.forEach(pane -> toolBar.getItems().add(pane.buildToolBar()));
-        //toolBar.getChildren().add(new Button("Refresh all"));
-        //toolBar.getChildren().add(new Button("Commit"));
 
         var topPane = new VBox(menuBar, toolBar);
 
@@ -214,6 +215,7 @@ public class App extends Application implements RefreshListener {
         borderPane.setTop(topPane);
         borderPane.setCenter(bodyBorderPane);
 
+        /*
         var windowRectangle = configInfo.getWindowRectangle("main");
         double width, height;
         if (windowRectangle != null) {
@@ -225,8 +227,8 @@ public class App extends Application implements RefreshListener {
             width = 640;
             height = 480;
         }
-
-        return new Scene(borderPane, width, height);
+        */
+        return StageSizeManager.build(mainStage, configInfo, borderPane, "main", 640, 480);
     }
 
     private Menu buildMenu() {
