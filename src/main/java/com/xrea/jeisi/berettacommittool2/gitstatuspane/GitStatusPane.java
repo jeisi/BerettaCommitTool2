@@ -18,6 +18,7 @@ import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckIgnoreCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCherryPickCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
@@ -42,6 +43,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitAddUpdateSelection
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckIgnoreSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutHeadSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCheckoutOursTheirsSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitCherryPickAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitDiffCachedSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitLogSelectionSituation;
@@ -137,6 +139,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitMergeToolSituationSelector = new SituationSelector();
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
     private final SituationSelector gitRevertAbortSituationSelector = new SituationSelector();
+    private final SituationSelector gitCherryPickAbortSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
@@ -193,6 +196,7 @@ public class GitStatusPane implements BaseGitPane {
         var gitCommitSelectionSituation = new GitCommitSelectionSituation(repositories, targetRepository);
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
         gitRevertAbortSituationSelector.setSituation(new GitRevertAbortSelectionSituation(repositories, targetRepository));
+        gitCherryPickAbortSituationSelector.setSituation(new GitCherryPickAbortSelectionSituation(repositories, targetRepository));
 
         changeTargetRepositories(targetRepository.get());
     }
@@ -325,6 +329,8 @@ public class GitStatusPane implements BaseGitPane {
         String name;
         if (repository.isReverting()) {
             name = String.format("[Revert中] %s", repository.nameProperty().get());
+        } else if (repository.isCherryPicking()) {
+            name = String.format("[cherry-pick中] %s", repository.nameProperty().get());
         } else if (repository.isMerging()) {
             name = String.format("[マージ中] %s", repository.nameProperty().get());
         } else {
@@ -505,11 +511,35 @@ public class GitStatusPane implements BaseGitPane {
         revertAbortMenuItem.setId("GitStatusPaneRevertAbortMenuItem");
         revertAbortMenuItem.setOnAction(eh -> gitRevertAbort());
         gitRevertAbortSituationSelector.getEnableMenuItems().add(revertAbortMenuItem);
-        
+
+        MenuItem revertSkipMenuItem = new MenuItem("git revert --skip");
+        revertSkipMenuItem.setId("GitStatusPaneRevertSkipMenuItem");
+        revertSkipMenuItem.setOnAction(eh -> gitRevertSkip());
+        gitRevertAbortSituationSelector.getEnableMenuItems().add(revertSkipMenuItem);
+
         Menu revertMenu = new Menu("git revert");
-        revertMenu.getItems().addAll(revertContinueMenuItem, revertAbortMenuItem);
+        revertMenu.getItems().addAll(revertContinueMenuItem, revertAbortMenuItem, revertSkipMenuItem);
         gitRevertAbortSituationSelector.getEnableMenuItems().add(revertMenu);
-        
+
+        MenuItem cherryPickContinueMenuItem = new MenuItem("git cherry-pick --continue");
+        cherryPickContinueMenuItem.setId("GitStatusPaneCherryPickContinueMenuItem");
+        cherryPickContinueMenuItem.setOnAction(eh -> gitCommit());
+        gitCherryPickAbortSituationSelector.getEnableMenuItems().add(cherryPickContinueMenuItem);
+
+        MenuItem cherryPickAbortMenuItem = new MenuItem("git cherry-pick --abort");
+        cherryPickAbortMenuItem.setId("GitStatusPaneCherryPickAbortMenuItem");
+        cherryPickAbortMenuItem.setOnAction(eh -> gitCherryPickAbort());
+        gitCherryPickAbortSituationSelector.getEnableMenuItems().add(cherryPickAbortMenuItem);
+
+        MenuItem cherryPickSkipMenuItem = new MenuItem("git cherry-pick --skip");
+        cherryPickSkipMenuItem.setId("GitStatusPaneCherryPickSkipMenuItem");
+        cherryPickSkipMenuItem.setOnAction(eh -> gitCherryPickSkip());
+        gitCherryPickAbortSituationSelector.getEnableMenuItems().add(cherryPickSkipMenuItem);
+
+        Menu cherryPickMenu = new Menu("git cherry-pick");
+        cherryPickMenu.getItems().addAll(cherryPickContinueMenuItem, cherryPickAbortMenuItem, cherryPickSkipMenuItem);
+        gitCherryPickAbortSituationSelector.getEnableMenuItems().add(cherryPickMenu);
+
         MenuItem gitkMenuItem = new MenuItem("gitk <file>");
         gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
 
@@ -567,7 +597,8 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertMenu, gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
+                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertMenu, cherryPickMenu,
+                gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
     }
@@ -704,6 +735,14 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitRevertAbort() {
+        gitRevertCommon("--abort");
+    }
+
+    private void gitRevertSkip() {
+        gitRevertCommon("--skip");
+    }
+
+    private void gitRevertCommon(String option) {
         getTargetRepositories().forEach(repositoryData -> {
             GitThread thread = GitThreadMan.get(repositoryData.getPath().toString());
             thread.addCommand(() -> {
@@ -711,7 +750,34 @@ public class GitStatusPane implements BaseGitPane {
                 List<GitStatusData> statusDatas;
                 try {
                     GitRevertCommand revertCommand = new GitRevertCommand(workDir, configInfo);
-                    revertCommand.revert("--abort");
+                    revertCommand.revert(option);
+
+                    refreshRepositoryCore(repositoryData, (command, repository) -> command.status(repository));
+                } catch (IOException | GitConfigException | InterruptedException ex) {
+                    showError(ex);
+                    return;
+                }
+            });
+        });
+    }
+
+    private void gitCherryPickAbort() {
+        gitCherryPickCommon("--abort");
+    }
+
+    private void gitCherryPickSkip() {
+        gitCherryPickCommon("--skip");
+    }
+
+    private void gitCherryPickCommon(String option) {
+        getTargetRepositories().forEach(repositoryData -> {
+            GitThread thread = GitThreadMan.get(repositoryData.getPath().toString());
+            thread.addCommand(() -> {
+                Path workDir = repositoryData.getPath();
+                List<GitStatusData> statusDatas;
+                try {
+                    GitCherryPickCommand cherryPickCommand = new GitCherryPickCommand(workDir, configInfo);
+                    cherryPickCommand.cherryPick(option);
 
                     refreshRepositoryCore(repositoryData, (command, repository) -> command.status(repository));
                 } catch (IOException | GitConfigException | InterruptedException ex) {
@@ -1009,6 +1075,7 @@ public class GitStatusPane implements BaseGitPane {
         gitCheckoutOursTheirsSituationSelector.update();
         gitCommitSituationSelector.update();
         gitRevertAbortSituationSelector.update();
+        gitCherryPickAbortSituationSelector.update();
         gitRmSituationSelector.update();
         gitCheckIgnoreSituationSelector.update();
         gitLogSituationSelector.update();

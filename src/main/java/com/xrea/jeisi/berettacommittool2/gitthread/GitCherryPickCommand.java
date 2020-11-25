@@ -16,22 +16,22 @@ import java.util.List;
  *
  * @author jeisi
  */
-public class GitRevertCommand extends BaseSingleGitCommand {
+public class GitCherryPickCommand extends BaseSingleGitCommand {
 
-    public GitRevertCommand(Path repository, ConfigInfo configInfo) {
+    public GitCherryPickCommand(Path repository, ConfigInfo configInfo) {
         super(repository, configInfo);
     }
 
-    public void revert(String option) throws GitConfigException, IOException, InterruptedException {
-        List<String> command = getRevertCommand(option);
-        List<String> displayCommand = getRevertCommand(option);
+    public void cherryPick(String option) throws GitConfigException, IOException, InterruptedException {
+        List<String> command = getCherryPickCommand(option);
+        List<String> displayCommand = getCherryPickCommand(option);
         execProcess(command, displayCommand);
     }
 
-    private List<String> getRevertCommand(String option) {
+    private List<String> getCherryPickCommand(String option) {
         List<String> command = new ArrayList<>();
         command.add("git");
-        command.add("revert");
+        command.add("cherry-pick");
         command.add(option);
         return command;
     }

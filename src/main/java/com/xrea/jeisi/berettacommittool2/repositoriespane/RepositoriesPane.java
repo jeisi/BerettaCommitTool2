@@ -11,12 +11,10 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -24,7 +22,6 @@ import java.util.stream.Collectors;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
@@ -239,6 +236,16 @@ public class RepositoriesPane {
         revertAbortMenuItem.setOnAction(originalRevertAbortMenuItem.getOnAction());
         revertAbortMenuItem.visibleProperty().bind(originalRevertAbortMenuItem.disableProperty().not());
 
+        MenuItem originalCherryPickContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickContinueMenuItem");
+        MenuItem cherryPickContinueMenuItem = new MenuItem("git cherry-pick --continue");
+        cherryPickContinueMenuItem.setOnAction(originalCherryPickContinueMenuItem.getOnAction());
+        cherryPickContinueMenuItem.visibleProperty().bind(originalCherryPickContinueMenuItem.disableProperty().not());
+
+        MenuItem originalCherryPickAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickAbortMenuItem");
+        MenuItem cherryPickAbortMenuItem = new MenuItem("git cherry-pick --abort");
+        cherryPickAbortMenuItem.setOnAction(originalCherryPickAbortMenuItem.getOnAction());
+        cherryPickAbortMenuItem.visibleProperty().bind(originalCherryPickAbortMenuItem.disableProperty().not());
+        
         MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
         gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
         singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);
@@ -250,7 +257,7 @@ public class RepositoriesPane {
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
         ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem,
-                revertContinueMenuItem, revertAbortMenuItem,
+                revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem,
                 gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }

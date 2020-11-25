@@ -33,6 +33,7 @@ public class RepositoryData {
     private final Path path;
     private boolean merging = false;
     private boolean reverting = false;
+    private boolean cherryPicking = false;
 
     public RepositoryData(boolean bCheck, String name, Path path) {
         //this.gitStatusDatas = FXCollections.observableArrayList();
@@ -91,6 +92,14 @@ public class RepositoryData {
 
     public void setReverting(boolean reverting) {
         this.reverting = reverting;
+    }
+    
+    public boolean isCherryPicking() {
+        return cherryPicking;
+    }
+    
+    public void setCherryPicking(boolean cherryPicking) {
+        this.cherryPicking = cherryPicking;
     }
     
     public Path getPath() {

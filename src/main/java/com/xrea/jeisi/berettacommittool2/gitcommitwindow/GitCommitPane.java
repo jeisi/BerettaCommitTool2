@@ -159,7 +159,7 @@ public class GitCommitPane {
                     + " - 残りの行: なぜ、この変更が良い変更か、の説明。";
             Alert alert = new Alert(Alert.AlertType.ERROR, errorMessage, ButtonType.OK);
             styleManager.styleDialog(alert.getDialogPane());
-            alert.getDialogPane().setStyle("-fx-font-size: 24px;");
+            //alert.getDialogPane().setStyle("-fx-font-size: 24px;");
             alert.setHeaderText("コミット・メッセージを入力してください");
             alert.showAndWait();
             return;
