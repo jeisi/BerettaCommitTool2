@@ -81,7 +81,7 @@ public class GitMergeToolCommand extends BaseSingleGitCommand {
             case "vimdiff":
                 return String.format("--tool=%s", tool);
             case "winmerge":
-                return String.format("--extcmd=%s/bin/winmerge.sh", configInfo.getAppDir());
+                return "--tool=MergeTool";
             default:
                 throw new IllegalArgumentException(tool + "に対応する case 文がありません。");
         }

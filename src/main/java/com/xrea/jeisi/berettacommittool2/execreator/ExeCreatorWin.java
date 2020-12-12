@@ -7,7 +7,9 @@ package com.xrea.jeisi.berettacommittool2.execreator;
 
 import java.io.IOException;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.shellscript.ShellScript;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,11 @@ public class ExeCreatorWin extends ExeCreator {
         }
 
         createExecFile("winmerge.sh");
+
+        File workDir = new File(System.getProperty("user.home"));
+        ShellScript shellScript = new ShellScript(workDir);
+        shellScript.exec("git", new String[]{"config", "--global", "--replace-all", "mergetool.MergeTool.cmd", configInfo.getProgram("WinMergeU", "")});
+        shellScript.exec("git", new String[]{"config", "--global", "mergetool.MergeTool.trustExitCode", "false"});
 
         String difftool = configInfo.getDiffTool();
         if (difftool == null) {
