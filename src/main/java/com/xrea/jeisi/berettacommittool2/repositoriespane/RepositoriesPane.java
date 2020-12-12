@@ -246,6 +246,16 @@ public class RepositoriesPane {
         cherryPickAbortMenuItem.setOnAction(originalCherryPickAbortMenuItem.getOnAction());
         cherryPickAbortMenuItem.visibleProperty().bind(originalCherryPickAbortMenuItem.disableProperty().not());
         
+        MenuItem originalRebaseContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseContinueMenuItem");
+        MenuItem rebaseContinueMenuItem = new MenuItem("git rebase --continue");
+        rebaseContinueMenuItem.setOnAction(originalRebaseContinueMenuItem.getOnAction());
+        rebaseContinueMenuItem.visibleProperty().bind(originalRebaseContinueMenuItem.disableProperty().not());
+        
+        MenuItem originalRebaseAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseAbortMenuItem");
+        MenuItem rebaseAbortMenuItem = new MenuItem("git rebase --abort");
+        rebaseAbortMenuItem.setOnAction(originalRebaseAbortMenuItem.getOnAction());
+        rebaseAbortMenuItem.visibleProperty().bind(originalRebaseAbortMenuItem.disableProperty().not());
+        
         MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
         gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
         singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);
@@ -257,7 +267,7 @@ public class RepositoriesPane {
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
         ContextMenu contextMenu = new ContextMenu(refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem,
-                revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem,
+                revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem, rebaseContinueMenuItem, rebaseAbortMenuItem,
                 gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }

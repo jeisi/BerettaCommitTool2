@@ -116,7 +116,11 @@ public class GitStatusCommand extends BaseSingleGitCommand {
         boolean isCherryPicking = Files.exists(cherryPickHeadPath);
         repositoryData.setCherryPicking(isCherryPicking);
 
-        if (isReverting || isCherryPicking) {
+        Path rebaseHeadPath = JUtility.expandPath(repository.toString(), lines[0], "REBASE_HEAD");
+        boolean isRebasing = Files.exists(rebaseHeadPath);
+        repositoryData.setRebasing(isRebasing);
+
+        if (isReverting || isCherryPicking || isRebasing) {
             repositoryData.setMerging(false);
         } else {
             Path messagePath = JUtility.expandPath(repository.toString(), lines[0], "MERGE_MSG");

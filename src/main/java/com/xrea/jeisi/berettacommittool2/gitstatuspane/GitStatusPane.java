@@ -24,6 +24,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitDiffCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitMergeToolCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitRebaseCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRevertCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRmCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
@@ -48,6 +49,8 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitCommitSelectionSit
 import com.xrea.jeisi.berettacommittool2.situationselector.GitDiffCachedSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitLogSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitMergeToolSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitRebaseAbortSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitRebaseContinueSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRemoveSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRevertAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
@@ -140,6 +143,9 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitRmSituationSelector = new SituationSelector();
     private final SituationSelector gitRevertAbortSituationSelector = new SituationSelector();
     private final SituationSelector gitCherryPickAbortSituationSelector = new SituationSelector();
+    private final SituationSelector gitRebaseAbortSituationSelector = new SituationSelector();
+    private final SituationSelector gitRebaseContinueSituationSelector = new SituationSelector();
+    private final SituationSelector gitRebaseMenuSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
@@ -197,6 +203,8 @@ public class GitStatusPane implements BaseGitPane {
         gitCommitSituationSelector.setSituation(gitCommitSelectionSituation);
         gitRevertAbortSituationSelector.setSituation(new GitRevertAbortSelectionSituation(repositories, targetRepository));
         gitCherryPickAbortSituationSelector.setSituation(new GitCherryPickAbortSelectionSituation(repositories, targetRepository));
+        gitRebaseAbortSituationSelector.setSituation(new GitRebaseAbortSelectionSituation(repositories, targetRepository));
+        gitRebaseContinueSituationSelector.setSituation(new GitRebaseContinueSelectionSituation(repositories, targetRepository));
 
         changeTargetRepositories(targetRepository.get());
     }
@@ -331,6 +339,8 @@ public class GitStatusPane implements BaseGitPane {
             name = String.format("[Revert中] %s", repository.nameProperty().get());
         } else if (repository.isCherryPicking()) {
             name = String.format("[cherry-pick中] %s", repository.nameProperty().get());
+        } else if (repository.isRebasing()) {
+            name = String.format("[リベース中] %s", repository.nameProperty().get());
         } else if (repository.isMerging()) {
             name = String.format("[マージ中] %s", repository.nameProperty().get());
         } else {
@@ -540,6 +550,25 @@ public class GitStatusPane implements BaseGitPane {
         cherryPickMenu.getItems().addAll(cherryPickContinueMenuItem, cherryPickAbortMenuItem, cherryPickSkipMenuItem);
         gitCherryPickAbortSituationSelector.getEnableMenuItems().add(cherryPickMenu);
 
+        MenuItem rebaseContinueMenuItem = new MenuItem("git rebase --continue");
+        rebaseContinueMenuItem.setId("GitStatusPaneRebaseContinueMenuItem");
+        rebaseContinueMenuItem.setOnAction(eh -> gitRebaseContinue());
+        gitRebaseContinueSituationSelector.getEnableMenuItems().add(rebaseContinueMenuItem);
+
+        MenuItem rebaseAbortMenuItem = new MenuItem("git rebase --abort");
+        rebaseAbortMenuItem.setId("GitStatusPaneRebaseAbortMenuItem");
+        rebaseAbortMenuItem.setOnAction(eh -> gitRebaseAbort());
+        gitRebaseAbortSituationSelector.getEnableMenuItems().add(rebaseAbortMenuItem);
+
+        MenuItem rebaseSkipMenuItem = new MenuItem("git rebase --skip");
+        rebaseSkipMenuItem.setOnAction(eh -> gitRebaseSkip());
+        gitRebaseAbortSituationSelector.getEnableMenuItems().add(rebaseSkipMenuItem);
+
+        Menu rebaseMenu = new Menu("git rebase");
+        rebaseMenu.getItems().addAll(rebaseContinueMenuItem, rebaseAbortMenuItem, rebaseSkipMenuItem);
+        gitRebaseMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(rebaseContinueMenuItem, rebaseAbortMenuItem, rebaseSkipMenuItem));
+        gitRebaseMenuSituationSelector.getEnableMenuItems().add(rebaseMenu);
+        
         MenuItem gitkMenuItem = new MenuItem("gitk <file>");
         gitkMenuItem.setOnAction(eh -> gitk(/*isAll=*/false, /*isSimplifyMerges=*/ false));
 
@@ -597,7 +626,7 @@ public class GitStatusPane implements BaseGitPane {
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, checkoutSubMenu,
-                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertMenu, cherryPickMenu,
+                unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, revertMenu, cherryPickMenu, rebaseMenu,
                 gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return menu;
@@ -743,21 +772,9 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitRevertCommon(String option) {
-        getTargetRepositories().forEach(repositoryData -> {
-            GitThread thread = GitThreadMan.get(repositoryData.getPath().toString());
-            thread.addCommand(() -> {
-                Path workDir = repositoryData.getPath();
-                List<GitStatusData> statusDatas;
-                try {
-                    GitRevertCommand revertCommand = new GitRevertCommand(workDir, configInfo);
-                    revertCommand.revert(option);
-
-                    refreshRepositoryCore(repositoryData, (command, repository) -> command.status(repository));
-                } catch (IOException | GitConfigException | InterruptedException ex) {
-                    showError(ex);
-                    return;
-                }
-            });
+        gitCommandForRepositoryCommon(workDir -> {
+            GitRevertCommand revertCommand = new GitRevertCommand(workDir, configInfo);
+            revertCommand.revert(option);
         });
     }
 
@@ -770,15 +787,39 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitCherryPickCommon(String option) {
+        gitCommandForRepositoryCommon(workDir -> {
+            GitCherryPickCommand cherryPickCommand = new GitCherryPickCommand(workDir, configInfo);
+            cherryPickCommand.cherryPick(option);
+        });
+    }
+
+    private void gitRebaseContinue() {
+        gitRebaseCommon("--continue");
+    }
+
+    private void gitRebaseAbort() {
+        gitRebaseCommon("--abort");
+    }
+
+    private void gitRebaseSkip() {
+        gitRebaseCommon("--skip");
+    }
+
+    private void gitRebaseCommon(String option) {
+        gitCommandForRepositoryCommon(workDir -> {
+            GitRebaseCommand rebaseCommand = new GitRebaseCommand(workDir, configInfo);
+            rebaseCommand.rebase(option);
+        });
+    }
+
+    private void gitCommandForRepositoryCommon(CommandForRepositoryExecutor executor) {
         getTargetRepositories().forEach(repositoryData -> {
             GitThread thread = GitThreadMan.get(repositoryData.getPath().toString());
             thread.addCommand(() -> {
                 Path workDir = repositoryData.getPath();
                 List<GitStatusData> statusDatas;
                 try {
-                    GitCherryPickCommand cherryPickCommand = new GitCherryPickCommand(workDir, configInfo);
-                    cherryPickCommand.cherryPick(option);
-
+                    executor.exec(workDir);
                     refreshRepositoryCore(repositoryData, (command, repository) -> command.status(repository));
                 } catch (IOException | GitConfigException | InterruptedException ex) {
                     showError(ex);
@@ -1076,6 +1117,9 @@ public class GitStatusPane implements BaseGitPane {
         gitCommitSituationSelector.update();
         gitRevertAbortSituationSelector.update();
         gitCherryPickAbortSituationSelector.update();
+        gitRebaseAbortSituationSelector.update();
+        gitRebaseContinueSituationSelector.update();
+        gitRebaseMenuSituationSelector.update();
         gitRmSituationSelector.update();
         gitCheckIgnoreSituationSelector.update();
         gitLogSituationSelector.update();
