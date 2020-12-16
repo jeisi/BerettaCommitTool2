@@ -72,7 +72,7 @@ public class ShellScript {
         //XmlWriter.writeStartMethod("ShellScript.execCommon(%s %s)", exe, Arrays.toString(options));
 
         CommandLine commandLine = new CommandLine(exe);
-        commandLine.addArguments(options);
+        commandLine.addArguments(options, /*quote=*/ false);
 
         Executor executor = new DefaultExecutor();
         executor.setWorkingDirectory(workDir);

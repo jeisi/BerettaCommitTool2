@@ -40,8 +40,10 @@ public class ExeCreatorWin extends ExeCreator {
 
         File workDir = new File(System.getProperty("user.home"));
         ShellScript shellScript = new ShellScript(workDir);
-        shellScript.exec("git", new String[]{"config", "--global", "--replace-all", "mergetool.MergeTool.cmd", configInfo.getProgram("WinMergeU", "")});
-        shellScript.exec("git", new String[]{"config", "--global", "mergetool.MergeTool.trustExitCode", "false"});
+        String cmd = String.format("\\\"%s\\\" -e -u \\\"$MERGED\\\"", configInfo.getProgram("WinMergeU", ""));
+        String git = configInfo.getProgram("git", "");
+        shellScript.exec(git, new String[]{"config", "--global", "--replace-all", "mergetool.MergeTool.cmd", cmd});
+        shellScript.exec(git, new String[]{"config", "--global", "mergetool.MergeTool.trustExitCode", "false"});
 
         String difftool = configInfo.getDiffTool();
         if (difftool == null) {
