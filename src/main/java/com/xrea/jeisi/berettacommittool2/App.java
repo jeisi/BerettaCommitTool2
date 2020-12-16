@@ -95,14 +95,14 @@ public class App extends Application implements RefreshListener {
             setRootDirectory(directoryHistory.get(0));
         }
 
-        styleManager.setStage(stage);
-        stage.show();
-
         try {
             ExeCreator.create(configInfo).exec();
         } catch (IOException | InterruptedException | GitConfigException ex) {
             errorLogWindow.appendException(ex);
         }
+
+        styleManager.setStage(stage);
+        stage.show();
     }
 
     void close() {
