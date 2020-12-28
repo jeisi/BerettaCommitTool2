@@ -35,6 +35,8 @@ public class RepositoryData {
     private boolean reverting = false;
     private boolean cherryPicking = false;
     private boolean rebasing = false;
+    private boolean locking = false;
+    private String gitDir;
 
     public RepositoryData(boolean bCheck, String name, Path path) {
         //this.gitStatusDatas = FXCollections.observableArrayList();
@@ -109,6 +111,22 @@ public class RepositoryData {
     
     public void setRebasing(boolean rebasing) {
         this.rebasing = rebasing;
+    }
+    
+    public boolean isLocking() {
+        return locking;
+    }
+    
+    public void setLocking(boolean locking) {
+        this.locking = locking;
+    }
+    
+    public void setGitDir(String gitDir) {
+        this.gitDir = gitDir;
+    }
+    
+    public String getGitDir() {
+        return gitDir;
     }
     
     public Path getPath() {

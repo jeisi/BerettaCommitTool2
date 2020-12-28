@@ -13,7 +13,7 @@ import javafx.scene.control.MultipleSelectionModel;
  * @param <T>
  */
 public class SingleSelectionSituation<T> implements Situation {
-    private final MultipleSelectionModel<T> selectionModel;
+    protected final MultipleSelectionModel<T> selectionModel;
     
     public SingleSelectionSituation(MultipleSelectionModel<T> selectionModel) {
         this.selectionModel = selectionModel;

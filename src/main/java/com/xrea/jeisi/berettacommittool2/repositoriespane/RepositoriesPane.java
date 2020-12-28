@@ -13,11 +13,17 @@ import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filebrowser.FileBrowser;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.situationselector.DeleteIndexLockSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitMergeAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -49,6 +55,7 @@ public class RepositoriesPane {
     private ConfigInfo configInfo;
     private ErrorLogWindow errorLogWindow;
     private final SituationSelector singleSelectionSituationSelector = new SituationSelector();
+    private final SituationSelector deleteIndexLockSelectionSituationSelector = new SituationSelector();
     private RefreshListener refreshListener;
     private MenuBar menuBar;
 
@@ -56,6 +63,8 @@ public class RepositoriesPane {
         datas = work.getDatas();
         tableView.setItems(datas);
         updateSituationSelectors();
+
+        deleteIndexLockSelectionSituationSelector.setSituation(new DeleteIndexLockSelectionSituation(tableView.getSelectionModel()));
     }
 
     public void setConfig(ConfigInfo configInfo) {
@@ -73,7 +82,7 @@ public class RepositoriesPane {
     public void setMenuBar(MenuBar menuBar) {
         this.menuBar = menuBar;
     }
-    
+
     public TableView<RepositoryData> getTableView() {
         return tableView;
     }
@@ -207,11 +216,16 @@ public class RepositoriesPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
+        MenuItem deleteIndexLockMenuItem = new MenuItem("index.lock を削除");
+        deleteIndexLockMenuItem.setDisable(true);
+        deleteIndexLockMenuItem.setOnAction(eh -> deleteIndexLock());
+        deleteIndexLockSelectionSituationSelector.getEnableMenuItems().add(deleteIndexLockMenuItem);
+
         var menu = new Menu("Repositories");
         menu.setId("repositoriesMenu");
         menu.getItems().addAll(checkAllMenuItem, uncheckAllMenuItem, checkSelectionMenuItem, invertCheckedMenuItem,
                 selectAllMenuItem, deselectAllMenuItem, invertSelectionMenuItem, new SeparatorMenuItem(),
-                gitkSubMenu, copyFilePathMenuItem, openFileManagerMenuItem);
+                gitkSubMenu, copyFilePathMenuItem, openFileManagerMenuItem, deleteIndexLockMenuItem);
         return menu;
     }
 
@@ -231,7 +245,7 @@ public class RepositoriesPane {
         MenuItem mergeAbortMenuItem = new MenuItem("git merge --abort");
         mergeAbortMenuItem.setOnAction(originalMergeAbortMenuItem.getOnAction());
         mergeAbortMenuItem.visibleProperty().bind(originalMergeAbortMenuItem.disableProperty().not());
-        
+
         MenuItem originalRevertContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertContinueMenuItem");
         MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
         revertContinueMenuItem.setOnAction(originalRevertContinueMenuItem.getOnAction());
@@ -251,17 +265,17 @@ public class RepositoriesPane {
         MenuItem cherryPickAbortMenuItem = new MenuItem("git cherry-pick --abort");
         cherryPickAbortMenuItem.setOnAction(originalCherryPickAbortMenuItem.getOnAction());
         cherryPickAbortMenuItem.visibleProperty().bind(originalCherryPickAbortMenuItem.disableProperty().not());
-        
+
         MenuItem originalRebaseContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseContinueMenuItem");
         MenuItem rebaseContinueMenuItem = new MenuItem("git rebase --continue");
         rebaseContinueMenuItem.setOnAction(originalRebaseContinueMenuItem.getOnAction());
         rebaseContinueMenuItem.visibleProperty().bind(originalRebaseContinueMenuItem.disableProperty().not());
-        
+
         MenuItem originalRebaseAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseAbortMenuItem");
         MenuItem rebaseAbortMenuItem = new MenuItem("git rebase --abort");
         rebaseAbortMenuItem.setOnAction(originalRebaseAbortMenuItem.getOnAction());
         rebaseAbortMenuItem.visibleProperty().bind(originalRebaseAbortMenuItem.disableProperty().not());
-        
+
         MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
         gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
         singleSelectionSituationSelector.getEnableMenuItems().add(gitkAllSimplifyMergesMenuItem);
@@ -272,9 +286,13 @@ public class RepositoriesPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
+        MenuItem deleteIndexLockMenuItem = new MenuItem("index.lock を削除");
+        deleteIndexLockMenuItem.setOnAction(eh -> deleteIndexLock());
+        deleteIndexLockSelectionSituationSelector.getVisibleMenuItems().add(deleteIndexLockMenuItem);
+
         ContextMenu contextMenu = new ContextMenu(
-                mergeAbortMenuItem, revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem, rebaseContinueMenuItem, rebaseAbortMenuItem,
-                refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem,
+                mergeAbortMenuItem, revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem, rebaseContinueMenuItem, rebaseAbortMenuItem, deleteIndexLockMenuItem,
+                refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, 
                 gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }
@@ -316,6 +334,7 @@ public class RepositoriesPane {
 
     private void updateSituationSelectors() {
         singleSelectionSituationSelector.update();
+        deleteIndexLockSelectionSituationSelector.update();
     }
 
     private MenuItem createOpenFileManagerMenuItem() {
@@ -334,6 +353,16 @@ public class RepositoriesPane {
         RepositoryData repositoryData = tableView.getSelectionModel().getSelectedItems().get(0);
         Path path = repositoryData.getPath();
         FileBrowser.getInstance().setErrorLogWindow(errorLogWindow).browseDirectory(path);
+    }
+
+    private void deleteIndexLock() {
+        RepositoryData repositoryData = tableView.getSelectionModel().getSelectedItems().get(0);
+        Path path = JUtility.expandPath(repositoryData.getPath().toString(), repositoryData.getGitDir(), "index.lock");
+        try {
+            Files.delete(path);
+        } catch (IOException ex) {
+            errorLogWindow.appendException(ex);
+        }
     }
 
     private void fireRefreshAll() {
