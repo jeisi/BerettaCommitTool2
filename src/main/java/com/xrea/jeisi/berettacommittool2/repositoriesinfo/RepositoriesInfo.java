@@ -5,6 +5,7 @@
  */
 package com.xrea.jeisi.berettacommittool2.repositoriesinfo;
 
+import com.xrea.jeisi.berettacommittool2.JUtility;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import java.nio.file.Paths;
@@ -58,7 +59,7 @@ public class RepositoriesInfo {
     public void setRepositories(List<String> repositories, String topDir) {
         List<RepositoryData> rowDatas = new ArrayList<>();
         repositories.forEach((repository) -> {
-            var rowData = new RepositoryData(true, repository, Paths.get(topDir, repository));
+            var rowData = new RepositoryData(true, repository, JUtility.expandPath(topDir, repository));
             rowDatas.add(rowData);
             rowData.checkProperty().addListener((observable, oldValue, newValue) -> {
                 updateChecked();
