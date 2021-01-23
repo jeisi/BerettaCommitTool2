@@ -243,7 +243,13 @@ public class GitCommitPane {
                 if (amendMessage == null) {
                     return null;
                 }
-                mergeMessages.add(amendMessage);
+                String customMessage;
+                if(configInfo.isCommitMessageRemoveComment()) {
+                    customMessage = removeComment(amendMessage);
+                } else {
+                    customMessage = amendMessage;
+                }
+                mergeMessages.add(customMessage);
             } catch (IOException | GitConfigException | InterruptedException ex) {
                 errorLogWindow.appendException(ex);
             }
@@ -252,6 +258,26 @@ public class GitCommitPane {
         return String.join("---\n", mergeMessages);
     }
 
+    static String removeComment(String text) {
+        boolean isFirst = true;
+        StringBuilder builder = new StringBuilder();
+        for(String line : text.split("\n")) {
+            if (!isFirst) {
+                builder.append("\n");            
+            } else {
+                isFirst = false;
+            }
+            if (line.startsWith("# ")) {
+                builder.append(line.substring(2));
+            } else if (line.startsWith("#\t")) {
+                builder.append(line.substring(1));
+            } else {
+                builder.append(line);
+            }
+        }
+        return builder.toString();
+    }
+    
     private ObservableList<String> getCommitMessages() {
         if (configInfo == null) {
             return FXCollections.observableArrayList();

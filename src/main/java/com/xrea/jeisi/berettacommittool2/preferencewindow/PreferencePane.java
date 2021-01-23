@@ -57,7 +57,8 @@ public class PreferencePane {
         DiffToolTab diffToolTab = new DiffToolTab(parent, configInfo);
         MergeToolTab mergeToolTab = new MergeToolTab(parent, configInfo);
         FontTab fontTab = new FontTab(parent, configInfo);
-        tabPane.getTabs().addAll(fontTab, programTab, diffToolTab, mergeToolTab);
+        CommitTab commitTab = new CommitTab(parent, configInfo);
+        tabPane.getTabs().addAll(fontTab, programTab, diffToolTab, mergeToolTab, commitTab);
         
         if (defaultTab != null) {
             Optional<Tab> tab = tabPane.getTabs().stream().filter(e -> e.getText().equals(defaultTab)).findFirst();
@@ -70,6 +71,7 @@ public class PreferencePane {
         tabs.add(fontTab);
         tabs.add(diffToolTab);
         tabs.add(mergeToolTab);
+        tabs.add(commitTab);
         
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tabPane);

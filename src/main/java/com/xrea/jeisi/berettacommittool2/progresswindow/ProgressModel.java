@@ -34,6 +34,7 @@ public class ProgressModel {
     public final void setCurrentValue(int currentValue) {
         this.currentValue = currentValue;
         Platform.runLater(() -> {
+            XmlWriter.writeStartMethod("ProgressModel.setCurrentValue(%d)", currentValue);
             countText.set(String.format("%3d/%3d", currentValue, maxValue));
             progress.set((double) currentValue / (double) maxValue);
             if (currentValue >= maxValue) {
@@ -41,6 +42,7 @@ public class ProgressModel {
                     listener.complete(this);
                 }
             }
+            XmlWriter.writeEndMethod();
         });
     }
 

@@ -141,13 +141,13 @@ public class ConfigInfo {
 
     public void setMergeTool(String mergetool) {
         map.put("mergetool", mergetool);
-    }    
-    
+    }
+
     public String getMergeTool() {
         String mergetool = (String) map.get("mergetool");
-        return mergetool;        
+        return mergetool;
     }
-    
+
     public void setFontSize(String size) {
         map.put("fontsize", size);
         fontSizeProperty.set(size);
@@ -177,6 +177,14 @@ public class ConfigInfo {
         return (List<Double>) map.get(tableId + ".columnWidths");
     }
 
+    public void setCommitMessageRemoveComment(boolean isEnable) {
+        setBoolean("commitpane.remove_comment", isEnable);
+    }
+    
+    public boolean isCommitMessageRemoveComment() {
+        return getBoolean("commitpane.remove_comment", true);
+    }
+
     public void setDouble(String key, double value) {
         map.put(key, value);
     }
@@ -184,31 +192,39 @@ public class ConfigInfo {
     public Double getDouble(String key) {
         return (Double) map.get(key);
     }
-    
+
     public void setBoolean(String key, boolean value) {
         map.put(key, value);
     }
-    
+
     public boolean getBoolean(String key) {
         Boolean b = (Boolean) map.get(key);
-        if(b == null) {
+        if (b == null) {
             return false;
         }
         return b.booleanValue();
     }
-    
+
+    public boolean getBoolean(String key, boolean defaultValue) {
+        Boolean b = (Boolean) map.get(key);
+        if (b == null) {
+            return defaultValue;
+        }
+        return b.booleanValue();
+    }
+
     public void setString(String key, String value) {
         map.put(key, value);
     }
-    
+
     public String getString(String key) {
         String s = (String) map.get(key);
-        if(s == null) {
+        if (s == null) {
             return "";
         }
         return s;
     }
-    
+
     public BooleanProperty booleanProperty(String key, boolean defaultValue) {
         BooleanProperty b = (BooleanProperty) map.get(key);
         if (b == null) {
