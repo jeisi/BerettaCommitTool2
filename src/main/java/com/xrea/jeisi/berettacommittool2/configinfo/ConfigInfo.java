@@ -9,6 +9,7 @@ import com.xrea.jeisi.berettacommittool2.App;
 import com.xrea.jeisi.berettacommittool2.exception.FaultyProgramException;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
+import com.xrea.jeisi.berettacommittool2.gitthread.VersionInfo;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -36,6 +37,7 @@ public class ConfigInfo {
     private HashMap<String, Object> map = new HashMap<>();
     private final StringProperty fontSizeProperty = new SimpleStringProperty();
     private App mainApp;
+    private VersionInfo gitVersionInfo;
 
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
@@ -52,7 +54,15 @@ public class ConfigInfo {
     public String getAppDir() {
         return getPath().getParent().toString().replace('\\', '/');
     }
+    
+    public VersionInfo getVersionInfo() {
+        return gitVersionInfo;
+    }
 
+    public void setVersionInfo(VersionInfo versionInfo) {
+        gitVersionInfo = versionInfo;
+    }
+    
     public void setDirectoryHistory(List<String> directoryHistory) {
         map.put("directoryHistory", directoryHistory);
     }

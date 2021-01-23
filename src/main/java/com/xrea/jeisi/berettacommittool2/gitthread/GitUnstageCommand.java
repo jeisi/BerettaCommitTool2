@@ -28,30 +28,6 @@ public class GitUnstageCommand extends BaseMultiGitCommand {
 
     public void unstage(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
         execEachFile(datas, (data) -> execProcess("git", "reset", "HEAD", data.getFileName()));
-        /*
-        if (progressWindow != null && files.length > 1) {
-            Platform.runLater(() -> {
-                progressWindow.open();
-                progressModel = new ProgressModel(String.format("git reset HEAD %s ...", files[0]), files.length);
-                progressWindow.addProgressModel(progressModel);
-            });
-        }
-
-        Git git = gitOpen();
-        boolean existBranch = git.branchList().call().size() > 0;
-        int currentValue = 0;
-        for (var file : files) {
-            if (existBranch) {
-                unstageFile(git, file);
-            } else {
-                removeCache(git, file);
-            }
-            ++currentValue;
-            if (progressModel != null) {
-                progressModel.setCurrentValue(currentValue);
-            }
-        }
-         */
     }
 
     public void unstage(GitStatusData data) throws IOException, GitConfigException, InterruptedException {

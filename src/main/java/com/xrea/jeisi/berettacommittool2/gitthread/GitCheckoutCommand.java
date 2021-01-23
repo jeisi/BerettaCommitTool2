@@ -32,14 +32,6 @@ public class GitCheckoutCommand extends BaseMultiGitCommand {
         checkoutHead(Arrays.asList(data));
     }
 
-    /*
-    public void checkoutOurs(String... files) throws IOException, GitConfigException, InterruptedException {
-        execEachFile(files, (file) -> {
-            execProcess("git", "checkout", "--ours", file);
-            execProcess("git", "add", file);
-        });
-    }
-     */
     public void checkoutOurs(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
         execEachFile(datas, (data) -> {
             String file = data.getFileName();
@@ -52,14 +44,6 @@ public class GitCheckoutCommand extends BaseMultiGitCommand {
         });
     }
 
-    /*
-    public void checkoutTheirs(String... files) throws IOException, GitConfigException, InterruptedException {
-        execEachFile(files, (file) -> {
-            execProcess("git", "checkout", "--theirs", file);
-            execProcess("git", "add", file);
-        });
-    }
-     */
     public void checkoutTheirs(List<GitStatusData> datas) throws IOException, GitConfigException, InterruptedException {
         execEachFile(datas, (data) -> {
             String file = data.getFileName();

@@ -11,6 +11,7 @@ import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.gitsyncbranch.GitSyncPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitVersion;
 import com.xrea.jeisi.berettacommittool2.preferencewindow.PreferenceWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
@@ -103,6 +104,13 @@ public class App extends Application implements RefreshListener {
 
         styleManager.setStage(stage);
         stage.show();
+
+        try {
+            GitVersion gitVersion = new GitVersion(configInfo);
+            configInfo.setVersionInfo(gitVersion.getVersion());
+        } catch (IOException | InterruptedException | GitConfigException ex) {
+            errorLogWindow.appendException(ex);
+        }
     }
 
     void close() {

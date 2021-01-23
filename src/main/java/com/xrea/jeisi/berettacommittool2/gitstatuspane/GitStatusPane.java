@@ -26,6 +26,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitDiffCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitMergeCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitMergeToolCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRebaseCommand;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitRestoreCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRevertCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitRmCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThread;
@@ -54,6 +55,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.GitMergeToolSelection
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRebaseAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRebaseContinueSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRemoveSelectionSituation;
+import com.xrea.jeisi.berettacommittool2.situationselector.GitRestoreResetSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitRevertAbortSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitUnstageSingleSelectionSituation;
@@ -151,6 +153,8 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitRebaseContinueSituationSelector = new SituationSelector();
     private final SituationSelector gitRebaseMenuSituationSelector = new SituationSelector();
     private final SituationSelector deleteSituationSelector = new SituationSelector();
+    private final SituationSelector gitRestoreMenuSituationSelector = new SituationSelector();
+    private final SituationSelector gitRestoreResetSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -422,6 +426,7 @@ public class GitStatusPane implements BaseGitPane {
         gitLogSituationSelector.setSituation(new GitLogSelectionSituation(selectionModel));
         gitMergeToolSituationSelector.setSituation(new GitMergeToolSelectionSituation(selectionModel));
         gitDiffCachedSituationSelector.setSituation(new GitDiffCachedSelectionSituation(selectionModel));
+        gitRestoreResetSituationSelector.setSituation(new GitRestoreResetSelectionSituation(selectionModel));
 
         tableView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
             @Override
@@ -469,6 +474,23 @@ public class GitStatusPane implements BaseGitPane {
         addSubMenu.getItems().addAll(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem);
         gitAddMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(addMenuItem, add_pMenuItem, add_uMenuItem, addAllMenuItem));
         gitAddMenuSituationSelector.getEnableMenuItems().add(addSubMenu);
+
+        MenuItem gitRestoreMenuItem = new MenuItem("git restore <file>...");
+        gitRestoreMenuItem.setOnAction(eh -> gitCheckoutHyphen());
+        gitCheckoutHeadSituationSelector.getEnableMenuItems().add(gitRestoreMenuItem);
+
+        MenuItem gitRestoreStagedMenuItem = new MenuItem("git restore --staged <file>...");
+        gitRestoreStagedMenuItem.setOnAction(eh -> gitUnstage());
+        gitUnstageSituationSelector.getEnableMenuItems().add(gitRestoreStagedMenuItem);
+
+        MenuItem gitRestoreStagedWorktreeMenuItem = new MenuItem("git restore --source=HEAD --staged --worktree <file>...");
+        gitRestoreStagedWorktreeMenuItem.setOnAction(eh -> gitRestoreReset());
+        gitRestoreResetSituationSelector.getEnableMenuItems().add(gitRestoreStagedWorktreeMenuItem);
+
+        Menu gitRestoreMenu = new Menu("git restore");
+        gitRestoreMenu.getItems().addAll(gitRestoreMenuItem, gitRestoreStagedMenuItem, gitRestoreStagedWorktreeMenuItem);
+        gitRestoreMenuSituationSelector.setSituation(new HierarchyMenuSelectionSituation(gitRestoreMenuItem, gitRestoreStagedMenuItem, gitRestoreStagedWorktreeMenuItem));
+        gitRestoreMenuSituationSelector.getEnableMenuItems().add(gitRestoreMenu);
 
         MenuItem checkoutHyphenMenuItem = new MenuItem("git checkout -- <file>...");
         checkoutHyphenMenuItem.setOnAction(eh -> gitCheckoutHyphen());
@@ -635,7 +657,7 @@ public class GitStatusPane implements BaseGitPane {
 
         var menu = new Menu("Status");
         menu.setId("gitStatusMenu");
-        menu.getItems().addAll(addSubMenu, checkoutSubMenu,
+        menu.getItems().addAll(addSubMenu, gitRestoreMenu, checkoutSubMenu,
                 unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, mergeAbortMenuItem, revertMenu, cherryPickMenu, rebaseMenu,
                 gitkSubMenu, commitMenuItem, statusIgnoredMenuItem, checkIgnoreMenuItem, deleteMenuItem, new SeparatorMenuItem(),
                 filterMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
@@ -894,6 +916,16 @@ public class GitStatusPane implements BaseGitPane {
             GitUnstageCommand unstageCommand = gitCommandFactory.createUnstageCommand(workDir, configInfo);
             unstageCommand.setProgressWindow(progressWindow);
             unstageCommand.unstage(files);
+        });
+    }
+
+    // git restore --source=HEAD --staged --worktree <file>...
+    private void gitRestoreReset() {
+        HashMap<Path, List<GitStatusData>> filesPerRepo = getSelectedFiles();
+        execCommand(filesPerRepo, (workDir, datas) -> {
+            GitRestoreCommand restoreCommand = new GitRestoreCommand(workDir, configInfo);
+            restoreCommand.setProgressWindow(progressWindow);
+            restoreCommand.restoreReset(datas);
         });
     }
 
@@ -1156,11 +1188,13 @@ public class GitStatusPane implements BaseGitPane {
         gitLogSituationSelector.update();
         gitMergeToolSituationSelector.update();
         gitDiffCachedSituationSelector.update();
+        gitRestoreResetSituationSelector.update();
         deleteSituationSelector.update();
 
         // HierarchyMenuSelectionSituation はサブメニューの後に呼ばねばならない。
         gitDiffToolSituationSelector.update();
         gitAddMenuSituationSelector.update();
+        gitRestoreMenuSituationSelector.update();
         gitCheckoutMenuSituationSelector.update();
     }
 
