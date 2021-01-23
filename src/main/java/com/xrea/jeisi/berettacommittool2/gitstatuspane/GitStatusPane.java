@@ -118,6 +118,7 @@ public class GitStatusPane implements BaseGitPane {
     private GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
+    private GitCommitWindow commitWindow;
     private final ConfigInfo configInfo;
     private final FilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
@@ -761,11 +762,20 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void gitCommit() {
-        GitCommitWindow commitWindow = new GitCommitWindow(configInfo);
-        commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
-        commitWindow.open();
-        commitWindow.getGitCommitPane().setRepositoryDatas(getTargetRepositories());
-        commitWindow.getGitCommitPane().addEventHandler((e) -> refreshTarget());
+        if (commitWindow == null) {
+            commitWindow = new GitCommitWindow(configInfo);
+            commitWindow.showingProperty().addListener((observable, oldValue, newValue) -> {
+                if (oldValue == true && newValue == false) {
+                    commitWindow = null;
+                }
+            });
+            commitWindow.getGitCommitPane().setGitCommandFactory(gitCommandFactory);
+            commitWindow.open();
+            commitWindow.getGitCommitPane().setRepositoryDatas(getTargetRepositories());
+            commitWindow.getGitCommitPane().addEventHandler((e) -> refreshTarget());
+        } else {
+            commitWindow.toFront();
+        }
     }
 
     private void gitRevertContinue() {
