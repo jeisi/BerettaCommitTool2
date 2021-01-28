@@ -21,23 +21,26 @@ import java.util.regex.Pattern;
  * @author jeisi
  */
 public class GitVersion extends BaseSingleGitCommand {
-    
+
     public GitVersion(ConfigInfo configInfo) {
         super(Paths.get(System.getProperty("user.home")), configInfo);
     }
 
     public VersionInfo getVersion() throws GitConfigException, IOException, InterruptedException {
         String[] lines = execProcess("git", "--version");
-        
+        return getVersion(lines[0]);
+    }
+
+    VersionInfo getVersion(String line) throws GitIllegalVersionException {
         Pattern p = Pattern.compile("git version (\\d+)\\.(\\d+)\\.(\\d+)");
-        Matcher m = p.matcher(lines[0]);
-        if(!m.matches()) {
+        Matcher m = p.matcher(line);
+        if (!m.lookingAt()) {
             List<String> message = new ArrayList<>();
             message.add("git --version の出力結果が想定外の値です:");
-            message.add(lines[0]);            
+            message.add(line);
             throw new GitIllegalVersionException(message);
         }
-        
+
         int majorVersion = Integer.parseInt(m.group(1));
         int minorVersion = Integer.parseInt(m.group(2));
         int patchVersion = Integer.parseInt(m.group(3));

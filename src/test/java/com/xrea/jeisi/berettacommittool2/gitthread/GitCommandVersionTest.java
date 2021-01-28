@@ -42,6 +42,15 @@ public class GitCommandVersionTest {
     }
 
     @Test
+    public void testVersionOnWindows() throws GitConfigException, InterruptedException, IOException {
+        GitVersion gitVersion = new GitVersion(configInfo);
+
+        VersionInfo expected = new VersionInfo(2, 22, 0);
+        VersionInfo actual = gitVersion.getVersion("git version 2.22.0.windows.1");
+        assertEquals(expected, actual);
+    }
+
+    @Test
     public void testCompare() {
         VersionInfo a = new VersionInfo(1, 1, 1);
         VersionInfo b = new VersionInfo(2, 0, 0);
