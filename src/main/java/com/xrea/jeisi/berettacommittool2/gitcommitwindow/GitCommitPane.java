@@ -32,15 +32,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Callback;
 
 /**
  *
  * @author jeisi
  */
 public class GitCommitPane {
-
+    
     private TextArea messageTextArea;
     private ComboBox<String> summaryComboBox;
     private List<String> commitMessageHistory = new ArrayList<>();
@@ -53,7 +56,7 @@ public class GitCommitPane {
     private final List<EventHandler<ActionEvent>> actionEvents = new ArrayList<>();
     private final StyleManager styleManager;
     private static int SUMMARY_LENGTH = 40;
-
+    
     public GitCommitPane(ConfigInfo configInfo, StyleManager styleManager) {
         this.errorLogWindow = new ErrorLogWindow(configInfo);
         this.configInfo = configInfo;
@@ -65,82 +68,91 @@ public class GitCommitPane {
             this.commitMessageHistory = new ArrayList<>();
         }
     }
-
+    
     public void setRepositoryDatas(List<RepositoryData> repositoryDatas) {
         //XmlWriter.writeStartMethod("GitCommitPane.setRepositoryDatas()");
 
         this.repositoryDatas = repositoryDatas;
-
+        
         amendMessage = getAmendMessage();
         if (amendMessage != null) {
             amendCheckBox.setDisable(false);
         }
-
+        
         String mergeMessage = getMergeMessage();
         if (mergeMessage != null) {
             messageTextArea.setText(mergeMessage);
         }
     }
-
+    
     public void setGitCommandFactory(GitCommandFactory gitCommandFactory) {
         this.gitCommandFactory = gitCommandFactory;
     }
-
+    
     public void addEventHandler(EventHandler<ActionEvent> actionEvent) {
         actionEvents.add(actionEvent);
     }
-
+    
     static void setSummaryLength(int length) {
         SUMMARY_LENGTH = length;
     }
-
+    
     public void close() {
         saveConfig();
         errorLogWindow.close();
     }
-
+    
     public void requestDefaultFocus() {
         messageTextArea.requestFocus();
     }
-
+    
     private void saveConfig() {
         if (configInfo == null) {
             return;
         }
-
+        
         configInfo.setCommitMessageHistory(commitMessageHistory);
     }
-
+    
     public Parent build() {
         summaryComboBox = new ComboBox<>(getCommitMessages());
         summaryComboBox.setId("GitCommitPaneSummaryComboBox");
         summaryComboBox.setPrefWidth(400);
+        summaryComboBox.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> l) {
+                return new CommitMessageHistoryCell();
+            }
+        });
+        summaryComboBox.setButtonCell(new CommitMessageHistoryCell());
         summaryComboBox.setOnAction(e -> {
             int index = summaryComboBox.getSelectionModel().getSelectedIndex();
-            messageTextArea.setText(commitMessageHistory.get(index));
+            if (0 <= index) {
+                messageTextArea.setText(commitMessageHistory.get(index));
+            }
         });
-
+        
         amendCheckBox = new CheckBox("amend");
         amendCheckBox.setId("GitCommitPaneAmendCheckBox");
         amendCheckBox.setDisable(true);
         amendCheckBox.setOnAction(e -> amend());
         BorderPane.setAlignment(amendCheckBox, Pos.CENTER_RIGHT);
-
+        
         BorderPane northPane = new BorderPane();
         northPane.setLeft(summaryComboBox);
         northPane.setRight(amendCheckBox);
-
+        
         messageTextArea = new TextArea();
         messageTextArea.setId("GitCommitPaneMessageTextArea");
         messageTextArea.setWrapText(true);
         BorderPane.setMargin(messageTextArea, new Insets(5, 0, 5, 0));
-
+        
         Button commitButton = new Button("Commit");
         commitButton.setId("GitCommitPaneCommitButton");
         commitButton.setDefaultButton(true);
         BorderPane.setAlignment(commitButton, Pos.CENTER);
         commitButton.setOnAction(e -> commit());
-
+        
         BorderPane borderPane = new BorderPane();
         borderPane.setTop(northPane);
         borderPane.setCenter(messageTextArea);
@@ -149,7 +161,7 @@ public class GitCommitPane {
         //borderPane.setSpacing(5);
         return borderPane;
     }
-
+    
     public void commit() {
         String commitMessage = messageTextArea.getText();
         if (commitMessage.length() == 0) {
@@ -164,33 +176,32 @@ public class GitCommitPane {
             alert.showAndWait();
             return;
         }
-
+        
         addCommitMessageToHistory();
-
+        
         repositoryDatas.forEach((var repositoryData) -> {
             String workDir = repositoryData.getPath().toString();
             GitThread thread = GitThreadMan.get(workDir);
             GitCommitCommand commitCommand = gitCommandFactory.createGitCommitCommand(repositoryData.getPath(), configInfo);
             thread.addCommand(new GitCommitThread(commitMessage, amendCheckBox.isSelected(), commitCommand, errorLogWindow));
         });
-
+        
         fireActionEvents();
     }
-
+    
     private void fireActionEvents() {
         ActionEvent e = new ActionEvent();
         for (var event : actionEvents) {
             event.handle(e);
         }
     }
-
+    
     private void addCommitMessageToHistory() {
-        System.out.println("GitCommitPane.addCommitMessageToHistory()");
         var commitMessage = messageTextArea.getText();
         if (commitMessageHistory.size() > 0 && commitMessage.equals(commitMessageHistory.get(0))) {
             return;
         }
-
+        
         List<String> newCommitMessageHistory = new ArrayList<>();
         newCommitMessageHistory.add(commitMessage);
         for (var message : commitMessageHistory) {
@@ -204,7 +215,7 @@ public class GitCommitPane {
         commitMessageHistory = newCommitMessageHistory;
         summaryComboBox.getItems().setAll(getCommitMessages());
     }
-
+    
     private void amend() {
         if (amendCheckBox.isSelected()) {
             messageTextArea.setText(amendMessage);
@@ -212,7 +223,7 @@ public class GitCommitPane {
             messageTextArea.setText("");
         }
     }
-
+    
     private String getAmendMessage() {
         //XmlWriter.writeStartMethod("GitCommitPane.getAmendMessage()");
         List<String> amendMessages = new ArrayList<>();
@@ -233,7 +244,7 @@ public class GitCommitPane {
         //XmlWriter.writeEndMethod();
         return String.join("---\n", amendMessages);
     }
-
+    
     private String getMergeMessage() {
         List<String> mergeMessages = new ArrayList<>();
         for (var repositoryData : repositoryDatas) {
@@ -244,7 +255,7 @@ public class GitCommitPane {
                     return null;
                 }
                 String customMessage;
-                if(configInfo.isCommitMessageRemoveComment()) {
+                if (configInfo.isCommitMessageRemoveComment()) {
                     customMessage = removeComment(amendMessage);
                 } else {
                     customMessage = amendMessage;
@@ -254,16 +265,16 @@ public class GitCommitPane {
                 errorLogWindow.appendException(ex);
             }
         }
-
+        
         return String.join("---\n", mergeMessages);
     }
-
+    
     static String removeComment(String text) {
         boolean isFirst = true;
         StringBuilder builder = new StringBuilder();
-        for(String line : text.split("\n")) {
+        for (String line : text.split("\n")) {
             if (!isFirst) {
-                builder.append("\n");            
+                builder.append("\n");
             } else {
                 isFirst = false;
             }
@@ -282,10 +293,11 @@ public class GitCommitPane {
         if (configInfo == null) {
             return FXCollections.observableArrayList();
         }
-        List<String> lists = commitMessageHistory.stream().map(message -> getSummary(message)).collect(Collectors.toList());
-        return FXCollections.observableArrayList(lists);
+        //List<String> lists = commitMessageHistory.stream().map(message -> getSummary(message)).collect(Collectors.toList());
+        //return FXCollections.observableArrayList(lists);
+        return FXCollections.observableArrayList(commitMessageHistory);
     }
-
+    
     private String getSummary(String text) {
         String line = text.split("\n", 0)[0];
         if (line.length() < SUMMARY_LENGTH) {
