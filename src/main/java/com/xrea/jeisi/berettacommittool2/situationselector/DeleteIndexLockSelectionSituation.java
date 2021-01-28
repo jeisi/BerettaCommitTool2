@@ -24,6 +24,11 @@ public class DeleteIndexLockSelectionSituation extends SingleSelectionSituation<
             return false;
         }
         
-        return selectionModel.getSelectedItem().isLocking();
+        var selectedItem = selectionModel.getSelectedItem();
+        if(selectedItem == null) {
+            return false;
+        }
+        
+        return selectedItem.isLocking();
     }
 }
