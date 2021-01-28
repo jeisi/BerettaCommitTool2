@@ -39,7 +39,11 @@ public class GitDiffCachedSelectionSituation implements Situation {
         if (selectionModel.getSelectedIndices().size() != 1) {
             return false;
         }
-        return predicate.test(selectionModel.getSelectedItem());
+        var selectedItem = selectionModel.getSelectedItem();
+        if(selectedItem == null) {
+            return false;
+        }
+        return predicate.test(selectedItem);
     }
 
 }
