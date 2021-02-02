@@ -35,7 +35,9 @@ public class GitCommitWindow extends Stage {
     public void open() {
         Stage stage = this;
 
-        Scene scene = StageSizeManager.build(stage, configInfo, build(), getWindowIdentifier(), 640, 480);
+        //Scene scene = StageSizeManager.build(stage, configInfo, build(), getWindowIdentifier(), 640, 480);
+        Scene scene = StageSizeManager.buildRelative(
+                stage, configInfo, build(), getWindowIdentifier(), 640, 480);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);
         stage.setTitle("Commit");

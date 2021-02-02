@@ -42,7 +42,7 @@ public class ConfigInfo {
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
     }
-
+    
     public void setConfigFile(Path configFile) {
         this.configFile = configFile;
     }
@@ -54,7 +54,7 @@ public class ConfigInfo {
     public String getAppDir() {
         return getPath().getParent().toString().replace('\\', '/');
     }
-    
+
     public VersionInfo getVersionInfo() {
         return gitVersionInfo;
     }
@@ -62,7 +62,7 @@ public class ConfigInfo {
     public void setVersionInfo(VersionInfo versionInfo) {
         gitVersionInfo = versionInfo;
     }
-    
+
     public void setDirectoryHistory(List<String> directoryHistory) {
         map.put("directoryHistory", directoryHistory);
     }
@@ -94,6 +94,27 @@ public class ConfigInfo {
 
     public WindowRectangle getWindowRectangle(String windowName) {
         List<Double> r = (List<Double>) map.get(windowName + ".rectangle");
+        if (r == null) {
+            return null;
+        }
+        return new WindowRectangle(r.get(0), r.get(1), r.get(2), r.get(3));
+    }
+
+    public void setRelativeWindowRectangle(String windowName, double x, double y, double width, double height) {
+        List<Double> r = new ArrayList<>();
+        r.add(x);
+        r.add(y);
+        r.add(width);
+        r.add(height);
+        map.put(windowName + ".relative_rectangle", r);
+    }
+
+    public void setRelativeWindowRectangle(String windowName, WindowRectangle windowRectangle) {
+        setRelativeWindowRectangle(windowName, windowRectangle.getX(), windowRectangle.getY(), windowRectangle.getWidth(), windowRectangle.getHeight());
+    }
+
+    public WindowRectangle getRelativeWindowRectangle(String windowName) {
+        List<Double> r = (List<Double>) map.get(windowName + ".relative_rectangle");
         if (r == null) {
             return null;
         }
@@ -190,7 +211,7 @@ public class ConfigInfo {
     public void setCommitMessageRemoveComment(boolean isEnable) {
         setBoolean("commitpane.remove_comment", isEnable);
     }
-    
+
     public boolean isCommitMessageRemoveComment() {
         return getBoolean("commitpane.remove_comment", true);
     }
@@ -253,7 +274,7 @@ public class ConfigInfo {
         }
 
         Yaml yaml = new Yaml();
-        try (BufferedWriter writer = Files.newBufferedWriter(configFile)) {
+        try ( BufferedWriter writer = Files.newBufferedWriter(configFile)) {
             yaml.dump(map, writer);
         }
     }
@@ -269,7 +290,7 @@ public class ConfigInfo {
         }
 
         Yaml yaml = new Yaml();
-        try (BufferedReader reader = Files.newBufferedReader(configFile)) {
+        try ( BufferedReader reader = Files.newBufferedReader(configFile)) {
             map = yaml.load(reader);
         }
     }

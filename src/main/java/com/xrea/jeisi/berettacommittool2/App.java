@@ -378,6 +378,10 @@ public class App extends Application implements RefreshListener {
         pane.refreshSelected();;
     }
 
+    public Stage getStage() {
+        return mainStage;
+    }
+    
     public static void main(String[] args) {
         launch();
     }

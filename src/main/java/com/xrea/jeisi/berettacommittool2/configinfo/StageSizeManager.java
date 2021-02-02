@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import com.xrea.jeisi.berettacommittool2.App;
 
 /**
  *
@@ -45,26 +46,26 @@ public class StageSizeManager {
 
     public static Scene build(Stage stage, ConfigInfo configInfo, Parent parent, String identifier, double defaultWidth, double defaultHeight) {
         setUp();
-        
+
         var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(identifier) : null;
         double width, height;
         Scene scene;
         if (windowRectangle != null) {
             double x = windowRectangle.getX();
             double y = windowRectangle.getY();
-            if(x < x0) {
+            if (x < x0) {
                 x = x0;
             }
-            if(y < y0) {
+            if (y < y0) {
                 y = y0;
             }
-            if(x1 < x + windowRectangle.getWidth()) {
+            if (x1 < x + windowRectangle.getWidth()) {
                 x = x1 - windowRectangle.getWidth();
             }
-            if(y1 < y + windowRectangle.getHeight()) {
+            if (y1 < y + windowRectangle.getHeight()) {
                 y = y1 - windowRectangle.getHeight();
             }
-            
+
             stage.setX(x);
             stage.setY(y);
             width = windowRectangle.getWidth();
@@ -81,6 +82,52 @@ public class StageSizeManager {
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
                 configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), scene.getWidth(), scene.getHeight());
+            }
+        });
+
+        return scene;
+    }
+
+    public static Scene buildRelative(Stage stage, ConfigInfo configInfo, Parent parent, String identifier, double defaultWidth, double defaultHeight) {
+        setUp();
+
+        var windowRectangle = configInfo != null ? configInfo.getRelativeWindowRectangle(identifier) : null;
+        double width, height;
+        Scene scene;
+        if (windowRectangle != null) {
+            Stage app = configInfo.getMainApp().getStage();
+            double x = windowRectangle.getX() + app.getX();
+            double y = windowRectangle.getY() + app.getY();
+            if (x < x0) {
+                x = x0;
+            }
+            if (y < y0) {
+                y = y0;
+            }
+            if (x1 < x + windowRectangle.getWidth()) {
+                x = x1 - windowRectangle.getWidth();
+            }
+            if (y1 < y + windowRectangle.getHeight()) {
+                y = y1 - windowRectangle.getHeight();
+            }
+
+            stage.setX(x);
+            stage.setY(y);
+            width = windowRectangle.getWidth();
+            height = windowRectangle.getHeight();
+            scene = new Scene(parent, width, height);
+        } else {
+            if (defaultWidth < 0 || defaultHeight < 0) {
+                scene = new Scene(parent);
+            } else {
+                scene = new Scene(parent, defaultWidth, defaultHeight);
+            }
+        }
+
+        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue == true && newValue == false) {
+                Stage app = configInfo.getMainApp().getStage();
+                configInfo.setRelativeWindowRectangle(identifier, stage.getX() - app.getX(), stage.getY() - app.getY(), scene.getWidth(), scene.getHeight());
             }
         });
 
