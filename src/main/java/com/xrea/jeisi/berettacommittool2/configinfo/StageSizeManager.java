@@ -126,8 +126,11 @@ public class StageSizeManager {
 
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
-                Stage app = configInfo.getMainApp().getStage();
-                configInfo.setRelativeWindowRectangle(identifier, stage.getX() - app.getX(), stage.getY() - app.getY(), scene.getWidth(), scene.getHeight());
+                var mainApp = configInfo.getMainApp();
+                if (mainApp != null) {
+                    Stage app = mainApp.getStage();
+                    configInfo.setRelativeWindowRectangle(identifier, stage.getX() - app.getX(), stage.getY() - app.getY(), scene.getWidth(), scene.getHeight());
+                }
             }
         });
 

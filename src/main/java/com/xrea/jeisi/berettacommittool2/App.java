@@ -6,6 +6,7 @@ import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
+import com.xrea.jeisi.berettacommittool2.convertcharset.ConvertCharSetPane2;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
@@ -19,6 +20,7 @@ import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog2;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.targetrepositorypane.TargetRepositoryPane;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -125,6 +127,7 @@ public class App extends Application implements RefreshListener {
     }
 
     public void setupRepositoriesInfo() {
+        LogWriter.writeMessage("App.setupRepositoriesInfo()", "beginMethod");
         repositoriesInfo = new RepositoriesInfo(repositoriesPane.getTableView());
         repositoriesPane.setRepositories(repositoriesInfo);
         gitPanes.forEach(pane -> {
@@ -161,6 +164,7 @@ public class App extends Application implements RefreshListener {
         gitPanes.add(new GitStatusPane(configInfo));
         gitPanes.add(new GitSyncPane(configInfo));
         gitPanes.add(new GitBranchPane(configInfo));
+        gitPanes.add(new ConvertCharSetPane2(configInfo));
         tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
             var tab = new Tab(pane.getTitle(), pane.build());
@@ -314,15 +318,9 @@ public class App extends Application implements RefreshListener {
         }
         repositories = loader.getLines();
 
-        //List<Path> selectedItems = repositoriesPane.getTableView().getSelectionModel().getSelectedItems()
-        //        .stream().map(e -> e.getPath()).collect(Collectors.toList());
         List<Path> selectedItems = repositoriesInfo.getSelected().stream().map(e -> e.getPath()).collect(Collectors.toList());
-        //List<Path> checkedItems = repositoriesInfo.getChecked().stream().map(e -> e.getPath()).collect(Collectors.toList());
         List<Path> uncheckedItems = repositoriesInfo.getDatas().stream().filter(e -> !e.checkProperty().get()).map(e -> e.getPath()).collect(Collectors.toList());
         repositoriesInfo.setRepositories(repositories, topDir);
-//        gitPanes.forEach(pane -> {
-//            pane.refreshAll();
-//        });
         BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
         pane.refreshAll();
 
@@ -342,7 +340,6 @@ public class App extends Application implements RefreshListener {
         int[] selectedIndices = new int[selectedIndicesList.size()];
         for (int i = 0; i < selectedIndicesList.size(); ++i) {
             selectedIndices[i] = selectedIndicesList.get(i);
-            //System.out.println(String.format("selectedIndices[%d]: %d", i, selectedIndices[i]));
         }
         if (select != -1) {
             repositoriesPane.getTableView().getSelectionModel().selectIndices(select, selectedIndices);
@@ -354,7 +351,6 @@ public class App extends Application implements RefreshListener {
                 item.checkProperty().set(false);
             }
         });
-
     }
 
     @Override

@@ -56,12 +56,6 @@ public class GitCommitWindow extends Stage {
     }
 
     private void saveConfig() {
-        if (configInfo == null) {
-            return;
-        }
-
-        //var scene = getScene();
-        //configInfo.setWindowRectangle(getWindowIdentifier(), getX(), getY(), scene.getWidth(), scene.getHeight());
     }
 
     public GitCommitPane getGitCommitPane() {

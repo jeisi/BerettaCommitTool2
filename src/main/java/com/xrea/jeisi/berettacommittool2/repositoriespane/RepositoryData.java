@@ -7,6 +7,7 @@ package com.xrea.jeisi.berettacommittool2.repositoriespane;
 
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchData;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.nio.file.Path;
 import java.util.List;
@@ -39,8 +40,6 @@ public class RepositoryData {
     private String gitDir;
 
     public RepositoryData(boolean bCheck, String name, Path path) {
-        //this.gitStatusDatas = FXCollections.observableArrayList();
-        //this.gitBranchData.set(new GitBranchData(this));
         this.check.set(bCheck);
         this.name.set(name);
         this.path = path;
@@ -64,6 +63,7 @@ public class RepositoryData {
     }
 
     public void setGitStatusDatas(List<GitStatusData> gitStatusDatas) {
+        LogWriter.writeObject("RepositoryData.setGitStatusDatas()", "gitStatusDatas", gitStatusDatas.toString());
         if (this.gitStatusDatas == null) {
             this.gitStatusDatas = FXCollections.observableArrayList();
         }
@@ -139,7 +139,13 @@ public class RepositoryData {
         builder.append(name.get());
         builder.append(", ");
         builder.append(check.get());
-        builder.append(",");
+        builder.append(", gitStatusDatas=");
+        if (gitStatusDatas == null) {
+            builder.append("null");
+        } else {
+            builder.append(gitStatusDatas.toString());
+        }        
+        builder.append(", gitBranchData=");
         if (gitBranchData == null) {
             builder.append("null");
         } else {

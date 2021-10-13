@@ -18,15 +18,15 @@ public class GitStatusData {
     private final StringProperty indexStatus;
     private final StringProperty workTreeStatus;
     private final StringProperty fileName;
-    //private final StringProperty repository;
     private final RepositoryData repositoryData;
+    private final StringProperty encoding;
 
     public GitStatusData(String indexStatus, String workTreeStatus, String file, /*String repository,*/ RepositoryData repositoryData) {
         this.indexStatus = new SimpleStringProperty(indexStatus);
         this.workTreeStatus = new SimpleStringProperty(workTreeStatus);
         this.fileName = new SimpleStringProperty(file);
-        //this.repository = new SimpleStringProperty(repository);
         this.repositoryData = repositoryData;
+        this.encoding = new SimpleStringProperty("");
     }
     
     public StringProperty indexStatusProperty() {
@@ -41,9 +41,9 @@ public class GitStatusData {
         return fileName;
     }
     
-    //public StringProperty repositoryProperty() {
-    //    return repository;
-    //}
+    public StringProperty encodingProperty() {
+        return encoding;
+    }
     
     public void setIndexStatus(String indexStatus) {
         this.indexStatus.set(indexStatus);
@@ -71,6 +71,10 @@ public class GitStatusData {
     
     public RepositoryData getRepositoryData() {
         return repositoryData;
+    }
+    
+    public void setEncoding(String encoding) {
+        this.encoding.set(encoding);
     }
     
     public String toString() {

@@ -63,6 +63,7 @@ import com.xrea.jeisi.berettacommittool2.situationselector.HierarchyMenuSelectio
 import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 //import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import java.io.IOException;
@@ -233,10 +234,13 @@ public class GitStatusPane implements BaseGitPane {
 
         ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
+        if(targetRepositories.size() > 0)
+            LogWriter.writeObject("GitStatusPane.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         //tableView.setItems(aggregated.getAggregatedList());
         var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
         var sortableData = new SortedList<GitStatusData>(filteredList);
+        LogWriter.writeObject("GitStatusPane.changeTargetRepositories()", "sortableData", sortableData);
         tableView.setItems(sortableData);
         sortableData.comparatorProperty().bind(tableView.comparatorProperty());
         filterPane.setFilteredList(filteredList);
@@ -262,6 +266,7 @@ public class GitStatusPane implements BaseGitPane {
 
     @Override
     public void refreshAll() {
+        LogWriter.writeObject("GitStatusPane.refreshAll()", "repositories.getDatas()", repositories.getDatas());
         refreshCommon(repositories.getDatas());
     }
 
@@ -300,6 +305,8 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void refreshCommon(ObservableList<RepositoryData> datas) {
+        LogWriter.writeObject("GitStatusPane.refreshCommon()", "datas", datas);
+        LogWriter.writeObject("GitStatusPane.refreshCommon()", "tableView.getItems().size()", tableView.getItems().size());
         datas.forEach((var repositoryData) -> {
             refreshRepository(repositoryData, (command, repository) -> command.status(repository));
         });
@@ -308,6 +315,7 @@ public class GitStatusPane implements BaseGitPane {
     private void refreshRepository(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
         refreshThreadCounter.incrementAndGet();
         repository.displayNameProperty().set(String.format("%s [updating...]", repository.nameProperty().get()));
+        LogWriter.writeObject("GitStatusPane.refreshRepository()", "repository.getGitStatusDatas()", repository.getGitStatusDatas());
         if (repository.getGitStatusDatas() == null) {
             repository.setGitStatusDatas(FXCollections.observableArrayList());
         } else {
@@ -335,6 +343,7 @@ public class GitStatusPane implements BaseGitPane {
         }
         Platform.runLater(() -> {
             repository.getGitStatusDatas().setAll(gitStatusDatas);
+            LogWriter.writeObject("GitStatusPane.refreshRepositoryCore().342", "tableView.getItems().size()", tableView.getItems().size());
             setRepositoryDisplayName(repository);
             updateSituationSelectors();
             refreshThreadCounter.decrementAndGet();
