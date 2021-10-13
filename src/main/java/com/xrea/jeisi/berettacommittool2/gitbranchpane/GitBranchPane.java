@@ -19,6 +19,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -81,19 +82,15 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
-        XmlWriter.writeStartMethod("GitBranchPane.changeTargetRepositories(%s)", target.toString());
         if (!active) {
-            XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
         if (target != targetRepository.get()) {
-            XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
         ObservableList<RepositoryData> targetRepositories = (target == TargetRepository.SELECTED) ? repositoriesInfo.getSelected() : repositoriesInfo.getChecked();
-        XmlWriter.writeObject("repositoriesInfo", repositoriesInfo);
         branchDatas = FXCollections.observableArrayList();
         targetRepositories.forEach(r -> {
             branchDatas.add(r.gitBranchDataProperty());
@@ -102,16 +99,12 @@ public class GitBranchPane implements BaseGitPane {
         tableView.getColumns().remove(2, tableView.getColumns().size());
         combineBranch();
         updateSituationSelectors();
-        XmlWriter.writeEndMethod();
     }
 
     @Override
     public void setActive(boolean active) {
-        XmlWriter.writeStartMethod("GitBranchPane.setActive(%s)", Boolean.toString(active));
-
         this.active = active;
         if (!active) {
-            XmlWriter.writeEndMethodWithReturn();
             return;
         }
 
@@ -120,7 +113,6 @@ public class GitBranchPane implements BaseGitPane {
         }
         //changeTargetRepositories(targetRepository.get());
 
-        XmlWriter.writeEndMethod();
     }
 
     @Override
@@ -141,19 +133,20 @@ public class GitBranchPane implements BaseGitPane {
         var repositoryTableColumn = new TableColumn<ObjectProperty<GitBranchData>, String>("Repository");
         repositoryTableColumn.setPrefWidth(100);
         repositoryTableColumn.setCellValueFactory(p -> p.getValue().get().getRepositoryData().nameProperty());
+        repositoryTableColumn.setId("Repository");
 
         var currentBranchTableColumn = new TableColumn<ObjectProperty<GitBranchData>, String>("Current Branch");
         currentBranchTableColumn.setPrefWidth(100);
         currentBranchTableColumn.setCellValueFactory(p -> p.getValue().get().currentBranchProperty());
+        currentBranchTableColumn.setId("Current Branch");
 
         tableView.getColumns().addAll(repositoryTableColumn, currentBranchTableColumn);
 
         if (configInfo != null) {
-            List<Double> widths = configInfo.getTableColumnWidth(tableView.getId());
-            if (widths != null) {
-                for (int index = 0; index < tableView.getColumns().size() && index < widths.size(); ++index) {
-                    tableView.getColumns().get(index).setPrefWidth(widths.get(index));
-                }
+            for (int index = 0; index < tableView.getColumns().size(); ++index) {
+                var column = tableView.getColumns().get(index);
+                double width = configInfo.getBranchColumnWidth(tableView.getId(), column.getId());
+                column.setPrefWidth(width);
             }
         }
 
@@ -180,8 +173,11 @@ public class GitBranchPane implements BaseGitPane {
 
     @Override
     public void saveConfig() {
-        List<Double> widths = tableView.getColumns().stream().map(e -> e.getWidth()).collect(Collectors.toList());
-        configInfo.setTableColumnWidth(tableView.getId(), widths);
+        HashMap<String, Double> map = new HashMap<>();
+        for(var column : tableView.getColumns()) {
+            map.put(column.getId(), column.getWidth());
+        }
+        configInfo.setBranchColumnWidth(tableView.getId(), map);
     }
 
     @Override
@@ -207,13 +203,10 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void refreshCommon(ObservableList<RepositoryData> datas) {
-        XmlWriter.writeStartMethod("GitBranchPane.refreshCommon()");
-        XmlWriter.writeObject("datas", datas);
         refreshThreadCounter.addAndGet(datas.size());
         datas.forEach((var repositoryData) -> {
             refreshRepository(repositoryData);
         });
-        XmlWriter.writeEndMethod();
     }
 
     private void refreshRepository(RepositoryData repository) {
@@ -267,9 +260,11 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void addBranchColumn(String branch) {
+        double width = configInfo.getBranchColumnWidth(tableView.getId(), branch);
+        
         var otherBranchTableColumn = new TableColumn<ObjectProperty<GitBranchData>, String>("Branch");
         otherBranchTableColumn.setId(branch);
-        otherBranchTableColumn.setPrefWidth(100);
+        otherBranchTableColumn.setPrefWidth(width);
         otherBranchTableColumn.setCellValueFactory(p -> p.getValue().get().branchProperty(branch));
         tableView.getColumns().add(otherBranchTableColumn);
 

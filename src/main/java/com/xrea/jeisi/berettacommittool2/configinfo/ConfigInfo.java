@@ -208,6 +208,22 @@ public class ConfigInfo {
         return (List<Double>) map.get(tableId + ".columnWidths");
     }
 
+    public void setBranchColumnWidth(String tableId, HashMap<String, Double> widths) {
+        map.put(tableId + ".branchColumnWidths", widths);        
+    }
+    
+    public double getBranchColumnWidth(String tableId, String columnId) {
+        var widths = (HashMap<String, Double>) map.get(tableId + ".branchColumnWidths");
+        if(widths == null) {
+            return 100.0;
+        }
+        var width = widths.get(columnId);
+        if(width == null) {
+            return 100.0;
+        }
+        return width;   
+    }
+    
     public void setCommitMessageRemoveComment(boolean isEnable) {
         setBoolean("commitpane.remove_comment", isEnable);
     }
