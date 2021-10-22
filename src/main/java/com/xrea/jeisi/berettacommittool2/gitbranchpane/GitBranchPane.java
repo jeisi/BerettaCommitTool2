@@ -10,6 +10,8 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
+import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
+import com.xrea.jeisi.berettacommittool2.filterpane.GitBranchDataFilterPane;
 import static com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane.setRepositoryDisplayName;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitBranchCommand;
@@ -24,17 +26,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.Parent;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
@@ -48,14 +54,20 @@ public class GitBranchPane implements BaseGitPane {
     private ObservableList<ObjectProperty<GitBranchData>> branchDatas;
     private RepositoriesInfo repositoriesInfo;
     private TableView<ObjectProperty<GitBranchData>> tableView;
+    private ObservableList<String> branchNames;
+    private FilteredList<String> filteredBranchNames;
     private final ConfigInfo configInfo;
     private final ErrorLogWindow errorLogWindow;
+    private final GitBranchDataFilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.CHECKED);
 
     public GitBranchPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.errorLogWindow = new ErrorLogWindow(configInfo);
+        this.filterPane = new GitBranchDataFilterPane(configInfo, "gitbranchpane");
+
+        branchNames = FXCollections.observableArrayList();
     }
 
     @Override
@@ -123,6 +135,7 @@ public class GitBranchPane implements BaseGitPane {
 
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(buildCenter());
+        borderPane.setBottom(buildBottom());
         return borderPane;
     }
 
@@ -134,11 +147,13 @@ public class GitBranchPane implements BaseGitPane {
         repositoryTableColumn.setPrefWidth(100);
         repositoryTableColumn.setCellValueFactory(p -> p.getValue().get().getRepositoryData().nameProperty());
         repositoryTableColumn.setId("Repository");
+        branchNames.add(repositoryTableColumn.getId());
 
         var currentBranchTableColumn = new TableColumn<ObjectProperty<GitBranchData>, String>("Current Branch");
         currentBranchTableColumn.setPrefWidth(100);
         currentBranchTableColumn.setCellValueFactory(p -> p.getValue().get().currentBranchProperty());
         currentBranchTableColumn.setId("Current Branch");
+        branchNames.add(currentBranchTableColumn.getId());
 
         tableView.getColumns().addAll(repositoryTableColumn, currentBranchTableColumn);
 
@@ -152,10 +167,44 @@ public class GitBranchPane implements BaseGitPane {
 
         return tableView;
     }
+    
+    private Parent buildBottom() {
+        Parent parent = filterPane.build();
+
+        filteredBranchNames = new FilteredList<>(branchNames);
+        filteredBranchNames.addListener(new ListChangeListener<String>() {
+            @Override
+            public void onChanged(ListChangeListener.Change change) {
+                onChangedFileter();
+            }
+        });
+        filterPane.setFilteredList(filteredBranchNames);
+        
+        return parent;
+    }
+
+    private void onChangedFileter() {
+        for(var column : tableView.getColumns()) {
+            if("Repository".equals(column.getId()) || "Current Branch".equals(column.getId())) {
+                continue;
+            }
+            boolean isVisible = filteredBranchNames.contains(column.getId());
+            column.setVisible(isVisible);
+        }
+    }
 
     @Override
     public Menu buildMenu() {
+        CheckMenuItem filterMenuItem = new CheckMenuItem("Filter");
+        filterMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN));
+        filterMenuItem.setOnAction(eh -> {
+            boolean isSelected = ((CheckMenuItem) eh.getSource()).isSelected();
+            filterPane.setEnabled(isSelected);
+        });
+        filterMenuItem.setSelected(filterPane.isEnabled());
+
         Menu menu = new Menu("Branch");
+        menu.getItems().addAll(filterMenuItem);
         return menu;
     }
 
@@ -174,7 +223,7 @@ public class GitBranchPane implements BaseGitPane {
     @Override
     public void saveConfig() {
         HashMap<String, Double> map = new HashMap<>();
-        for(var column : tableView.getColumns()) {
+        for (var column : tableView.getColumns()) {
             map.put(column.getId(), column.getWidth());
         }
         configInfo.setBranchColumnWidth(tableView.getId(), map);
@@ -261,13 +310,14 @@ public class GitBranchPane implements BaseGitPane {
 
     private void addBranchColumn(String branch) {
         double width = configInfo.getBranchColumnWidth(tableView.getId(), branch);
-        
+
         var otherBranchTableColumn = new TableColumn<ObjectProperty<GitBranchData>, String>("Branch");
         otherBranchTableColumn.setId(branch);
         otherBranchTableColumn.setPrefWidth(width);
         otherBranchTableColumn.setCellValueFactory(p -> p.getValue().get().branchProperty(branch));
         tableView.getColumns().add(otherBranchTableColumn);
 
+        branchNames.add(branch);
     }
 
     private void updateSituationSelectors() {

@@ -16,6 +16,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
+import com.xrea.jeisi.berettacommittool2.filterpane.GitStatusDataFilterPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckIgnoreCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCherryPickCommand;
@@ -64,7 +65,6 @@ import com.xrea.jeisi.berettacommittool2.situationselector.MultiSelectionSituati
 import com.xrea.jeisi.berettacommittool2.situationselector.SingleSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 //import com.xrea.jeisi.berettacommittool2.situationselector.SituationVisible;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,8 +78,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -123,7 +121,7 @@ public class GitStatusPane implements BaseGitPane {
     private TableView<GitStatusData> tableView;
     private GitCommitWindow commitWindow;
     private final ConfigInfo configInfo;
-    private final FilterPane filterPane;
+    private final GitStatusDataFilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ErrorLogWindow errorLogWindow;
     private final InformationLogWindow informationLogWindow;
@@ -163,7 +161,7 @@ public class GitStatusPane implements BaseGitPane {
         this.progressWindow = new ProgressWindow(configInfo);
         this.errorLogWindow = new ErrorLogWindow(configInfo);
         this.informationLogWindow = new InformationLogWindow(configInfo);
-        this.filterPane = new FilterPane(configInfo, "gitstatuspane");
+        this.filterPane = new GitStatusDataFilterPane(configInfo, "gitstatuspane");
     }
 
     public int getRefreshThreadCounter() {
@@ -234,13 +232,11 @@ public class GitStatusPane implements BaseGitPane {
 
         ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
-        if(targetRepositories.size() > 0)
-            LogWriter.writeObject("GitStatusPane.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
+//        if(targetRepositories.size() > 0)
+//            LogWriter.writeObject("GitStatusPane.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
-        //tableView.setItems(aggregated.getAggregatedList());
         var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
         var sortableData = new SortedList<GitStatusData>(filteredList);
-        LogWriter.writeObject("GitStatusPane.changeTargetRepositories()", "sortableData", sortableData);
         tableView.setItems(sortableData);
         sortableData.comparatorProperty().bind(tableView.comparatorProperty());
         filterPane.setFilteredList(filteredList);

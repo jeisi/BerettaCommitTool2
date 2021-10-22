@@ -6,7 +6,6 @@
 package com.xrea.jeisi.berettacommittool2.filterpane;
 
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.function.Predicate;
 
 /**

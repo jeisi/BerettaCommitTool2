@@ -10,6 +10,7 @@ import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
+import com.xrea.jeisi.berettacommittool2.filterpane.GitStatusDataFilterPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
@@ -51,14 +52,14 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     private TableView<GitStatusData> tableView;
     private final ErrorLogWindow errorLogWindow;
     private final ConfigInfo configInfo;
-    private final FilterPane filterPane;
+    private final GitStatusDataFilterPane filterPane;
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
 
     public ConvertCharSetPane2(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.errorLogWindow = new ErrorLogWindow(configInfo);
         configInfo.setBoolean("convertcharsetpane" + ".filter.enabled", true);
-        this.filterPane = new FilterPane(configInfo, "convertcharsetpane");
+        this.filterPane = new GitStatusDataFilterPane(configInfo, "convertcharsetpane");
     }
 
     @Override

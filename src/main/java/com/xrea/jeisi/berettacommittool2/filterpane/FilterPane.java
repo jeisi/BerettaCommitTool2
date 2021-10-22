@@ -6,9 +6,6 @@
 package com.xrea.jeisi.berettacommittool2.filterpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
-import java.util.function.Predicate;
-import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
@@ -21,19 +18,19 @@ import javafx.scene.layout.Priority;
  *
  * @author jeisi
  */
-public class FilterPane {
+public abstract class FilterPane {
 
-    private boolean enabled;
+    protected boolean enabled;
     private HBox hbox;
-    private TextField textField;
-    private CheckBox caseInsensitive;
-    private CheckBox regexpCheckBox;
-    private FilteredList<GitStatusData> filteredList;
+    protected TextField textField;
+    protected CheckBox caseInsensitive;
+    protected CheckBox regexpCheckBox;
     private final ConfigInfo configInfo;
     private final String identifier;
-    private Predicate<GitStatusData> predicate;
 
-    public FilterPane(ConfigInfo configInfo, String identifier) {
+    protected abstract void filterTextFieldOnChange();
+    
+    protected FilterPane(ConfigInfo configInfo, String identifier) {
         this.configInfo = configInfo;
         this.identifier = identifier;
     }
@@ -81,37 +78,10 @@ public class FilterPane {
         return enabled;
     }
 
-    public void setFilteredList(FilteredList<GitStatusData> filteredList) {
-        this.filteredList = filteredList;
-        this.filteredList.setPredicate(predicate);
-    }
-
     public void saveConfig() {
         configInfo.setBoolean(identifier + ".filter.enabled", enabled);
         configInfo.setBoolean(identifier + ".filter.caseinsensitive", caseInsensitive.isSelected());
         configInfo.setBoolean(identifier + ".filter.regexp", regexpCheckBox.isSelected());
     }
-    
-    private void filterTextFieldOnChange() {
-        if (!enabled) {
-            predicate = null;
-            filteredList.setPredicate(null);
-            return;
-        }
 
-        String text = textField.getText();
-        if (text.isEmpty()) {
-            predicate = null;
-            filteredList.setPredicate(null);
-            return;
-        }
-
-        boolean isCaseInsensitive = this.caseInsensitive.isSelected();
-        if (regexpCheckBox.isSelected()) {
-            predicate = new RegexpPredicate(text, isCaseInsensitive);
-        } else {
-            predicate = new FixedPredicate(text, isCaseInsensitive);
-        }
-        filteredList.setPredicate(predicate);
-    }
 }
