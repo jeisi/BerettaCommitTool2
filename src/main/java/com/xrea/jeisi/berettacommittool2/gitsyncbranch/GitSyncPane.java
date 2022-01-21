@@ -28,6 +28,7 @@ public class GitSyncPane implements BaseGitPane {
     private RepositoriesInfo repositories;
     private TableView tableView;
     private ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.CHECKED);
+    private Menu menu;
 
     public GitSyncPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -76,7 +77,8 @@ public class GitSyncPane implements BaseGitPane {
 
     @Override
     public Menu buildMenu() {
-        Menu menu = new Menu("Sync");
+        menu = new Menu("Sync");
+        menu.setVisible(false);
         return menu;
     }
 
@@ -89,7 +91,7 @@ public class GitSyncPane implements BaseGitPane {
 
     @Override
     public void setActive(boolean active) {
-        
+        menu.setVisible(active);
     }
     
     @Override

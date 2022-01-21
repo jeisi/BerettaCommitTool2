@@ -28,8 +28,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -187,8 +185,8 @@ public class App extends Application implements RefreshListener {
         menuBar.setUseSystemMenuBar(true);
         menuBar.getMenus().add(buildMenu());
         menuBar.getMenus().add(repositoriesPane.buildMenu());
-        gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
         menuBar.getMenus().add(buildToolsMenu());
+        gitPanes.forEach(pane -> menuBar.getMenus().add(pane.buildMenu()));
 
         targetRepositoryPane = new TargetRepositoryPane();
         BorderPane leftPane = new BorderPane();

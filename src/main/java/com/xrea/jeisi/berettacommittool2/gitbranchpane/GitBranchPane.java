@@ -61,6 +61,7 @@ public class GitBranchPane implements BaseGitPane {
     private final GitBranchDataFilterPane filterPane;
     private final AtomicInteger refreshThreadCounter = new AtomicInteger();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.CHECKED);
+    private Menu menu;
 
     public GitBranchPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -115,6 +116,8 @@ public class GitBranchPane implements BaseGitPane {
 
     @Override
     public void setActive(boolean active) {
+        menu.setVisible(active);
+        
         this.active = active;
         if (!active) {
             return;
@@ -203,8 +206,9 @@ public class GitBranchPane implements BaseGitPane {
         });
         filterMenuItem.setSelected(filterPane.isEnabled());
 
-        Menu menu = new Menu("Branch");
+        menu = new Menu("Branch");
         menu.getItems().addAll(filterMenuItem);
+        menu.setVisible(false);
         return menu;
     }
 
@@ -227,6 +231,8 @@ public class GitBranchPane implements BaseGitPane {
             map.put(column.getId(), column.getWidth());
         }
         configInfo.setBranchColumnWidth(tableView.getId(), map);
+        
+        filterPane.saveConfig();
     }
 
     @Override
@@ -268,7 +274,6 @@ public class GitBranchPane implements BaseGitPane {
             GitBranchData gitBranchData;
             try {
                 gitBranchData = command.exec(repository);
-                XmlWriter.writeObject("gitBranchData", gitBranchData);
                 repository.setGitBranchData(gitBranchData);
                 setRepositoryDisplayName(repository);
             } catch (RepositoryNotFoundException ex) {

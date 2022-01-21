@@ -9,7 +9,6 @@ import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.Aggregate
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
-import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.filterpane.GitStatusDataFilterPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
@@ -33,7 +32,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Parent;
 import javafx.scene.control.Menu;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
@@ -54,6 +52,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     private final ConfigInfo configInfo;
     private final GitStatusDataFilterPane filterPane;
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
+    private Menu menu;
 
     public ConvertCharSetPane2(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -103,6 +102,8 @@ public class ConvertCharSetPane2 implements BaseGitPane {
 
     @Override
     public void setActive(boolean active) {
+        menu.setVisible(active);
+        
         this.active = active;
         if (!active) {
             return;
@@ -191,8 +192,9 @@ public class ConvertCharSetPane2 implements BaseGitPane {
 
     @Override
     public Menu buildMenu() {
-        var menu = new Menu("CharSet");
+        menu = new Menu("CharSet");
         menu.setId("convertCharSetMenu");
+        menu.setVisible(false);
         return menu;
     }
 

@@ -20,7 +20,6 @@ import com.xrea.jeisi.berettacommittool2.situationselector.SituationSelector;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -239,42 +238,52 @@ public class RepositoriesPane {
         MenuItem refreshSelectedMenuItem = new MenuItem("Refresh selected");
         refreshSelectedMenuItem.setOnAction(eh -> fireRefreshSelected());
 
+        ContextMenu contextMenu = new ContextMenu();
+        
         Menu menu = JUtility.lookupMenu(menuBar, "gitStatusMenu");
+        if (menu != null) {
+            MenuItem originalMergeAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneMergeAbortMenuItem");
+            MenuItem mergeAbortMenuItem = new MenuItem("git merge --abort");
+            mergeAbortMenuItem.setOnAction(originalMergeAbortMenuItem.getOnAction());
+            mergeAbortMenuItem.visibleProperty().bind(originalMergeAbortMenuItem.disableProperty().not());
+            contextMenu.getItems().add(mergeAbortMenuItem);
 
-        MenuItem originalMergeAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneMergeAbortMenuItem");
-        MenuItem mergeAbortMenuItem = new MenuItem("git merge --abort");
-        mergeAbortMenuItem.setOnAction(originalMergeAbortMenuItem.getOnAction());
-        mergeAbortMenuItem.visibleProperty().bind(originalMergeAbortMenuItem.disableProperty().not());
+            MenuItem originalRevertContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertContinueMenuItem");
+            MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
+            revertContinueMenuItem.setOnAction(originalRevertContinueMenuItem.getOnAction());
+            revertContinueMenuItem.visibleProperty().bind(originalRevertContinueMenuItem.disableProperty().not());
+            contextMenu.getItems().add(revertContinueMenuItem);
 
-        MenuItem originalRevertContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertContinueMenuItem");
-        MenuItem revertContinueMenuItem = new MenuItem("git revert --continue");
-        revertContinueMenuItem.setOnAction(originalRevertContinueMenuItem.getOnAction());
-        revertContinueMenuItem.visibleProperty().bind(originalRevertContinueMenuItem.disableProperty().not());
+            MenuItem originalRevertAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertAbortMenuItem");
+            MenuItem revertAbortMenuItem = new MenuItem("git revert --abort");
+            revertAbortMenuItem.setOnAction(originalRevertAbortMenuItem.getOnAction());
+            revertAbortMenuItem.visibleProperty().bind(originalRevertAbortMenuItem.disableProperty().not());
+            contextMenu.getItems().add(revertAbortMenuItem);
 
-        MenuItem originalRevertAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRevertAbortMenuItem");
-        MenuItem revertAbortMenuItem = new MenuItem("git revert --abort");
-        revertAbortMenuItem.setOnAction(originalRevertAbortMenuItem.getOnAction());
-        revertAbortMenuItem.visibleProperty().bind(originalRevertAbortMenuItem.disableProperty().not());
+            MenuItem originalCherryPickContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickContinueMenuItem");
+            MenuItem cherryPickContinueMenuItem = new MenuItem("git cherry-pick --continue");
+            cherryPickContinueMenuItem.setOnAction(originalCherryPickContinueMenuItem.getOnAction());
+            cherryPickContinueMenuItem.visibleProperty().bind(originalCherryPickContinueMenuItem.disableProperty().not());
+            contextMenu.getItems().add(cherryPickContinueMenuItem);
 
-        MenuItem originalCherryPickContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickContinueMenuItem");
-        MenuItem cherryPickContinueMenuItem = new MenuItem("git cherry-pick --continue");
-        cherryPickContinueMenuItem.setOnAction(originalCherryPickContinueMenuItem.getOnAction());
-        cherryPickContinueMenuItem.visibleProperty().bind(originalCherryPickContinueMenuItem.disableProperty().not());
+            MenuItem originalCherryPickAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickAbortMenuItem");
+            MenuItem cherryPickAbortMenuItem = new MenuItem("git cherry-pick --abort");
+            cherryPickAbortMenuItem.setOnAction(originalCherryPickAbortMenuItem.getOnAction());
+            cherryPickAbortMenuItem.visibleProperty().bind(originalCherryPickAbortMenuItem.disableProperty().not());
+            contextMenu.getItems().add(cherryPickAbortMenuItem);
 
-        MenuItem originalCherryPickAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneCherryPickAbortMenuItem");
-        MenuItem cherryPickAbortMenuItem = new MenuItem("git cherry-pick --abort");
-        cherryPickAbortMenuItem.setOnAction(originalCherryPickAbortMenuItem.getOnAction());
-        cherryPickAbortMenuItem.visibleProperty().bind(originalCherryPickAbortMenuItem.disableProperty().not());
+            MenuItem originalRebaseContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseContinueMenuItem");
+            MenuItem rebaseContinueMenuItem = new MenuItem("git rebase --continue");
+            rebaseContinueMenuItem.setOnAction(originalRebaseContinueMenuItem.getOnAction());
+            rebaseContinueMenuItem.visibleProperty().bind(originalRebaseContinueMenuItem.disableProperty().not());
+            contextMenu.getItems().add(rebaseContinueMenuItem);
 
-        MenuItem originalRebaseContinueMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseContinueMenuItem");
-        MenuItem rebaseContinueMenuItem = new MenuItem("git rebase --continue");
-        rebaseContinueMenuItem.setOnAction(originalRebaseContinueMenuItem.getOnAction());
-        rebaseContinueMenuItem.visibleProperty().bind(originalRebaseContinueMenuItem.disableProperty().not());
-
-        MenuItem originalRebaseAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseAbortMenuItem");
-        MenuItem rebaseAbortMenuItem = new MenuItem("git rebase --abort");
-        rebaseAbortMenuItem.setOnAction(originalRebaseAbortMenuItem.getOnAction());
-        rebaseAbortMenuItem.visibleProperty().bind(originalRebaseAbortMenuItem.disableProperty().not());
+            MenuItem originalRebaseAbortMenuItem = JUtility.lookupMenuItem(menu, "GitStatusPaneRebaseAbortMenuItem");
+            MenuItem rebaseAbortMenuItem = new MenuItem("git rebase --abort");
+            rebaseAbortMenuItem.setOnAction(originalRebaseAbortMenuItem.getOnAction());
+            rebaseAbortMenuItem.visibleProperty().bind(originalRebaseAbortMenuItem.disableProperty().not());
+            contextMenu.getItems().add(rebaseAbortMenuItem);
+        }
 
         MenuItem gitkAllSimplifyMergesMenuItem = new MenuItem("gitk --all --simplify-merges");
         gitkAllSimplifyMergesMenuItem.setOnAction(eh -> gitk(/*isAll=*/true, /*isSimplifyMerges=*/ true));
@@ -290,9 +299,9 @@ public class RepositoriesPane {
         deleteIndexLockMenuItem.setOnAction(eh -> deleteIndexLock());
         deleteIndexLockSelectionSituationSelector.getVisibleMenuItems().add(deleteIndexLockMenuItem);
 
-        ContextMenu contextMenu = new ContextMenu(
-                mergeAbortMenuItem, revertContinueMenuItem, revertAbortMenuItem, cherryPickContinueMenuItem, cherryPickAbortMenuItem, rebaseContinueMenuItem, rebaseAbortMenuItem, deleteIndexLockMenuItem,
-                refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem, 
+        contextMenu.getItems().addAll(
+                deleteIndexLockMenuItem,
+                refreshAllMenuItem, refreshCheckedMenuItem, refreshSelectedMenuItem,
                 gitkAllSimplifyMergesMenuItem, copyFilePathMenuItem, openFileManagerMenuItem);
         return contextMenu;
     }

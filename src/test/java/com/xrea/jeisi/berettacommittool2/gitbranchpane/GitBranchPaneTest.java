@@ -8,7 +8,6 @@ package com.xrea.jeisi.berettacommittool2.gitbranchpane;
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
-import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;

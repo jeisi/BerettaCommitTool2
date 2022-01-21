@@ -155,6 +155,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitRestoreMenuSituationSelector = new SituationSelector();
     private final SituationSelector gitRestoreResetSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
+    private Menu menu;
 
     public GitStatusPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -249,6 +250,8 @@ public class GitStatusPane implements BaseGitPane {
 
     @Override
     public void setActive(boolean active) {
+        menu.setVisible(active);
+        
         this.active = active;
         if (!active) {
             return;
@@ -660,7 +663,7 @@ public class GitStatusPane implements BaseGitPane {
 
         MenuItem openFileManagerMenuItem = createOpenFileManagerMenuItem();
 
-        var menu = new Menu("Status");
+        menu = new Menu("Status");
         menu.setId("gitStatusMenu");
         menu.getItems().addAll(addSubMenu, gitRestoreMenu, checkoutSubMenu,
                 unstageMenuItem, rmMenuItem, diffSubMenu, mergeToolMenuItem, mergeAbortMenuItem, revertMenu, cherryPickMenu, rebaseMenu,

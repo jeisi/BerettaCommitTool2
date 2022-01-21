@@ -45,9 +45,10 @@ public class JUtility {
     }
 
     public static Menu lookupMenu(MenuBar menuBar, String menuId) {
-        System.out.println(menuBar.getMenus().toString());
+        if(menuBar == null) {
+            return null;
+        }
         Optional<Menu> menu = menuBar.getMenus().stream().filter(m -> menuId.equals(m.getId())).findFirst();
-        System.out.println(menu.toString());
         if(menu.isPresent()) {
             return menu.get();
         } else {
