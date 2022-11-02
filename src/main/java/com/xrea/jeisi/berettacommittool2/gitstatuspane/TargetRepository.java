@@ -12,4 +12,5 @@ package com.xrea.jeisi.berettacommittool2.gitstatuspane;
 public enum TargetRepository {
     SELECTED,
     CHECKED,
+    NONE,
 }

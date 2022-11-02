@@ -6,7 +6,6 @@
 package com.xrea.jeisi.berettacommittool2.gitthread;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import java.io.File;
 import java.nio.file.Path;
 
 /**

@@ -6,11 +6,9 @@
 package com.xrea.jeisi.berettacommittool2.targetrepositorypane;
 
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.RadioButton;
@@ -37,6 +35,7 @@ public class TargetRepositoryPane {
         selectButton.setSelected(true);
         selectButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue) {
+                LogWriter.writeMessage("TargetRepositoryPane.selectButton.selectedProperty().addListener()", "begin");
                 targetRepositoryProperty.set(TargetRepository.SELECTED);
             }
         });
@@ -46,6 +45,7 @@ public class TargetRepositoryPane {
         checkButton.setToggleGroup(group);
         checkButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue) {
+                LogWriter.writeMessage("TargetRepositoryPane.checkButton.selectedProperty().addListener()", "begin");
                 targetRepositoryProperty.set(TargetRepository.CHECKED);
             }
         });
@@ -57,7 +57,6 @@ public class TargetRepositoryPane {
     }
 
     public void bind(ObjectProperty<TargetRepository> targetRepositoryProperty) {
-        XmlWriter.writeStartMethod("TargetRepositoryPane.bind(%s)", targetRepositoryProperty.get().toString());
         this.targetRepositoryProperty = targetRepositoryProperty;
         switch(this.targetRepositoryProperty.get()) {
             case SELECTED:
@@ -70,6 +69,5 @@ public class TargetRepositoryPane {
                 assert(false);
                 break;
         }
-        XmlWriter.writeEndMethod();
     }
 }

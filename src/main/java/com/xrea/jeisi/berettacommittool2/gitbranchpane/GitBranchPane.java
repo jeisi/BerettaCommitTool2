@@ -10,7 +10,6 @@ import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
-import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.filterpane.GitBranchDataFilterPane;
 import static com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane.setRepositoryDisplayName;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
@@ -22,7 +21,6 @@ import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -117,7 +115,7 @@ public class GitBranchPane implements BaseGitPane {
     @Override
     public void setActive(boolean active) {
         menu.setVisible(active);
-        
+
         this.active = active;
         if (!active) {
             return;
@@ -170,7 +168,7 @@ public class GitBranchPane implements BaseGitPane {
 
         return tableView;
     }
-    
+
     private Parent buildBottom() {
         Parent parent = filterPane.build();
 
@@ -182,13 +180,13 @@ public class GitBranchPane implements BaseGitPane {
             }
         });
         filterPane.setFilteredList(filteredBranchNames);
-        
+
         return parent;
     }
 
     private void onChangedFileter() {
-        for(var column : tableView.getColumns()) {
-            if("Repository".equals(column.getId()) || "Current Branch".equals(column.getId())) {
+        for (var column : tableView.getColumns()) {
+            if ("Repository".equals(column.getId()) || "Current Branch".equals(column.getId())) {
                 continue;
             }
             boolean isVisible = filteredBranchNames.contains(column.getId());
@@ -231,13 +229,26 @@ public class GitBranchPane implements BaseGitPane {
             map.put(column.getId(), column.getWidth());
         }
         configInfo.setBranchColumnWidth(tableView.getId(), map);
-        
+
         filterPane.saveConfig();
     }
 
     @Override
     public void close() {
         errorLogWindow.close();
+    }
+
+    @Override
+    public void clearAll() {
+        for (RepositoryData repository : repositoriesInfo.getDatas()) {
+            GitThread thread = GitThreadMan.get(repository.getPath().toString());
+            thread.addCommand(() -> {
+                clearRepository(repository);
+            });
+        }
+    }
+
+    private void clearRepository(RepositoryData repository) {
     }
 
     @Override
@@ -295,22 +306,22 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void combineBranch() {
-        XmlWriter.writeStartMethod("GitBranchPane.combineBranch()");
+        //XmlWriter.writeStartMethod("GitBranchPane.combineBranch()");
         Set<String> otherBranches = new TreeSet<>();
         Set<String> remoteBranches = new TreeSet<>();
-        XmlWriter.writeObject("tableView.getItems()", tableView.getItems().toString());
+        //XmlWriter.writeObject("tableView.getItems()", tableView.getItems().toString());
         tableView.getItems().forEach(item -> {
-            XmlWriter.writeObject("item.get()", item.get().toString());
+            //XmlWriter.writeObject("item.get()", item.get().toString());
             item.get().getOtherBranches().forEach(branch -> otherBranches.add(branch.get()));
             item.get().getRemoteBranches().forEach(branch -> remoteBranches.add(branch.get()));
         });
-        XmlWriter.writeObject("otherBranches", otherBranches);
+        //XmlWriter.writeObject("otherBranches", otherBranches);
 
         Platform.runLater(() -> {
             otherBranches.forEach(branch -> addBranchColumn(branch));
             remoteBranches.forEach(branch -> addBranchColumn(branch));
         });
-        XmlWriter.writeEndMethod();
+        //XmlWriter.writeEndMethod();
     }
 
     private void addBranchColumn(String branch) {

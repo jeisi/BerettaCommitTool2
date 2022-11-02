@@ -21,7 +21,6 @@ import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog2;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.targetrepositorypane.TargetRepositoryPane;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,6 +54,7 @@ public class App extends Application implements RefreshListener {
 
     private ErrorLogWindow errorLogWindow;
     private List<BaseGitPane> gitPanes;
+    private GitStatusPane gitStatusPane;
     private StyleManager styleManager;
     private PreferenceWindow preferenceWindow;
     private RepositoriesInfo repositoriesInfo;
@@ -69,6 +69,10 @@ public class App extends Application implements RefreshListener {
 
     public void setConfigInfo(ConfigInfo configInfo) {
         this.configInfo = configInfo;
+    }
+
+    public GitStatusPane getGitStatusPane() {
+        return gitStatusPane;
     }
 
     @Override
@@ -125,7 +129,6 @@ public class App extends Application implements RefreshListener {
     }
 
     public void setupRepositoriesInfo() {
-        LogWriter.writeMessage("App.setupRepositoriesInfo()", "beginMethod");
         repositoriesInfo = new RepositoriesInfo(repositoriesPane.getTableView());
         repositoriesPane.setRepositories(repositoriesInfo);
         gitPanes.forEach(pane -> {
@@ -157,9 +160,17 @@ public class App extends Application implements RefreshListener {
         }
     }
 
+    private void setPaneActive(Tab newValue) {
+        BaseGitPane pane = (BaseGitPane) newValue.getUserData();
+        targetRepositoryPane.bind(pane.targetRepositoryProperty());
+        pane.setActive(true);
+    }
+
     Scene buildScene(Stage stage) {
+        gitStatusPane = new GitStatusPane(configInfo);
+
         gitPanes = new ArrayList<>();
-        gitPanes.add(new GitStatusPane(configInfo));
+        gitPanes.add(gitStatusPane);
         gitPanes.add(new GitSyncPane(configInfo));
         gitPanes.add(new GitBranchPane(configInfo));
         gitPanes.add(new ConvertCharSetPane2(configInfo));
@@ -171,9 +182,7 @@ public class App extends Application implements RefreshListener {
         });
         tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             ((BaseGitPane) oldValue.getUserData()).setActive(false);
-            BaseGitPane pane = (BaseGitPane) newValue.getUserData();
-            targetRepositoryPane.bind(pane.targetRepositoryProperty());
-            pane.setActive(true);
+            setPaneActive(newValue);
         });
 
         repositoriesPane = new RepositoriesPane();
@@ -290,12 +299,18 @@ public class App extends Application implements RefreshListener {
     }
 
     void setRootDirectory(String topDir) {
-        XmlWriter.writeStartMethod("App.setRootDirectory()");
+        LogWriter.writeMessage("App.setRootDirectory()", ">>>");
         this.topDir = topDir;
         refreshAll(topDir);
         //((BaseGitPane)tabPane.getSelectionModel().getSelectedItem().getUserData()).setActive(true);
         mainStage.setTitle(String.format("%s - %s", topDir, getBaseTitle()));
-        XmlWriter.writeEndMethod();
+    }
+
+    @Override
+    public void clearAll() {
+        for (BaseGitPane gitPane : gitPanes) {
+            gitPane.clearAll();
+        }
     }
 
     void refreshAll(String topDir) {
@@ -309,7 +324,6 @@ public class App extends Application implements RefreshListener {
         try {
             loader.load();
         } catch (IOException ex) {
-            ex.printStackTrace();
             Alert alert = new Alert(Alert.AlertType.ERROR, ".git_repositories.lst 読み込み中にエラーが発生しました。", ButtonType.CLOSE);
             alert.showAndWait();
             return;
@@ -319,8 +333,10 @@ public class App extends Application implements RefreshListener {
         List<Path> selectedItems = repositoriesInfo.getSelected().stream().map(e -> e.getPath()).collect(Collectors.toList());
         List<Path> uncheckedItems = repositoriesInfo.getDatas().stream().filter(e -> !e.checkProperty().get()).map(e -> e.getPath()).collect(Collectors.toList());
         repositoriesInfo.setRepositories(repositories, topDir);
-        BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
-        pane.refreshAll();
+
+        for (BaseGitPane gitPane : gitPanes) {
+            gitPane.clearAll();
+        }
 
         // 元々選択されていた行を選択し直す。
         int select = -1;
@@ -349,6 +365,11 @@ public class App extends Application implements RefreshListener {
                 item.checkProperty().set(false);
             }
         });
+
+        BaseGitPane pane = (BaseGitPane) tabPane.getSelectionModel().getSelectedItem().getUserData();
+        pane.refreshAll();
+
+        setPaneActive(tabPane.getSelectionModel().getSelectedItem());
     }
 
     @Override
@@ -375,7 +396,7 @@ public class App extends Application implements RefreshListener {
     public Stage getStage() {
         return mainStage;
     }
-    
+
     public static void main(String[] args) {
         launch();
     }

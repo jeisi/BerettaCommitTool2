@@ -9,10 +9,16 @@ import com.xrea.jeisi.berettacommittool2.aggregatedobservablearraylist.Aggregate
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
+import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.filterpane.GitStatusDataFilterPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusData;
+import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusExecutor;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactory;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitCommandFactoryImpl;
+import com.xrea.jeisi.berettacommittool2.gitthread.GitStatusCommand;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesUtility;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import java.io.BufferedInputStream;
@@ -48,11 +54,12 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     private boolean active = false;
     private RepositoriesInfo repositories;
     private TableView<GitStatusData> tableView;
-    private final ErrorLogWindow errorLogWindow;
     private final ConfigInfo configInfo;
+    private final ErrorLogWindow errorLogWindow;
     private final GitStatusDataFilterPane filterPane;
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
     private Menu menu;
+    private final GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
 
     public ConvertCharSetPane2(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -77,7 +84,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
         var encodingColumn = new TableColumn<GitStatusData, String>("Encoding");
         encodingColumn.setPrefWidth(300);
         encodingColumn.setCellValueFactory(p -> p.getValue().encodingProperty());
-        
+
         tableView.getColumns().addAll(fileTableColumn, encodingColumn);
 
         BorderPane borderPane = new BorderPane();
@@ -103,15 +110,15 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     @Override
     public void setActive(boolean active) {
         menu.setVisible(active);
-        
+
         this.active = active;
         if (!active) {
             return;
         }
 
-        //System.out.println("ConvertCharSetPane2.setActive(): repositories=" + repositories.toString());
+        reflectRepositories();
+
         long numNullRepository = repositories.getDatas().stream().filter(p -> p.getGitStatusDatas() == null).count();
-        //LogWriter.writeLong("ConvertCharSetPane2.setActive()", "numNullRepository", numNullRepository);
         if (repositories.getDatas().size() == 0 || numNullRepository > 0) {
             refreshAll();
             return;
@@ -136,6 +143,12 @@ public class ConvertCharSetPane2 implements BaseGitPane {
 
         this.repositories = work;
 
+        //reflectRepositories();
+    }
+
+    private void reflectRepositories() {
+        RepositoriesInfo work = this.repositories;
+
         ListChangeListener<RepositoryData> selectedListener = (change) -> changeTargetRepositories(TargetRepository.SELECTED);
         work.getSelected().addListener(selectedListener);
         ListChangeListener<RepositoryData> changedListener = (change) -> changeTargetRepositories(TargetRepository.CHECKED);
@@ -151,26 +164,26 @@ public class ConvertCharSetPane2 implements BaseGitPane {
 
         ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
-        if(targetRepositories.size() > 0)
-            LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
+        //if (!targetRepositories.isEmpty()) {
+        //    LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
+        //}
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         Predicate<GitStatusData> p = pp -> {
-            switch(pp.getIndexStatus()) {
+            switch (pp.getIndexStatus()) {
                 case "?":
                 case "D":
                 case "R":
                     return false;
             }
-            if(pp.getWorkTreeStatus().equals("D")) {
+            if (pp.getWorkTreeStatus().equals("D")) {
                 return false;
             }
             return true;
         };
-        var indexFilteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList(), p);
-        //var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
+        var indexFilteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList(), p);        //var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
         var filteredList = new FilteredList<GitStatusData>(indexFilteredList);
         var sortableData = new SortedList<GitStatusData>(filteredList);
-        LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "sortableData", sortableData);
+        //LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "sortableData", sortableData);
         tableView.setItems(sortableData);
         sortableData.comparatorProperty().bind(tableView.comparatorProperty());
         filterPane.setFilteredList(filteredList);
@@ -211,27 +224,14 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     }
 
     @Override
+    public void clearAll() {
+
+    }
+
+    @Override
     public void refreshAll() {
         for (var repositoryData : repositories.getSelected()) {
-            for (var statusData : repositoryData.getGitStatusDatas()) {
-                boolean isCheckCharset = false;
-                switch(statusData.getWorkTreeStatus()) {
-                    case "M":
-                        isCheckCharset = true;
-                        break;
-                }
-                switch(statusData.getIndexStatus()) {
-                    case "A":
-                    case "M":
-                        isCheckCharset = true;
-                        break;                        
-                }
-                if (isCheckCharset) {
-                    Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
-                    String charset = detectCharset(path.toString());
-                    statusData.setEncoding(charset);
-                }
-            }
+            refreshCommon(repositoryData);
         }
     }
 
@@ -245,8 +245,44 @@ public class ConvertCharSetPane2 implements BaseGitPane {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    private void refreshCommon(RepositoryData repositoryData) {
+        LogWriter.writeObject("GitStatusPane.refreshCommon()", "repositoryData.isInitializedGitStatusDatas()", repositoryData.isInitializedGitStatusDatas());
+        if (!repositoryData.isInitializedGitStatusDatas()) {
+            GitStatusCommand command = gitCommandFactory.createStatusCommand(repositoryData.getPath(), configInfo);
+            GitStatusExecutor gitStatusExecutor = (cmd, repository) -> cmd.status(repository);
+            List<GitStatusData> gitStatusDatas;
+            try {
+                gitStatusDatas = gitStatusExecutor.exec(command, repositoryData);
+            } catch (GitConfigException | IOException | InterruptedException ex) {
+                RepositoriesUtility.setErrorName(repositoryData, ex, errorLogWindow);
+                return;
+            }
+            //repositoryData.getGitStatusDatas().setAll(gitStatusDatas);
+            repositoryData.setGitStatusDatas(gitStatusDatas);
+        }
+        for (var statusData : repositoryData.getGitStatusDatas()) {
+            boolean isCheckCharset = false;
+            switch (statusData.getWorkTreeStatus()) {
+                case "M":
+                    isCheckCharset = true;
+                    break;
+            }
+            switch (statusData.getIndexStatus()) {
+                case "A":
+                case "M":
+                    isCheckCharset = true;
+                    break;
+            }
+            if (isCheckCharset) {
+                Path path = Paths.get(statusData.getRepositoryData().getPath().toString(), statusData.getFileName());
+                String charset = detectCharset(path.toString());
+                statusData.setEncoding(charset);
+            }
+        }
+    }
+
     private String detectCharset(String fileName) {
-        try (FileInputStream file = new FileInputStream(fileName); BufferedInputStream input = new BufferedInputStream(file); BOMInputStream bomIn = new BOMInputStream(input)) {
+        try ( FileInputStream file = new FileInputStream(fileName);  BufferedInputStream input = new BufferedInputStream(file);  BOMInputStream bomIn = new BOMInputStream(input)) {
             boolean hasBom = bomIn.hasBOM();
 
             UniversalDetector detector = new UniversalDetector(null);

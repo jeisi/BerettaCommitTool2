@@ -11,9 +11,8 @@ package com.xrea.jeisi.berettacommittool2.basegitpane;
  */
 public interface RefreshListener {
 
+    public void clearAll();
     public void refreshAll();
-
     public void refreshChecked();
-
     public void refreshSelected();
 }

@@ -95,6 +95,11 @@ public class GitSyncPane implements BaseGitPane {
     }
     
     @Override
+    public void clearAll() {
+        
+    }
+    
+    @Override
     public void refreshAll() {
     }
 

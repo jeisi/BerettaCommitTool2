@@ -15,7 +15,6 @@ import com.xrea.jeisi.berettacommittool2.gitcommitwindow.GitCommitWindow;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitAddCommand;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.exception.RepositoryNotFoundException;
-import com.xrea.jeisi.berettacommittool2.filterpane.FilterPane;
 import com.xrea.jeisi.berettacommittool2.filterpane.GitStatusDataFilterPane;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckIgnoreCommand;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitCheckoutCommand;
@@ -37,6 +36,7 @@ import com.xrea.jeisi.berettacommittool2.gitthread.GitkCommand;
 import com.xrea.jeisi.berettacommittool2.progresswindow.ProgressWindow;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
+import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesUtility;
 import com.xrea.jeisi.berettacommittool2.situationselector.DeleteSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddAllSelectionSituation;
 import com.xrea.jeisi.berettacommittool2.situationselector.GitAddPatchSelectionSituation;
@@ -155,6 +155,7 @@ public class GitStatusPane implements BaseGitPane {
     private final SituationSelector gitRestoreMenuSituationSelector = new SituationSelector();
     private final SituationSelector gitRestoreResetSituationSelector = new SituationSelector();
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
+    private boolean requestedUpdateRepositoriesList = false;
     private Menu menu;
 
     public GitStatusPane(ConfigInfo configInfo) {
@@ -196,11 +197,21 @@ public class GitStatusPane implements BaseGitPane {
 
     @Override
     public void setRepositories(RepositoriesInfo work) {
+        LogWriter.writeMessage("GitStatusPane.setRepositories()", "work=" + work.toString());
+
         if (this.repositories != null) {
             throw new RuntimeException("setRepositories() を実行するのは一回だけです。");
         }
 
         this.repositories = work;
+
+        //reflectRepositories();
+    }
+
+    /*private*/ void reflectRepositories() {
+        LogWriter.writeMessage("GitStatusPane.reflectRepositories()", "begin");
+
+        RepositoriesInfo work = this.repositories;
 
         ListChangeListener<RepositoryData> selectedListener = (change) -> changeTargetRepositories(TargetRepository.SELECTED);
         work.getSelected().addListener(selectedListener);
@@ -227,6 +238,41 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
+        LogWriter.writeMessage("GitStatusPane.changeTargetRepositories()", "begin");
+        LogWriter.writeMessage("GitStatusPane.changeTargetRepositories()", "active=" + Boolean.toString(active));
+
+        // 例えば、現在 SELECT の状態のときに、Checked のリストが変更されても関係ないので、何もしない。
+        if (target != targetRepository.get()) {
+            return;
+        }
+
+        requestedUpdateRepositoriesList = true;
+        if (!active) {
+            return;
+        }
+        processChangeTargetRepositories();
+    }
+
+    private void processChangeTargetRepositories() {
+        if (!requestedUpdateRepositoriesList) {
+            return;
+        }
+
+        requestedUpdateRepositoriesList = false;
+
+        ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
+        AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
+        targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
+        var filteredList = new FilteredList<GitStatusData>(aggregated.getAggregatedList());
+        var sortableData = new SortedList<GitStatusData>(filteredList);
+        tableView.setItems(sortableData);
+        sortableData.comparatorProperty().bind(tableView.comparatorProperty());
+        filterPane.setFilteredList(filteredList);
+        updateSituationSelectors();
+    }
+
+    /*
+    private void changeTargetRepositories(TargetRepository target) {
         if (target != targetRepository.get()) {
             return;
         }
@@ -243,19 +289,23 @@ public class GitStatusPane implements BaseGitPane {
         filterPane.setFilteredList(filteredList);
         updateSituationSelectors();
     }
-
+     */
     private ObservableList<RepositoryData> getTargetRepositories() {
         return repositories.getTarget(targetRepository.get());
     }
 
     @Override
     public void setActive(boolean active) {
+        LogWriter.writeMessage("GitStatusPane.setActive(active)", "active=" + Boolean.toString(active));
+
         menu.setVisible(active);
-        
+
         this.active = active;
         if (!active) {
             return;
         }
+
+        reflectRepositories();
 
         long numNullRepository = repositories.getDatas().stream().filter(p -> p.getGitStatusDatas() == null).count();
         if (repositories.getDatas().size() == 0 || numNullRepository > 0) {
@@ -264,8 +314,18 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     @Override
+    public void clearAll() {
+        for (RepositoryData repository : repositories.getDatas()) {
+            GitThread thread = GitThreadMan.get(repository.getPath().toString());
+            thread.addCommand(() -> {
+                clearRepository(repository);
+            });
+        }
+    }
+
+    @Override
     public void refreshAll() {
-        LogWriter.writeObject("GitStatusPane.refreshAll()", "repositories.getDatas()", repositories.getDatas());
+        reflectRepositories();
         refreshCommon(repositories.getDatas());
     }
 
@@ -304,8 +364,6 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void refreshCommon(ObservableList<RepositoryData> datas) {
-        LogWriter.writeObject("GitStatusPane.refreshCommon()", "datas", datas);
-        LogWriter.writeObject("GitStatusPane.refreshCommon()", "tableView.getItems().size()", tableView.getItems().size());
         datas.forEach((var repositoryData) -> {
             refreshRepository(repositoryData, (command, repository) -> command.status(repository));
         });
@@ -314,21 +372,36 @@ public class GitStatusPane implements BaseGitPane {
     private void refreshRepository(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
         refreshThreadCounter.incrementAndGet();
         repository.displayNameProperty().set(String.format("%s [updating...]", repository.nameProperty().get()));
-        LogWriter.writeObject("GitStatusPane.refreshRepository()", "repository.getGitStatusDatas()", repository.getGitStatusDatas());
+
+        GitThread thread = GitThreadMan.get(repository.getPath().toString());
+        thread.addCommand(() -> {
+            initRepository(repository);
+            refreshRepositoryCore(repository, gitStatusExecutor);
+        });
+    }
+
+    private void initRepository(RepositoryData repository) {
         if (repository.getGitStatusDatas() == null) {
             repository.setGitStatusDatas(FXCollections.observableArrayList());
         } else {
             repository.getGitStatusDatas().clear();
         }
-        GitThread thread = GitThreadMan.get(repository.getPath().toString());
-        thread.addCommand(() -> {
-            refreshRepositoryCore(repository, gitStatusExecutor);
-        });
+    }
+
+    private void clearRepository(RepositoryData repository) {
+        repository.resetGitStatusDatas();
     }
 
     private void refreshRepositoryCore(RepositoryData repository, GitStatusExecutor gitStatusExecutor) {
         GitStatusCommand command = gitCommandFactory.createStatusCommand(repository.getPath(), configInfo);
         List<GitStatusData> gitStatusDatas;
+        try {
+            gitStatusDatas = gitStatusExecutor.exec(command, repository);
+        } catch (GitConfigException | IOException | InterruptedException e) {
+            RepositoriesUtility.setErrorName(repository, e, errorLogWindow);
+            return;
+        }
+        /*
         try {
             gitStatusDatas = gitStatusExecutor.exec(command, repository);
         } catch (RepositoryNotFoundException ex) {
@@ -340,9 +413,9 @@ public class GitStatusPane implements BaseGitPane {
             repository.displayNameProperty().set(String.format("%s [error! %s]", repository.nameProperty().get(), ex.getMessage()));
             return;
         }
+         */
         Platform.runLater(() -> {
             repository.getGitStatusDatas().setAll(gitStatusDatas);
-            LogWriter.writeObject("GitStatusPane.refreshRepositoryCore().342", "tableView.getItems().size()", tableView.getItems().size());
             setRepositoryDisplayName(repository);
             updateSituationSelectors();
             refreshThreadCounter.decrementAndGet();
@@ -448,6 +521,14 @@ public class GitStatusPane implements BaseGitPane {
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tableView);
         borderPane.setBottom(filterPane.build());
+
+        targetRepository.addListener((observal, oldValue, newValue) -> {
+            requestedUpdateRepositoriesList = true;
+            if (!active) {
+                return;
+            }
+            processChangeTargetRepositories();
+        });
 
         //return tableView;
         return borderPane;

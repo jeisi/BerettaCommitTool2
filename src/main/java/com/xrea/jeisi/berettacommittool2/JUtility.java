@@ -58,7 +58,7 @@ public class JUtility {
     
     public static MenuItem lookupMenuItem(Menu menu, String menuItemId) {
         for (MenuItem item : menu.getItems()) {
-            XmlWriter.writeObject("item", item.toString());
+            //XmlWriter.writeObject("item", item.toString());
             if (item instanceof Menu) {
                 MenuItem subItem = lookupMenuItem((Menu) item, menuItemId);
                 if (subItem != null) {
