@@ -238,9 +238,6 @@ public class GitStatusPane implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
-        LogWriter.writeMessage("GitStatusPane.changeTargetRepositories()", "begin");
-        LogWriter.writeMessage("GitStatusPane.changeTargetRepositories()", "active=" + Boolean.toString(active));
-
         // 例えば、現在 SELECT の状態のときに、Checked のリストが変更されても関係ないので、何もしない。
         if (target != targetRepository.get()) {
             return;
@@ -257,7 +254,6 @@ public class GitStatusPane implements BaseGitPane {
         if (!requestedUpdateRepositoriesList) {
             return;
         }
-
         requestedUpdateRepositoriesList = false;
 
         ObservableList<RepositoryData> targetRepositories = getTargetRepositories();

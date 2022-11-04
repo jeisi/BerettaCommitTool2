@@ -49,7 +49,7 @@ import org.mozilla.universalchardet.UniversalDetector;
  *
  * @author jeisi
  */
-public class ConvertCharSetPane2 implements BaseGitPane {
+public class CharSetPane implements BaseGitPane {
 
     private boolean active = false;
     private RepositoriesInfo repositories;
@@ -60,8 +60,9 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     private final ObjectProperty<TargetRepository> targetRepository = new SimpleObjectProperty<>(TargetRepository.SELECTED);
     private Menu menu;
     private final GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
+    private boolean requestedUpdateRepositoriesList = false;
 
-    public ConvertCharSetPane2(ConfigInfo configInfo) {
+    public CharSetPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         this.errorLogWindow = new ErrorLogWindow(configInfo);
         configInfo.setBoolean("convertcharsetpane" + ".filter.enabled", true);
@@ -76,20 +77,34 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     @Override
     public Parent build() {
         tableView = new TableView<>();
+        tableView.setId("ConvertCharSetPane2tableView");
 
         var fileTableColumn = new TableColumn<GitStatusData, String>("File");
         fileTableColumn.setPrefWidth(300);
         fileTableColumn.setCellValueFactory(p -> p.getValue().fileNameProperty());
 
         var encodingColumn = new TableColumn<GitStatusData, String>("Encoding");
-        encodingColumn.setPrefWidth(300);
+        encodingColumn.setPrefWidth(100);
         encodingColumn.setCellValueFactory(p -> p.getValue().encodingProperty());
 
-        tableView.getColumns().addAll(fileTableColumn, encodingColumn);
+        var repositoryColumn = new TableColumn<GitStatusData, String>("Repository");
+        repositoryColumn.setPrefWidth(100);
+        repositoryColumn.setCellValueFactory(p -> p.getValue().getRepositoryData().nameProperty());
+
+        tableView.getColumns().addAll(fileTableColumn, encodingColumn, repositoryColumn);
 
         BorderPane borderPane = new BorderPane();
         borderPane.setCenter(tableView);
         borderPane.setBottom(filterPane.build());
+
+        targetRepository.addListener((observal, oldValue, newValue) -> {
+            requestedUpdateRepositoriesList = true;
+            if (!active) {
+                return;
+            }
+            processChangeTargetRepositories();
+        });
+
         return borderPane;
     }
 
@@ -158,15 +173,27 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     }
 
     private void changeTargetRepositories(TargetRepository target) {
+        // 例えば、現在 SELECT の状態のときに、Checked のリストが変更されても関係ないので、何もしない。
         if (target != targetRepository.get()) {
             return;
         }
 
+        //LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "active", active);
+        requestedUpdateRepositoriesList = true;
+        if (!active) {
+            return;
+        }
+        processChangeTargetRepositories();
+    }
+
+    private void processChangeTargetRepositories() {
+        if (!requestedUpdateRepositoriesList) {
+            return;
+        }
+        requestedUpdateRepositoriesList = false;
+
         ObservableList<RepositoryData> targetRepositories = getTargetRepositories();
         AggregatedObservableArrayList aggregated = new AggregatedObservableArrayList();
-        //if (!targetRepositories.isEmpty()) {
-        //    LogWriter.writeObject("ConvertCharSetPane2.changeTargetRepositories()", "e.getGitStatusDatas()", targetRepositories.get(0).getGitStatusDatas());
-        //}
         targetRepositories.forEach(e -> aggregated.appendList(e.getGitStatusDatas()));
         Predicate<GitStatusData> p = pp -> {
             switch (pp.getIndexStatus()) {
@@ -230,7 +257,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
 
     @Override
     public void refreshAll() {
-        for (var repositoryData : repositories.getSelected()) {
+        for (var repositoryData : repositories.getDatas()) {
             refreshCommon(repositoryData);
         }
     }
@@ -246,7 +273,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
     }
 
     private void refreshCommon(RepositoryData repositoryData) {
-        LogWriter.writeObject("GitStatusPane.refreshCommon()", "repositoryData.isInitializedGitStatusDatas()", repositoryData.isInitializedGitStatusDatas());
+        LogWriter.writeObject("ConvertCharSetPane2.refreshCommon()", "repositoryData.isInitializedGitStatusDatas()", repositoryData.isInitializedGitStatusDatas());
         if (!repositoryData.isInitializedGitStatusDatas()) {
             GitStatusCommand command = gitCommandFactory.createStatusCommand(repositoryData.getPath(), configInfo);
             GitStatusExecutor gitStatusExecutor = (cmd, repository) -> cmd.status(repository);
@@ -260,6 +287,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
             //repositoryData.getGitStatusDatas().setAll(gitStatusDatas);
             repositoryData.setGitStatusDatas(gitStatusDatas);
         }
+        LogWriter.writeObject("GitStatusPane.refreshCommon()", "repositoryData.getGitStatusDatas()", repositoryData.getGitStatusDatas());
         for (var statusData : repositoryData.getGitStatusDatas()) {
             boolean isCheckCharset = false;
             switch (statusData.getWorkTreeStatus()) {
@@ -302,7 +330,7 @@ public class ConvertCharSetPane2 implements BaseGitPane {
                     return encoding;
                 }
             } else {
-                return "ASCII test";
+                return "ASCII text";
             }
         } catch (FileNotFoundException ex) {
             errorLogWindow.appendException(ex);

@@ -8,6 +8,7 @@ package com.xrea.jeisi.berettacommittool2.repositoriesinfo;
 import com.xrea.jeisi.berettacommittool2.JUtility;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.TargetRepository;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
+import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ public class RepositoriesInfo {
     }
 
     public RepositoriesInfo(ObservableList<RepositoryData> selectedRepositories) {
+        LogWriter.writeMessage("RepositoriesInfo.RepositoriesInfo()", "selectedRepositories="+selectedRepositories.toString());
         datas = FXCollections.observableArrayList();
         this.selectedRepositories = selectedRepositories;
         checkedRepositories = FXCollections.observableArrayList();

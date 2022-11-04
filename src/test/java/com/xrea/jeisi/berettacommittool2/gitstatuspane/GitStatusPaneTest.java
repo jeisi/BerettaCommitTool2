@@ -9,8 +9,6 @@ import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import com.xrea.jeisi.berettacommittool2.execreator.ProgramInfo;
 import com.xrea.jeisi.berettacommittool2.gitthread.GitThreadMan;
-import com.xrea.jeisi.berettacommittool2.gitthread.MockGitStatusCommand;
-import com.xrea.jeisi.berettacommittool2.gitthread.MockGitCommandFactory;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
@@ -35,7 +33,6 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 
 /**
  *
@@ -149,7 +146,7 @@ public class GitStatusPaneTest {
         Process process = pb.start();
         int ret = process.waitFor();
 
-        RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
+        //RepositoryData repositoryData = new RepositoryData(true, ".", Paths.get("."));
         Path workDir = Paths.get(userDir, "src/test/resources/work");
 
         TableView<RepositoryData> repositoryTableView = robot.lookup("#tableView").queryAs(TableView.class);

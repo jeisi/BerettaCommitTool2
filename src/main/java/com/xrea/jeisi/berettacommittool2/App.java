@@ -6,7 +6,7 @@ import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
 import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
-import com.xrea.jeisi.berettacommittool2.convertcharset.ConvertCharSetPane2;
+import com.xrea.jeisi.berettacommittool2.convertcharset.CharSetPane;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
 import com.xrea.jeisi.berettacommittool2.gitstatuspane.GitStatusPane;
@@ -173,7 +173,7 @@ public class App extends Application implements RefreshListener {
         gitPanes.add(gitStatusPane);
         gitPanes.add(new GitSyncPane(configInfo));
         gitPanes.add(new GitBranchPane(configInfo));
-        gitPanes.add(new ConvertCharSetPane2(configInfo));
+        gitPanes.add(new CharSetPane(configInfo));
         tabPane = new TabPane();
         gitPanes.forEach((var pane) -> {
             var tab = new Tab(pane.getTitle(), pane.build());
