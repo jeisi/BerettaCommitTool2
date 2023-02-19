@@ -21,13 +21,13 @@ import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesUtility;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.beans.property.ObjectProperty;
@@ -37,13 +37,13 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.Parent;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import org.apache.commons.io.input.BOMInputStream;
-import org.mozilla.universalchardet.UniversalDetector;
 
 /**
  *
@@ -61,6 +61,7 @@ public class CharSetPane implements BaseGitPane {
     private Menu menu;
     private final GitCommandFactory gitCommandFactory = new GitCommandFactoryImpl();
     private boolean requestedUpdateRepositoriesList = false;
+    private DetectCharset m_detectCharset = new DetectCharset();
 
     public CharSetPane(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -232,10 +233,41 @@ public class CharSetPane implements BaseGitPane {
 
     @Override
     public Menu buildMenu() {
+        MenuItem convertUTF8withoutBOMtoUTF8withBOMMenuItem = new MenuItem("UTF-8 without BOM → UTF-8 with BOM");
+        convertUTF8withoutBOMtoUTF8withBOMMenuItem.setOnAction(e -> convert_UTF8withoutBOM_to_UTF8withBOM());
+
         menu = new Menu("CharSet");
         menu.setId("convertCharSetMenu");
         menu.setVisible(false);
+        menu.getItems().addAll(convertUTF8withoutBOMtoUTF8withBOMMenuItem);
+
         return menu;
+    }
+
+    private void convert_UTF8withoutBOM_to_UTF8withBOM() {
+        ArrayList<String> files = new ArrayList<>();
+        for (var item : tableView.getItems()) {
+            if (item.encodingProperty().get().equals("UTF-8")) {
+                files.add(item.getFileName());
+            }
+        }
+
+        ConvertCharSetDialog dialog = new ConvertCharSetDialog(files);
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (!result.isPresent() || result.get() == ButtonType.CANCEL) {
+            return;
+        }
+
+        try {
+            for (var item : tableView.getItems()) {
+                Path path = Paths.get(item.getRepositoryData().getPath().toString(), item.getFileName());
+                ConvertUtf8WithoutBomToUtf8WithBom converter = new ConvertUtf8WithoutBomToUtf8WithBom(path);
+                converter.convert();
+            }
+        } catch (IOException ex) {
+            errorLogWindow.appendException(ex);
+        }
+        refreshAll();
     }
 
     @Override
@@ -310,28 +342,8 @@ public class CharSetPane implements BaseGitPane {
     }
 
     private String detectCharset(String fileName) {
-        try ( FileInputStream file = new FileInputStream(fileName);  BufferedInputStream input = new BufferedInputStream(file);  BOMInputStream bomIn = new BOMInputStream(input)) {
-            boolean hasBom = bomIn.hasBOM();
-
-            UniversalDetector detector = new UniversalDetector(null);
-
-            int nread;
-            byte[] buf = new byte[1024];
-            while ((nread = bomIn.read(buf)) > 0 && !detector.isDone()) {
-                detector.handleData(buf, 0, nread);
-            }
-            detector.dataEnd();
-
-            String encoding = detector.getDetectedCharset();
-            if (encoding != null) {
-                if (hasBom) {
-                    return encoding + " with BOM";
-                } else {
-                    return encoding;
-                }
-            } else {
-                return "ASCII text";
-            }
+        try {
+            return m_detectCharset.detect(fileName);
         } catch (FileNotFoundException ex) {
             errorLogWindow.appendException(ex);
             return "Fiel not found.";
