@@ -296,12 +296,16 @@ public class CharSetPane implements BaseGitPane {
 
     @Override
     public void refreshChecked() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for (var repositoryData : repositories.getChecked()) {
+            refreshCommon(repositoryData);
+        }
     }
 
     @Override
     public void refreshSelected() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        for (var repositoryData : repositories.getSelected()) {
+            refreshCommon(repositoryData);
+        }
     }
 
     private void refreshCommon(RepositoryData repositoryData) {
