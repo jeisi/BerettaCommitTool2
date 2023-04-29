@@ -20,6 +20,7 @@ import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoryData;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -185,12 +186,15 @@ public class GitBranchPane implements BaseGitPane {
     }
 
     private void onChangedFileter() {
+        int i = 0;
         for (var column : tableView.getColumns()) {
             if ("Repository".equals(column.getId()) || "Current Branch".equals(column.getId())) {
                 continue;
             }
+            System.out.println(String.format("%d: %s", i, column));
             boolean isVisible = filteredBranchNames.contains(column.getId());
             column.setVisible(isVisible);
+            ++i;
         }
     }
 
@@ -315,13 +319,14 @@ public class GitBranchPane implements BaseGitPane {
             item.get().getOtherBranches().forEach(branch -> otherBranches.add(branch.get()));
             item.get().getRemoteBranches().forEach(branch -> remoteBranches.add(branch.get()));
         });
-        //XmlWriter.writeObject("otherBranches", otherBranches);
 
         Platform.runLater(() -> {
             otherBranches.forEach(branch -> addBranchColumn(branch));
             remoteBranches.forEach(branch -> addBranchColumn(branch));
         });
-        //XmlWriter.writeEndMethod();
+        ArrayList branches = new ArrayList(otherBranches);
+        branches.addAll(remoteBranches);
+        branchNames.addAll(branches);
     }
 
     private void addBranchColumn(String branch) {
@@ -333,7 +338,7 @@ public class GitBranchPane implements BaseGitPane {
         otherBranchTableColumn.setCellValueFactory(p -> p.getValue().get().branchProperty(branch));
         tableView.getColumns().add(otherBranchTableColumn);
 
-        branchNames.add(branch);
+        //branchNames.add(branch);
     }
 
     private void updateSituationSelectors() {
