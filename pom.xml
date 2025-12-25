@@ -13,7 +13,7 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>13</version>
+            <version>21.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
@@ -102,7 +102,14 @@
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.4</version>
+                <version>0.0.8</version>
+                <configuration>
+                    <mainClass>com.xrea.jeisi.berettacommittool2.App</mainClass>
+                    <options>
+                        <option>-Dprism.text=t2k</option>
+                        <option>-Dprism.lcdtext=false</option>
+                    </options>
+                </configuration>
                 <!--
                 <configuration>
                     <mainClass>com.xrea.jeisi.berettacommittool2.App</mainClass>
