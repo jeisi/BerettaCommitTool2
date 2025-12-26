@@ -143,7 +143,6 @@ public class SetUpWizard /*extends Stage*/ {
     }
 
     private void enableButtons() {
-        XmlWriter.writeStartMethod("SetUpWizard.enableButtons()");
         if (currentPage == 0) {
             backButton.setDisable(true);
         } else {
@@ -151,12 +150,9 @@ public class SetUpWizard /*extends Stage*/ {
         }
         if (currentPage == nodes.size() - 1) {
             nextButton.setText("Finish");
-            XmlWriter.writeStatement("nextButton.setText(\"Finish\")");
         } else {
             nextButton.setText("Next");
-            XmlWriter.writeStartMethod("nextButton.setText(\"Next\")");
         }
-        XmlWriter.writeEndMethod();
     }
     
     Stage getStage() {
