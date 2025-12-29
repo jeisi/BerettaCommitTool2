@@ -6,8 +6,10 @@
 package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
 import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -26,8 +28,8 @@ import javafx.stage.Stage;
 public abstract class BaseLogWindow {
 
     protected final ConfigInfo configInfo;
-    private final StyleManager styleManager;
-    protected Stage stage;
+    //private final StyleManager styleManager;
+    protected StageEx stage;
     protected TextArea textArea;
 
     public void appendText(String text) {
@@ -48,43 +50,20 @@ public abstract class BaseLogWindow {
     
     protected BaseLogWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        this.styleManager = new StyleManager(configInfo);
+        //this.styleManager = new StyleManager(configInfo);
     }
 
     private void open() {
         String identifier = getIdentifier();
 
-//        WindowRectangle windowRectangle = null;
-//        if (configInfo != null) {
-//            windowRectangle = configInfo.getWindowRectangle(identifier);
-//        }
-//
-//        stage = new Stage();
-//        double width, height;
-//        if (windowRectangle != null) {
-//            stage.setX(windowRectangle.getX());
-//            stage.setY(windowRectangle.getY());
-//            width = windowRectangle.getWidth();
-//            height = windowRectangle.getHeight();
-//        } else {
-//            width = 640;
-//            height = 480;
-//        }
-        stage = new Stage();
+        stage = new StageEx(identifier);
 
-        //Scene scene = new Scene(build(), width, height);
-        Scene scene = StageSizeManager.build(stage, configInfo, build(), identifier, 320, 240);
+        StageManager stageManager = new WindowStageManager();
+        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, identifier, 320, 240);
+        Scene scene = stageManager.buildScene(build(), windowRectangle);
         stage.setScene(scene);
         stage.setTitle(getTitle());
-        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
-            if (oldValue == true && newValue == false) {
-                configInfo.setWindowRectangle(identifier, stage.getX(), stage.getY(), stage.getScene().getWidth(), stage.getScene().getHeight());
-                stage = null;
-            }
-        });
-
-        styleManager.setStage(stage);
-        stage.show();
+        stageManager.open(stage, windowRectangle, configInfo);
     }
 
     public void close() {

@@ -128,10 +128,11 @@ public class GitCommitWindowTestCommitMessageHistory {
         ComboBox<String> summaryComboBox = robot.lookup("#GitCommitPaneSummaryComboBox").queryAs(ComboBox.class);
         assertEquals("[den, ali, bob, car]", summaryComboBox.getItems().toString());
 
-        app.setX(151);
-        app.setY(213);
-        app.setWidth(397);
-        app.setHeight(432);
+        Stage stage = app.getStage();
+        stage.setX(151);
+        stage.setY(213);
+        stage.setWidth(397);
+        stage.setHeight(432);
         JTestUtility.waitForRunLater();
         
         robot.push(KeyCode.ALT, KeyCode.F4);

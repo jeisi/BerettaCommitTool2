@@ -6,7 +6,10 @@
 package com.xrea.jeisi.berettacommittool2.progresswindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -18,27 +21,28 @@ import javafx.stage.Stage;
  *
  * @author jeisi
  */
-public class ProgressWindow extends Stage implements CompleteListener {
+public class ProgressWindow extends StageEx implements CompleteListener {
 
     private ListView<ProgressModel> listView;
     private boolean created = false;
     private final ConfigInfo configInfo;
-    private final StyleManager styleManager;
+    //private final StyleManager styleManager;
 
     public ProgressWindow(ConfigInfo configInfo) {
+        super("progresswindow");
         this.configInfo = configInfo;
-        this.styleManager = new StyleManager(configInfo);
+        //this.styleManager = new StyleManager(configInfo);
     }
     
     public void open() {
         if (!created) {
-            Scene scene = StageSizeManager.build(this, configInfo, build(), "progresswindow", 480, 320);            
-            //Scene scene = new Scene(build(), 480, 320);
-            Stage stage = this;
+            StageManager stageManager = new WindowStageManager();
+            WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getIdentifier(), 480, 320);
+            Scene scene = stageManager.buildScene(build(), windowRectangle);
+            StageEx stage = this;
             stage.setScene(scene);
             stage.setTitle("Progress Window");
-            styleManager.setStage(stage);
-            stage.show();
+            stageManager.open(stage, windowRectangle, configInfo);
             created = true;
         } else {
             show();

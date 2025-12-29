@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 public class StyleManager {
 
     private final ConfigInfo configInfo;
+    private String styleExternalForm;
     private Parent rootNode;
     private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
         if(newValue != null) {
@@ -29,6 +30,7 @@ public class StyleManager {
 
     public StyleManager(ConfigInfo configInfo) {
         this.configInfo = configInfo;
+        this.styleExternalForm = getClass().getResource("/style.css").toExternalForm();
     }
 
     public void setStage(Stage stage) {
@@ -41,6 +43,8 @@ public class StyleManager {
     }
 
     public void styleDialog(DialogPane pane) {
+        pane.getStylesheets().add(styleExternalForm);
+
         var fontSize = configInfo.getFontSize();
         if (fontSize != null) {
             pane.setStyle(String.format("-fx-font-size: %spx;", fontSize));
@@ -48,6 +52,8 @@ public class StyleManager {
     }
 
     private void setRoot(Parent root) {
+        root.getStylesheets().add(styleExternalForm);
+
         rootNode = root;
         var fontSize = configInfo.getFontSize();
         if (fontSize != null) {

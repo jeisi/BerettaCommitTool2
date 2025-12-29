@@ -6,7 +6,10 @@
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.stagemanager.DialogStageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import java.util.Optional;
 import javafx.scene.Parent;
@@ -22,28 +25,29 @@ import javafx.stage.Stage;
 public class SelectWorkDialog2 {
 
     private final ConfigInfo configInfo;
-    private final Stage stage;
+    private final StageEx stage;
     private final SelectWorkPane2 selectWorkPane;
-    private final StyleManager styleManager;
+    //private final StyleManager styleManager;
 
     public SelectWorkDialog2(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        this.stage = new Stage();
+        this.stage = new StageEx(getWindowIdentifier());
         this.selectWorkPane = new SelectWorkPane2(stage, configInfo);
-        this.styleManager = new StyleManager(configInfo);
+        //this.styleManager = new StyleManager(configInfo);
     }
 
     public Optional<ButtonType> showAndWait() {
         selectWorkPane.addEventHandler((e) -> stage.close());
 
-        Scene scene = StageSizeManager.build(stage, configInfo, build(), getWindowIdentifier(), 640, 400);
+        StageManager stageManager = new DialogStageManager();
+        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getWindowIdentifier(), 640, 480);
+        Scene scene = stageManager.buildScene(build(), windowRectangle);
         stage.setScene(scene);
         stage.setTitle("Select working directory");
         //selectWorkPane.requestFocus();
 
-        styleManager.setStage(stage);
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.showAndWait();
+        stageManager.open(stage, windowRectangle, configInfo);
 
         return selectWorkPane.getResult();
     }

@@ -1027,6 +1027,7 @@ public class GitStatusPane implements BaseGitPane {
     private void gitCheckoutHyphen() {
         Alert alert = new Alert(AlertType.CONFIRMATION, "ローカルの作業内容を破棄します。\nよろしいですか？", ButtonType.YES, ButtonType.NO);
         alert.setHeaderText(null);
+        configInfo.getMainApp().getStyleManager().styleDialog(alert.getDialogPane());
         Optional<ButtonType> result = alert.showAndWait();
         if (!result.isPresent() || result.get() == ButtonType.NO) {
             return;

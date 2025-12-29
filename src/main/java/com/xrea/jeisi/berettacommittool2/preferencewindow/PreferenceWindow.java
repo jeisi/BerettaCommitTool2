@@ -6,7 +6,10 @@
 package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
+import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -18,13 +21,11 @@ import javafx.stage.Stage;
 public class PreferenceWindow {
 
     private final ConfigInfo configInfo;
-    private final StyleManager styleManager;
     private PreferencePane pane;
-    private Stage stage;
+    private StageEx stage;
 
     public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        styleManager = new StyleManager(configInfo);
     }
     
     public void open() {
@@ -36,26 +37,13 @@ public class PreferenceWindow {
             stage.requestFocus();
             return;
         }
-        
-        stage = new Stage();
+
+        stage = new StageEx(getWindowIdentifier());
         pane = new PreferencePane(stage, configInfo, defaultTab);
 
-        /*
-        var windowRectangle = configInfo != null ? configInfo.getWindowRectangle(getWindowIdentifier()) : null;
-        double width, height;
-        if (windowRectangle != null) {
-            stage.setX(windowRectangle.getX());
-            stage.setY(windowRectangle.getY());
-            width = windowRectangle.getWidth();
-            height = windowRectangle.getHeight();
-        } else {
-            width = 640;
-            height = 480;
-        }
-        */
-
-        //Scene scene = new Scene(pane.build(), width, height);
-        Scene scene = StageSizeManager.build(stage, configInfo, pane.build(), getWindowIdentifier(), 640, 480);
+        StageManager stageManager = new WindowStageManager();
+        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getWindowIdentifier(), 640, 480);
+        Scene scene = stageManager.buildScene(pane.build(), windowRectangle);
         stage.setScene(scene);
         stage.setTitle("Preference");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -67,9 +55,8 @@ public class PreferenceWindow {
         });
 
         pane.addEventHandler((e) -> stage.close());
-        styleManager.setStage(stage);
-        
-        stage.show();
+
+        stageManager.open(stage, windowRectangle, configInfo);
     }
     
     public void close() {

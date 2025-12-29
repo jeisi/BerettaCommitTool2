@@ -49,6 +49,6 @@ public class GitCommitWindowTestCommit {
         robot.clickOn("#GitCommitPaneCommitButton");
         JTestUtility.waitForRunLater();
 
-        assertFalse(app.isShowing());
+        assertFalse(app.getStage().isShowing());
     }
 }

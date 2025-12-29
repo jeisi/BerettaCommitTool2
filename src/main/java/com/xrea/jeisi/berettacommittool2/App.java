@@ -1,11 +1,11 @@
 package com.xrea.jeisi.berettacommittool2;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
 import com.xrea.jeisi.berettacommittool2.basegitpane.RefreshListener;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageSizeManager;
 import com.xrea.jeisi.berettacommittool2.convertcharset.CharSetPane;
 import com.xrea.jeisi.berettacommittool2.exception.GitConfigException;
 import com.xrea.jeisi.berettacommittool2.gitbranchpane.GitBranchPane;
@@ -18,6 +18,8 @@ import com.xrea.jeisi.berettacommittool2.repositoriesinfo.RepositoriesInfo;
 import com.xrea.jeisi.berettacommittool2.repositoriespane.RepositoriesPane;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.RepositoriesLoader;
 import com.xrea.jeisi.berettacommittool2.selectworkpane.SelectWorkDialog2;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.targetrepositorypane.TargetRepositoryPane;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.LogWriter;
@@ -84,7 +86,7 @@ public class App extends Application implements RefreshListener {
 
         mainStage = stage;
         loadConfig();
-        var scene = buildScene(stage);
+        var scene = buildScene();
         stage.setScene(scene);
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue == true && newValue == false) {
@@ -166,7 +168,7 @@ public class App extends Application implements RefreshListener {
         pane.setActive(true);
     }
 
-    Scene buildScene(Stage stage) {
+    Scene buildScene() {
         gitStatusPane = new GitStatusPane(configInfo);
 
         gitPanes = new ArrayList<>();
@@ -231,20 +233,9 @@ public class App extends Application implements RefreshListener {
         borderPane.setTop(topPane);
         borderPane.setCenter(bodyBorderPane);
 
-        /*
-        var windowRectangle = configInfo.getWindowRectangle("main");
-        double width, height;
-        if (windowRectangle != null) {
-            mainStage.setX(windowRectangle.getX());
-            mainStage.setY(windowRectangle.getY());
-            width = windowRectangle.getWidth();
-            height = windowRectangle.getHeight();
-        } else {
-            width = 640;
-            height = 480;
-        }
-         */
-        return StageSizeManager.build(mainStage, configInfo, borderPane, "main", 640, 480);
+        StageManager stageManager = new WindowStageManager();
+        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, "main", 640, 480);
+        return stageManager.buildScene(borderPane, windowRectangle);
     }
 
     private Menu buildMenu() {
@@ -395,6 +386,9 @@ public class App extends Application implements RefreshListener {
 
     public Stage getStage() {
         return mainStage;
+    }
+    public StyleManager getStyleManager() {
+        return styleManager;
     }
 
     public static void main(String[] args) {
