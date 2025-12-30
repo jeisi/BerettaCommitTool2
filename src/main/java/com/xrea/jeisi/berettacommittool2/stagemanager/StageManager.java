@@ -67,7 +67,7 @@ public abstract class StageManager {
         // ウィンドウが閉じたときに呼び出される listener をセット。
         stage.showingProperty().addListener(listener);
 
-        StyleManager styleManager = configInfo.getMainApp().getStyleManager();
+        StyleManager styleManager = new StyleManager(configInfo);
         styleManager.setStage(stage);
 
         if(windowRectangle.isValidXY()) {
