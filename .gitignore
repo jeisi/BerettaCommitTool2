@@ -1,4 +1,5 @@
 *~
 src/test/resources/work
 target/
+.idea/
 
