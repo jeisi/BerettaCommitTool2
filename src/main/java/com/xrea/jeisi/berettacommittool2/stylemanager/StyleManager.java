@@ -11,6 +11,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 
+import java.util.Objects;
+
 /**
  *
  * @author jeisi
@@ -18,10 +20,12 @@ import javafx.stage.Stage;
 public class StyleManager {
 
     private final ConfigInfo configInfo;
-    private String styleExternalForm;
+    private final String styleExternalForm;
     private Parent rootNode;
     private final ChangeListener<String> fontSizeChangeListener = (observable, oldValue, newValue) -> {
-        if(newValue != null) {
+        if(Objects.equals(newValue, ConfigInfo.SYSTEM_FONT_SIZE_TEXT)) {
+            rootNode.setStyle(null);
+        } else if(newValue != null) {
             rootNode.setStyle(String.format("-fx-font-size: %spx;", newValue));
         } else {
             rootNode.setStyle(null);

@@ -39,6 +39,8 @@ public class ConfigInfo {
     private App mainApp;
     private VersionInfo gitVersionInfo;
 
+    public static final String SYSTEM_FONT_SIZE_TEXT = "System size";
+
     public ConfigInfo() {
         configFile = Paths.get(System.getProperty("user.home"), ".BerettaCommitTool2", "config.yaml");
     }
