@@ -1,7 +1,6 @@
 package com.xrea.jeisi.berettacommittool2;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.errorlogwindow.ErrorLogWindow;
 import com.xrea.jeisi.berettacommittool2.execreator.ExeCreator;
 import com.xrea.jeisi.berettacommittool2.basegitpane.BaseGitPane;
@@ -32,7 +31,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -86,19 +85,21 @@ public class App extends Application implements RefreshListener {
 
         mainStage = stage;
         loadConfig();
-        var scene = buildScene();
-        stage.setScene(scene);
-        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
-            if (oldValue == true && newValue == false) {
-                close();
+        StageManager stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 640, 480) {
+            @Override
+            public void onClosed() {
+                doClosed();
             }
-        });
+        };
+        var scene = stageManager.buildScene(build());
+        //var scene = buildScene();
+        stage.setScene(scene);
         stage.setTitle(getBaseTitle());
 
         setupRepositoriesInfo();
 
         var directoryHistory = configInfo.getDirectoryHistory();
-        if (directoryHistory != null && directoryHistory.size() > 0) {
+        if (directoryHistory != null && !directoryHistory.isEmpty()) {
             setRootDirectory(directoryHistory.get(0));
         }
 
@@ -108,8 +109,9 @@ public class App extends Application implements RefreshListener {
             errorLogWindow.appendException(ex);
         }
 
-        styleManager.setStage(stage);
-        stage.show();
+        //styleManager.setStage(mainStage);
+        //stage.show();
+        stageManager.open(mainStage);
 
         try {
             GitVersion gitVersion = new GitVersion(configInfo);
@@ -119,7 +121,7 @@ public class App extends Application implements RefreshListener {
         }
     }
 
-    void close() {
+    void doClosed() {
         preferenceWindow.close();
         saveConfig();
         gitPanes.forEach(e -> e.close());
@@ -168,7 +170,7 @@ public class App extends Application implements RefreshListener {
         pane.setActive(true);
     }
 
-    Scene buildScene() {
+    Parent build() {
         gitStatusPane = new GitStatusPane(configInfo);
 
         gitPanes = new ArrayList<>();
@@ -233,9 +235,7 @@ public class App extends Application implements RefreshListener {
         borderPane.setTop(topPane);
         borderPane.setCenter(bodyBorderPane);
 
-        StageManager stageManager = new WindowStageManager();
-        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, "main", 640, 480);
-        return stageManager.buildScene(borderPane, windowRectangle);
+        return borderPane;
     }
 
     private Menu buildMenu() {
@@ -384,9 +384,14 @@ public class App extends Application implements RefreshListener {
         pane.refreshSelected();;
     }
 
+    private final String getWindowIdentifier() {
+        return "main";
+    }
+
     public Stage getStage() {
         return mainStage;
     }
+
     public StyleManager getStyleManager() {
         return styleManager;
     }

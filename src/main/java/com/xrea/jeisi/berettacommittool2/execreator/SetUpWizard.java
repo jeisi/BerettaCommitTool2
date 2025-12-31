@@ -6,6 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.execreator;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
+import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
+import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import java.util.ArrayList;
@@ -69,7 +71,8 @@ public class SetUpWizard /*extends Stage*/ {
             nodes.add(buildNode(program));
         }
 
-        Scene scene = new Scene(build());
+        StageManager stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 640, 480);
+        Scene scene = stageManager.buildScene(build());
         stage = new Stage();
         stage.setScene(scene);
         stage.setTitle("Set up programs wizard");
@@ -157,5 +160,9 @@ public class SetUpWizard /*extends Stage*/ {
     
     Stage getStage() {
         return stage;
+    }
+
+    private final String getWindowIdentifier() {
+        return "setupwizard";
     }
 }

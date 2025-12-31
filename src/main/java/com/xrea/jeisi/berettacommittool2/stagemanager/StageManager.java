@@ -1,12 +1,10 @@
 package com.xrea.jeisi.berettacommittool2.stagemanager;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
 import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
@@ -17,8 +15,18 @@ import java.util.function.Consumer;
 
 public abstract class StageManager {
     protected double x0, x1, y0, y1;
+    protected final WindowRectangle windowRectangle;
+    protected final ConfigInfo configInfo;
+    protected final String identifier;
+    protected Stage stage = null;
 
-    public Scene buildScene(Parent parent, WindowRectangle windowRectangle) {
+    StageManager(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight) {
+        this.configInfo = configInfo;
+        this.identifier = identifier;
+        this.windowRectangle = getWindowRectangle(configInfo, identifier, defaultWidth, defaultHeight);
+    }
+
+    public Scene buildScene(Parent parent) {
         double width = windowRectangle.getWidth();
         double height = windowRectangle.getHeight();
         ((Region)parent).setPrefSize(width, height);
@@ -47,7 +55,7 @@ public abstract class StageManager {
         }
     }
 
-    protected WindowRectangle getWindowRectangle(double x, double y, double width, double height) {
+    protected WindowRectangle ClampWindowRectangle(double x, double y, double width, double height) {
         if (x < x0) {
             x = x0;
         }
@@ -63,7 +71,9 @@ public abstract class StageManager {
         return new WindowRectangle(x, y, width, height);
     }
 
-    protected void doShowStage(final StageEx stage, WindowRectangle windowRectangle, ConfigInfo configInfo, Consumer<StageEx> processor, ChangeListener<Boolean> listener) {
+    protected void doShowStage(final Stage stage, Consumer<Stage> processor, ChangeListener<Boolean> listener) {
+        this.stage = stage;
+
         // ウィンドウが閉じたときに呼び出される listener をセット。
         stage.showingProperty().addListener(listener);
 
@@ -84,8 +94,20 @@ public abstract class StageManager {
         Platform.runLater(stage::sizeToScene);
     }
 
-    public abstract void open(StageEx stage, WindowRectangle windowRectangle, ConfigInfo configInfo);
-    public abstract WindowRectangle getWindowRectangle(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight);
-    //protected abstract ChangeListener<Boolean> getShowingChangeListener(StageEx stage, WindowRectangle windowRectangle, ConfigInfo configInfo);
+    ConfigInfo getConfigInfo() {
+        return configInfo;
+    }
 
+    Stage getStage() {
+        return stage;
+    }
+
+    String getIdentifier() {
+        return identifier;
+    }
+
+    public void onClosed() {}
+
+    public abstract void open(Stage stage);
+    protected abstract WindowRectangle getWindowRectangle(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight);
 }

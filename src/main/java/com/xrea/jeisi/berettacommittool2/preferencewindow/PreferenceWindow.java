@@ -6,11 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.preferencewindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
 import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
-import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -22,7 +19,7 @@ public class PreferenceWindow {
 
     private final ConfigInfo configInfo;
     private PreferencePane pane;
-    private StageEx stage;
+    private Stage stage;
 
     public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -38,12 +35,11 @@ public class PreferenceWindow {
             return;
         }
 
-        stage = new StageEx(getWindowIdentifier());
+        stage = new Stage();
         pane = new PreferencePane(stage, configInfo, defaultTab);
 
-        StageManager stageManager = new WindowStageManager();
-        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getWindowIdentifier(), 640, 480);
-        Scene scene = stageManager.buildScene(pane.build(), windowRectangle);
+        StageManager stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 640, 480);
+        Scene scene = stageManager.buildScene(pane.build());
         stage.setScene(scene);
         stage.setTitle("Preference");
         stage.showingProperty().addListener((observable, oldValue, newValue) -> {
@@ -56,7 +52,7 @@ public class PreferenceWindow {
 
         pane.addEventHandler((e) -> stage.close());
 
-        stageManager.open(stage, windowRectangle, configInfo);
+        stageManager.open(stage);
     }
     
     public void close() {

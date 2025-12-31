@@ -6,11 +6,9 @@
 package com.xrea.jeisi.berettacommittool2.selectworkpane;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.stagemanager.DialogStageManager;
 import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
-import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
+
 import java.util.Optional;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -25,13 +23,13 @@ import javafx.stage.Stage;
 public class SelectWorkDialog2 {
 
     private final ConfigInfo configInfo;
-    private final StageEx stage;
+    private final Stage stage;
     private final SelectWorkPane2 selectWorkPane;
     //private final StyleManager styleManager;
 
     public SelectWorkDialog2(ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        this.stage = new StageEx(getWindowIdentifier());
+        this.stage = new Stage();
         this.selectWorkPane = new SelectWorkPane2(stage, configInfo);
         //this.styleManager = new StyleManager(configInfo);
     }
@@ -39,15 +37,14 @@ public class SelectWorkDialog2 {
     public Optional<ButtonType> showAndWait() {
         selectWorkPane.addEventHandler((e) -> stage.close());
 
-        StageManager stageManager = new DialogStageManager();
-        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getWindowIdentifier(), 640, 480);
-        Scene scene = stageManager.buildScene(build(), windowRectangle);
+        StageManager stageManager = new DialogStageManager(configInfo, getWindowIdentifier(), 640, 480);
+        Scene scene = stageManager.buildScene(build());
         stage.setScene(scene);
         stage.setTitle("Select working directory");
         //selectWorkPane.requestFocus();
 
         stage.initModality(Modality.APPLICATION_MODAL);
-        stageManager.open(stage, windowRectangle, configInfo);
+        stageManager.open(stage);
 
         return selectWorkPane.getResult();
     }

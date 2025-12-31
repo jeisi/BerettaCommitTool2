@@ -6,12 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.gitcommitwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.stagemanager.ChildWindowStageManager;
 import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
-import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
-import com.xrea.jeisi.berettacommittool2.xmlwriter.XmlWriter;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,38 +25,32 @@ public class GitCommitWindow {
     private final GitCommitPane gitCommitPane;
     private final ConfigInfo configInfo;
     //private final StyleManager styleManager;
-    private final StageEx stage;
+    private final Stage stage;
 
     public GitCommitWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
         //this.styleManager = new StyleManager(configInfo);
         this.gitCommitPane = new GitCommitPane(configInfo, configInfo.getMainApp().getStyleManager());
-        this.stage = new StageEx(getWindowIdentifier()) {
-            @Override
-            public void onClose() {
-                gitCommitPane.close();
-            }
-        };
+        this.stage = new Stage();
     }
 
     public void open() {
-        StageManager stageManager = new ChildWindowStageManager();
-        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, getWindowIdentifier(), 640, 480);
-        Scene scene = stageManager.buildScene(build(), windowRectangle);
+        StageManager stageManager = new ChildWindowStageManager(configInfo, getWindowIdentifier(), 640, 480) {
+            @Override
+            public void onClosed() {
+                gitCommitPane.close();
+            }
+        };
+        Scene scene = stageManager.buildScene(build());
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), () -> gitCommitPane.commit());
         stage.setScene(scene);
         stage.setTitle("Commit");
-//        stage.showingProperty().addListener((observable, oldValue, newValue) -> {
-//            if (oldValue == true && newValue == false) {
-//                gitCommitPane.close();
-//            }
-//        });
 
         gitCommitPane.addEventHandler((e) -> close());
 
         //styleManager.setStage(stage);
         //stage.show();
-        stageManager.open(stage, windowRectangle, configInfo);
+        stageManager.open(stage);
 
         gitCommitPane.requestDefaultFocus();
     }
@@ -77,7 +67,7 @@ public class GitCommitWindow {
         return stage.showingProperty();
     }
 
-    StageEx getStage() {
+    Stage getStage() {
         return stage;
     }
 

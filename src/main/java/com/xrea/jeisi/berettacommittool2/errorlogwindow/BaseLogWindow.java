@@ -6,11 +6,8 @@
 package com.xrea.jeisi.berettacommittool2.errorlogwindow;
 
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
-import com.xrea.jeisi.berettacommittool2.configinfo.StageEx;
-import com.xrea.jeisi.berettacommittool2.configinfo.WindowRectangle;
 import com.xrea.jeisi.berettacommittool2.stagemanager.StageManager;
 import com.xrea.jeisi.berettacommittool2.stagemanager.WindowStageManager;
-import com.xrea.jeisi.berettacommittool2.stylemanager.StyleManager;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
@@ -29,7 +26,7 @@ public abstract class BaseLogWindow {
 
     protected final ConfigInfo configInfo;
     //private final StyleManager styleManager;
-    protected StageEx stage;
+    protected Stage stage;
     protected TextArea textArea;
 
     public void appendText(String text) {
@@ -56,14 +53,13 @@ public abstract class BaseLogWindow {
     private void open() {
         String identifier = getIdentifier();
 
-        stage = new StageEx(identifier);
+        stage = new Stage();
 
-        StageManager stageManager = new WindowStageManager();
-        WindowRectangle windowRectangle = stageManager.getWindowRectangle(configInfo, identifier, 320, 240);
-        Scene scene = stageManager.buildScene(build(), windowRectangle);
+        StageManager stageManager = new WindowStageManager(configInfo, identifier, 320, 240);
+        Scene scene = stageManager.buildScene(build());
         stage.setScene(scene);
         stage.setTitle(getTitle());
-        stageManager.open(stage, windowRectangle, configInfo);
+        stageManager.open(stage);
     }
 
     public void close() {
