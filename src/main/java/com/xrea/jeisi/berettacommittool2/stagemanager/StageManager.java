@@ -81,8 +81,15 @@ public abstract class StageManager {
         StyleManager styleManager = new StyleManager(configInfo);
         styleManager.setStage(stage);
 
+        if(windowRectangle.isValidXY()) {
+            stage.setX(windowRectangle.getX());
+            stage.setY(windowRectangle.getY());
+        }
+
         stage.setWidth(windowRectangle.getWidth());
         stage.setHeight(windowRectangle.getHeight());
+
+        stage.sizeToScene();
 
         // stage.show() or stage.showAndWait() を実行
         processor.accept(stage);
