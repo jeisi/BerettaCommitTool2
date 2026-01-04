@@ -45,9 +45,9 @@ public class FontTabWithoutFontSizeTest {
     }
     
     @Test
-    // ConfigInfo で FontSize が指定されていなければ、デフォルトでは何も選択されていない状態になる。
+    // ConfigInfo で FontSize が指定されていなければ、デフォルトでは 0 番目の "System size" が選択された状態になっている
     public void test(FxRobot robot) throws InterruptedException {
         ListView<String> listView = robot.lookup("#FontTabFontSizeListView").queryAs(ListView.class);
-        assertEquals("[]", listView.getSelectionModel().getSelectedIndices().toString());
+        assertEquals("[0]", listView.getSelectionModel().getSelectedIndices().toString());
     }
 }
