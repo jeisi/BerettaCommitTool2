@@ -8,7 +8,6 @@ package com.xrea.jeisi.berettacommittool2.progresswindow;
 import com.xrea.jeisi.berettacommittool2.JTestUtility;
 import com.xrea.jeisi.berettacommittool2.configinfo.ConfigInfo;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterEach;
@@ -41,7 +40,7 @@ public class ProgressWindowTest {
 
     @AfterEach
     public void tearDown() {
-        Platform.runLater(() -> app.close());
+        Platform.runLater(() -> app.getStage().close());
     }
 
     @Test
@@ -60,7 +59,7 @@ public class ProgressWindowTest {
         assertEquals(0, listView.getItems().size());
 
         // 項目数が 0 なら、ProgressWindow は非表示。
-        assertFalse(app.isShowing());
+        assertFalse(app.getStage().isShowing());
 
         Thread.sleep(1000);
 
@@ -72,7 +71,7 @@ public class ProgressWindowTest {
         JTestUtility.waitForRunLater();
 
         // 一旦 hide になったものを再度表示。
-        assertTrue(app.isShowing());
+        assertTrue(app.getStage().isShowing());
 
         for (int value = 10; value <= 50; value += 10) {
             Thread.sleep(100);

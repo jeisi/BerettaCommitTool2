@@ -29,7 +29,7 @@ public class ProgressWindow implements CompleteListener {
         this.configInfo = configInfo;
         //this.styleManager = new StyleManager(configInfo);
     }
-    
+
     public void open() {
         if (!created) {
             StageManager stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 480, 320);
@@ -79,5 +79,10 @@ public class ProgressWindow implements CompleteListener {
 
     private String getWindowIdentifier() {
         return "progresswindow";
+    }
+
+    // for Test
+    Stage getStage() {
+        return stage;
     }
 }
