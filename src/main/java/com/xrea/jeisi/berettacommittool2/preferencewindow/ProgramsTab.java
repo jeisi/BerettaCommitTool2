@@ -70,7 +70,6 @@ public class ProgramsTab extends Tab implements BaseTab {
         var programs = configInfo.getPrograms();
         for (int y = 0; y < programs.size(); ++y) {
             var p = programs.get(y);
-            XmlWriter.writeObject("p", p);
             buildRow(gridPane, y, p.getKey(), p.getValue());
         }
 
