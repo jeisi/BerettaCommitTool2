@@ -19,6 +19,7 @@ public abstract class StageManager {
     protected final ConfigInfo configInfo;
     protected final String identifier;
     protected Stage stage = null;
+    private boolean isCompleteShow = false; // ウィンドウサイズの変更も含めて、表示のすべてが完了したかどうか。
 
     StageManager(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight) {
         this.configInfo = configInfo;
@@ -80,10 +81,6 @@ public abstract class StageManager {
         StyleManager styleManager = new StyleManager(configInfo);
         styleManager.setStage(stage);
 
-        if(windowRectangle.isValidXY()) {
-            stage.setX(windowRectangle.getX());
-            stage.setY(windowRectangle.getY());
-        }
         stage.setWidth(windowRectangle.getWidth());
         stage.setHeight(windowRectangle.getHeight());
 
@@ -91,9 +88,22 @@ public abstract class StageManager {
         processor.accept(stage);
 
         // 枠を含めたサイズに再補正
-        Platform.runLater(stage::sizeToScene);
+        Platform.runLater(() -> {
+            if(windowRectangle.isValidXY()) {
+                stage.setX(windowRectangle.getX());
+                stage.setY(windowRectangle.getY());
+            }
+            stage.sizeToScene();
+            isCompleteShow = true;
+        });
     }
 
+    public void onClosed() {}
+
+    public abstract void open(Stage stage);
+    protected abstract WindowRectangle getWindowRectangle(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight);
+
+    // for test
     ConfigInfo getConfigInfo() {
         return configInfo;
     }
@@ -106,8 +116,5 @@ public abstract class StageManager {
         return identifier;
     }
 
-    public void onClosed() {}
-
-    public abstract void open(Stage stage);
-    protected abstract WindowRectangle getWindowRectangle(ConfigInfo configInfo, String identifier, double defaultWidth, double defaultHeight);
+    public boolean isCompleteShow() { return isCompleteShow; }
 }

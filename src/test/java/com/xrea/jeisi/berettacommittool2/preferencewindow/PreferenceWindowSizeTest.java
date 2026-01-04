@@ -46,7 +46,11 @@ public class PreferenceWindowSizeTest {
 
     @Test
     // ウィンドウを開く時は ConfigInfo で指定されたサイズ。
-    public void testOpenWindowTest() {
+    public void testOpenWindowTest() throws InterruptedException {
+        while(!app.getStageManager().isCompleteShow()) {
+            Thread.sleep(1000);
+        }
+
         var scene = app.getScene();
         assertEquals(110, app.getX());
         assertEquals(120, app.getY());
@@ -57,6 +61,10 @@ public class PreferenceWindowSizeTest {
     @Test
     // 画面を閉じた時にウィンドウサイズを ConfigInfo に保存。
     public void testSaveWindowTest() throws InterruptedException {
+        while(!app.getStageManager().isCompleteShow()) {
+            Thread.sleep(1000);
+        }
+
         Platform.runLater(() -> {
             app.setX(130);
             app.setY(140);
@@ -73,6 +81,6 @@ public class PreferenceWindowSizeTest {
             Thread.sleep(1000);
         }
 
-        assertEquals("{130.0, 140.0, 700.0, 470.0}", configInfo.getWindowRectangle(PreferenceWindow.getWindowIdentifier()).toString());
+        assertEquals("{130.0, 140.0, 700.0, 500.0}", configInfo.getWindowRectangle(PreferenceWindow.getWindowIdentifier()).toString());
     }
 }

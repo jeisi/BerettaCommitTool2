@@ -20,6 +20,7 @@ public class PreferenceWindow {
     private final ConfigInfo configInfo;
     private PreferencePane pane;
     private Stage stage;
+    private StageManager stageManager;
 
     public PreferenceWindow(ConfigInfo configInfo) {
         this.configInfo = configInfo;
@@ -38,7 +39,7 @@ public class PreferenceWindow {
         stage = new Stage();
         pane = new PreferencePane(stage, configInfo, defaultTab);
 
-        StageManager stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 640, 480);
+        stageManager = new WindowStageManager(configInfo, getWindowIdentifier(), 640, 480);
         Scene scene = stageManager.buildScene(pane.build());
         stage.setScene(scene);
         stage.setTitle("Preference");
@@ -92,7 +93,7 @@ public class PreferenceWindow {
     }
     
     public boolean isShowing() {
-        return stage.isShowing();
+        return (stage != null) ? stage.isShowing() : false;
     }
 
     private void saveConfig() {
@@ -107,4 +108,7 @@ public class PreferenceWindow {
     static String getWindowIdentifier() {
         return "preferencewindow";
     }
+
+    // for Test
+    StageManager getStageManager() { return stageManager; }
 }
