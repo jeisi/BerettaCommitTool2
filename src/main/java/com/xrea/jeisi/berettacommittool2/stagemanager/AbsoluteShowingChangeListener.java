@@ -19,8 +19,8 @@ public class AbsoluteShowingChangeListener implements ShowingChangeListener {
                 Stage stage = stageManager.getStage();
                 ConfigInfo configInfo = stageManager.getConfigInfo();
                 Scene scene = stage.getScene();
-                //configInfo.setWindowRectangle(stageManager.getIdentifier(), stage.getX(), stage.getY(), scene.getWidth(), scene.getHeight());
-                configInfo.setWindowRectangle(stageManager.getIdentifier(), stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+                configInfo.setWindowRectangle(stageManager.getIdentifier(), stage.getX(), stage.getY(), scene.getWidth(), scene.getHeight());
+                //configInfo.setWindowRectangle(stageManager.getIdentifier(), stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
                 //stage = null;
                 stageManager.onClosed();
             }

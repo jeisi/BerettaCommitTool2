@@ -81,6 +81,8 @@ public class PreferenceWindowSizeTest {
             Thread.sleep(1000);
         }
 
-        assertEquals("{130.0, 140.0, 700.0, 500.0}", configInfo.getWindowRectangle(PreferenceWindow.getWindowIdentifier()).toString());
+        final double LINUX_HEADER_HEIGHT = 37.0f;
+        String expected = String.format("{%.1f, %.1f, %.1f, %.1f}", 130.0f, 140.0f, 700.0f, 500.0f - LINUX_HEADER_HEIGHT);
+        assertEquals(expected, configInfo.getWindowRectangle(PreferenceWindow.getWindowIdentifier()).toString());
     }
 }
